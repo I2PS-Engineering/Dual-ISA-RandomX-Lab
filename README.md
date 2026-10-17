@@ -24,6 +24,26 @@ It does **not** simulate CPU performance.
 
 **Do not use existing v0.3.x builds as if they implement the approved v0.4 flow.** Older prototypes have an offline benchmark; **the intended v0.4 product has no offline benchmark option**.
 
+## Install and update from GitHub
+
+The public Linux installer and version checker are now available as **reviewable text scripts** in this repository. There is **no approved binary stable release yet**, so the scripts will not install an application until one is published.
+
+- [Beginner guide: GitHub installation on existing Linux or after Windows-to-Ubuntu migration](docs/GITHUB_INSTALLATION.md)
+- [Official GitHub installer script](install_from_github.sh)
+- [Verified stable-release checker/updater](github_updates.py)
+- [Installation overview](docs/INSTALLATION.md)
+
+On Ubuntu/Debian, download the script (do not run an unseen one-liner) and review its plan:
+
+```bash
+curl -fL --proto '=https' --tlsv1.2 -o install_from_github.sh https://raw.githubusercontent.com/I2PS-Engineering/Dual-ISA-RandomX-Lab/main/install_from_github.sh
+bash install_from_github.sh --plan
+# After a stable release has been published:
+bash install_from_github.sh
+```
+
+GitHub updates are checked after application license acceptance; updating and mining remain separate user-controlled actions. The I2PS-owned app is not open source. Third-party XMRig remains GPLv3.
+
 ## Planned v0.4 user journey
 
 1. **Open the I2PS application.** Review the license and setup requirements.
