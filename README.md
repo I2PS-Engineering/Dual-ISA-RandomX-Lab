@@ -56,6 +56,7 @@ The initial 24-hour run uses CPU resources and electricity; its mining rewards b
 - [Video recording plan](docs/VIDEO_EPISODES.md)
 - [Frequently asked questions](docs/FAQ.md)
 - [GUI wording and design specification](docs/GUI_SPEC.md)
+- [Standardized v0.4 GUI assets and SHA-256 publication manifest](docs/GUI_ASSET_RELEASE_v04.md)
 - [Screenshots and guide status](docs/MEDIA.md)
 - [Reviewed PDF / PNG upload manifest](docs/ASSET_MANIFEST.md)
 - [Security and responsible operation](SECURITY.md)
@@ -67,7 +68,7 @@ The initial 24-hour run uses CPU resources and electricity; its mining rewards b
 
 ## Downloads
 
-**No v0.4 release is available yet.** The intended destination for approved distributable builds and manuals is [GitHub Releases](https://github.com/I2PS-Engineering/Dual-ISA-RandomX-Lab/releases). Do not treat UI mockups, development ZIPs or placeholder screenshots as production binaries.
+**No v0.4 release is available yet.** The seven standardized design PNGs and preview-only user guide have been prepared locally but are not yet uploaded as binary assets to GitHub. The intended destination for approved distributable builds and manuals is [GitHub Releases](https://github.com/I2PS-Engineering/Dual-ISA-RandomX-Lab/releases). Do not treat UI mockups, development ZIPs or placeholder screenshots as production binaries.
 
 XMRig is **not bundled** with this repository's documents. Obtain XMRig only from its [official repository](https://github.com/xmrig/xmrig), respecting GPLv3.
 
