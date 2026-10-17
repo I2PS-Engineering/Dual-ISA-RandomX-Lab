@@ -82,7 +82,7 @@ def latest_release(fetch=fetch_bytes):
     if data.get('draft') or data.get('prerelease'):
         raise ReleaseError('Latest release is not approved stable')
     tag = data.get('tag_name', '')
-    if not isinstance(tag, str) or not re.fullmatch(r'v?\d+\.\d+\.\d+(?:[.-][A-Za-z0-9.]+)?', tag):
+    if not isinstance(tag, str) or not re.fullmatch(r'v?\d+\.\d+\.\d+', tag):
         raise ReleaseError('GitHub release has an invalid version tag')
     return data
 
@@ -129,6 +129,9 @@ def verify_archive(blob: bytes, expected_hash: str):
             if (path.is_absolute() or '..' in path.parts or '\\' in member.filename or
                 path.parts[0] != 'dual_isa_randomx_lab' or len(path.parts) < 2):
                 raise ReleaseError('Unsafe package path in ZIP')
+            # App ZIPs must not replace user data, miner executables or install receipts.
+            if len(path.parts) > 1 and (path.parts[1] in ('data', 'vendor') or path.name == '.i2ps-release.json'):
+                raise ReleaseError('App ZIP attempts to replace locally owned data or miner files')
             mode = (member.external_attr >> 16) & 0xffff
             if stat.S_ISLNK(mode):
                 raise ReleaseError('Symlinks are prohibited in release ZIP')
@@ -138,7 +141,7 @@ def verify_archive(blob: bytes, expected_hash: str):
             if member.file_size > 100 * 1024 * 1024 or total > MAX_UNPACKED:
                 raise ReleaseError('Release ZIP uncompressed size limit exceeded')
         filenames = {i.filename for i in items}
-        if 'dual_isa_randomx_lab/server.py' not in filenames or 'dual_isa_randomx_lab/LICENSE.md' not in filenames:
+        if not {'dual_isa_randomx_lab/server.py', 'dual_isa_randomx_lab/LICENSE.md', 'dual_isa_randomx_lab/install_i2ps_linux.sh'}.issubset(filenames):
             raise ReleaseError('Release ZIP is not a recognizable I2PS application package')
         return zf
     except (zipfile.BadZipFile, OSError) as exc:
