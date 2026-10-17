@@ -4,7 +4,10 @@
 
 | Component | Actual status |
 |---|---|
-| Official GitHub repository | Public documentation repository created |
+| Official GitHub repository | Public repository and updated installation guides published |
+| GitHub bootstrap / release checker | **Published; real stable release not yet available** |
+| Verified release install & rollback | Local code and mocked ZIP tests pass; no live release download to validate |
+| Read-only dashboard GitHub update check | Local application preview implemented; actual remote-network behavior still to validate |
 | v0.3.1 Linux Quickstart script | Authored; dry-run/dependency tests performed |
 | v0.3.x real offline CPU benchmark | Present in development application, not the intended v0.4 release architecture |
 | XMRig installer | Authored with pinned download/checksum logic; live platform installs not fully validated |
