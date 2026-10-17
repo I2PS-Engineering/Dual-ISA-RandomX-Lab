@@ -2,6 +2,9 @@
 
 ## Current public media status
 
+**17 October 2026 update:** The seven standardized v0.4 GUI design PNGs (including a simulated benchmark-in-progress image) are ready locally with the same fixed sidebar and official cyan logo. The new six-page visual installation guide was rendered and checked locally. See [the v0.4 asset hash manifest](GUI_ASSET_RELEASE_v04.md). These binaries still require GitHub upload and are not present at the links they will eventually occupy.
+
+
 The I2PS application uses the official **cyan I2PS Engineering crown-and-star logo**. It is proprietary I2PS artwork.
 
 The project has produced these visual assets **locally**, but their binary files have **not yet been uploaded to this GitHub repository**:
