@@ -9,6 +9,10 @@
 | v0.3.x real offline CPU benchmark | Present in development application, not the intended v0.4 release architecture |
 | XMRig installer | Authored with pinned download/checksum logic; live platform installs not fully validated |
 | License acceptance | Built into v0.3.x program; v0.4 two-acknowledgment UI preview rendered |
+| v0.4 seven-image pixel-standardized GUI set | Prepared locally for review; binary PNGs not yet uploaded to GitHub |
+| v0.4 fixed sidebar and GUI gallery | Updated in local preview package; not a fully implemented v0.4 application |
+| v0.4 authorization HTML preview after sidebar adjustment | Two-checkbox GUI preview functional; no mining starts |
+| v0.4 visual installation guide (6 pages) | Created and rendered locally; not yet published to GitHub |
 | v0.4 online-only mode | **Approved specification, not implemented** |
 | v0.4 continuous 24-hour controller | **Not implemented** |
 | v0.4 initial benchmark Dev Wallet payout controller | **Not implemented** |
