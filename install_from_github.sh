@@ -4,6 +4,8 @@
 set -Eeuo pipefail
 REPO='I2PS-Engineering/Dual-ISA-RandomX-Lab'
 CHECKER="https://raw.githubusercontent.com/$REPO/main/github_updates.py"
+# Pinned to reviewed github_updates.py content currently published on GitHub.
+CHECKER_SHA256="1bdc094959232aa40105ddd178e0476edc753eb4b1ea94abd3e4508f96cd16d2"
 MODE='--install'
 ASSUME_YES=0
 NO_LAUNCH=0
@@ -57,6 +59,13 @@ tmp="$(mktemp -d)"
 trap 'rm -rf -- "$tmp"' EXIT
 curl -fL --proto '=https' --tlsv1.2 --retry 2 -o "$tmp/github_updates.py" "$CHECKER"
 [[ -s "$tmp/github_updates.py" ]] || { echo 'GitHub release checker download failed.' >&2; exit 2; }
+python3 - "$tmp/github_updates.py" "$CHECKER_SHA256" <<'PYVERIFY'
+import hashlib, sys
+with open(sys.argv[1], 'rb') as f:
+    actual = hashlib.file_digest(f, 'sha256').hexdigest() if hasattr(hashlib, 'file_digest') else hashlib.sha256(f.read()).hexdigest()
+if actual != sys.argv[2]:
+    raise SystemExit('Release-checker source hash does not match the reviewed I2PS pinned SHA-256; nothing was executed.')
+PYVERIFY
 if [[ "$MODE" == '--check' ]]; then python3 "$tmp/github_updates.py" --check; exit $?; fi
 args=(--install)
 if [[ "$ASSUME_YES" -eq 1 ]]; then args+=(--yes); fi
