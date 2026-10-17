@@ -13,7 +13,9 @@ This path is for owners of Windows computers who want to move to Linux for I2PS 
 
 ## Continue with I2PS setup
 
-Once Linux is installed, follow [Existing Linux users](EXISTING_LINUX.md) for the I2PS environment and, when available, the official v0.4 first-run Setup Assistant.
+Once Ubuntu is installed and updated, open Terminal and follow the **exact same GitHub installation commands** as [existing Linux users](EXISTING_LINUX.md). The official bootstrap downloads an approved stable application for your Linux architecture; it does not install Ubuntu or touch partitions.
+
+The [GitHub installation/updates guide](GITHUB_INSTALLATION.md) explains the beginner path and how to get later releases without downloading a new manual ZIP.
 
 **Important:** Windows 11 unsupported-hardware checks and bypass demonstrations are a **separate educational episode**. Installing Ubuntu does not require attempting a Windows 11 bypass.
 
