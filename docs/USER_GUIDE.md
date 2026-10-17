@@ -13,8 +13,8 @@ Measure **real RandomX performance on the CPU of the user's own computer**, comp
 ## Getting started
 
 1. Read the [release status](STATUS.md). A production-ready v0.4 application is **not yet available**.
-2. When an approved download exists, select your route: [already using Linux](EXISTING_LINUX.md) or [Windows to Ubuntu](WINDOWS_TO_UBUNTU.md).
-3. Open the program. The intended v0.4 first-launch assistant will check dependencies and offer to install verified XMRig, with user approval. Installation is not mining authorization.
+2. [Install from GitHub](GITHUB_INSTALLATION.md): existing Linux users open Terminal; Windows migrants first install Ubuntu, then use the **same** official GitHub bootstrap. The installer is published but no approved stable binary application release exists yet.
+3. Once a reviewed release is available, the installer verifies its SHA-256, preserves your previous installation and local data, and can open the app. The current setup assistant offers independently licensed verified XMRig after user confirmation. The full automatic v0.4 first-launch wizard is still pending. Installation is not mining authorization.
 4. Read the licensing conditions and the Dev Wallet disclosure before agreeing to CPU mining.
 5. Once you authorize it, the intended online RandomX benchmark runs for **at least 24 hours of continuous active time**, with initial mining rewards directed to the Dev Wallet.
 6. Review share and sustained hashrate metrics; an interrupted run must not be labeled complete.
@@ -33,6 +33,10 @@ The Dev Wallet recipient and electricity/CPU implications are disclosed **separa
 ## Security
 
 Never paste private spend/view keys, seed phrases or passwords into this app. Keep the local server inaccessible to public networks. Back up files before an OS migration.
+
+## Checking for updates
+
+After accepting the application license, use **CHECK GITHUB UPDATES** on the dashboard to see the latest approved compatible version. This checks GitHub metadata only; it does not install binaries or start mining. To upgrade, stop mining, exit the application and rerun `bash install_from_github.sh`. There is no stable public application release yet.
 
 ## Further reading
 
