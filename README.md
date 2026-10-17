@@ -43,6 +43,7 @@ The initial 24-hour run uses CPU resources and electricity; its mining rewards b
 ## Documentation
 
 - [Project and implementation status](docs/STATUS.md)
+- [Complete text user guide](docs/USER_GUIDE.md)
 - [Installation overview](docs/INSTALLATION.md)
 - [Already using Linux](docs/EXISTING_LINUX.md)
 - [Migrating from Windows to Ubuntu](docs/WINDOWS_TO_UBUNTU.md)
@@ -51,12 +52,18 @@ The initial 24-hour run uses CPU resources and electricity; its mining rewards b
 - [Dev Wallet and Dev Donate policy](docs/DEV_WALLET_AND_DEV_DONATE.md)
 - [Software architecture](docs/ARCHITECTURE.md)
 - [Roadmap](docs/ROADMAP.md)
+- [Release acceptance checklist](docs/RELEASE_CHECKLIST.md)
+- [Video recording plan](docs/VIDEO_EPISODES.md)
+- [Frequently asked questions](docs/FAQ.md)
+- [GUI wording and design specification](docs/GUI_SPEC.md)
 - [Screenshots and guide status](docs/MEDIA.md)
+- [Reviewed PDF / PNG upload manifest](docs/ASSET_MANIFEST.md)
 - [Security and responsible operation](SECURITY.md)
 - [Licensing terms](LICENSE.md)
 - [Third-party licenses](THIRD_PARTY_NOTICES.md)
 - [Changelog](CHANGELOG.md)
 - [Contact and support](SUPPORT.md)
+- [How to report bugs and feedback](CONTRIBUTING.md)
 
 ## Downloads
 
