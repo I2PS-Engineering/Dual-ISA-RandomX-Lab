@@ -1,27 +1,24 @@
-# Installation overview
+# Installation overview: GitHub delivery
 
-There are two audience paths:
+The **same official GitHub installer** serves two audiences:
 
-1. [Already using Linux](EXISTING_LINUX.md) — retain the existing OS and use the I2PS setup script.
-2. [Migrating from Windows to Ubuntu](WINDOWS_TO_UBUNTU.md) — install Ubuntu from official media first, then follow the same Linux setup steps.
+1. [Already using Linux](EXISTING_LINUX.md): leave Linux installed, open Terminal, download the GitHub bootstrap, preview and run it.
+2. [Migrating from Windows to Ubuntu](WINDOWS_TO_UBUNTU.md): back up data and install Ubuntu first, then follow the **identical** Terminal procedure.
 
-## Intended beginner experience (v0.4, not yet released)
+Detailed instructions: [GITHUB_INSTALLATION.md](GITHUB_INSTALLATION.md).
 
-Open the I2PS application → guided dependency checking → user confirms installation of missing prerequisites and independently licensed XMRig → the authorization screen explains 24-hour online mining and the Dev Wallet payout → user acknowledges terms and explicitly starts the run → results after **at least 24 completed hours** → user wallet education and address entry → separately authorized personal mining.
-
-**No offline benchmark is available** in the intended v0.4 product.
-
-The first-run auto-redirect and online 24-hour controller are still under development. The existing development build cannot perform the full sequence described above.
-
-## Current development build instructions (v0.3.1 only)
-
-For approved local testing on **Ubuntu/Debian x86-64**, obtain the privately reviewed application package, extract it, and from its `dual_isa_randomx_lab` directory run:
+## Beginner's three commands
 
 ```bash
-bash install_i2ps_linux.sh --plan
-bash install_i2ps_linux.sh
+curl -fL --proto '=https' --tlsv1.2 -o install_from_github.sh https://raw.githubusercontent.com/I2PS-Engineering/Dual-ISA-RandomX-Lab/main/install_from_github.sh
+bash install_from_github.sh --plan
+bash install_from_github.sh
 ```
 
-This is **not** a public v0.4 download or a v0.4 online benchmark. If the development server does not open your browser, visit `http://127.0.0.1:8765`. The current script is not a general Linux distribution installer.
+The final command installs nothing until a reviewed **stable GitHub Release** exists with a compatible ZIP and `SHA256SUMS.txt`. Check safely using `bash install_from_github.sh --check`.
 
-For verified public downloads, monitor the [GitHub Releases page](https://github.com/I2PS-Engineering/Dual-ISA-RandomX-Lab/releases). Do not assume the downloadable application is available until a reviewed release is published.
+When an approved Release becomes available, installation checks architecture, verifies the checksum and ZIP safety, saves the previous install and local results, then asks whether to open the app. Inside the app, users separately accept the license and approve installation of XMRig. None of these operations starts online mining.
+
+The intended **v0.4 online-only** benchmark workflow is setup -> two consent acknowledgments and prominent Dev Wallet notice -> 24 continuous hours of actual online RandomX CPU work -> results -> personal public Monero wallet -> explicitly authorized mining. **No offline benchmark is available** in v0.4. This runtime **has not yet been implemented**. v0.3.x contains a legacy offline prototype only.
+
+The official GUI can check stable-release availability without performing an update. Exit the application before running the installer to update.
