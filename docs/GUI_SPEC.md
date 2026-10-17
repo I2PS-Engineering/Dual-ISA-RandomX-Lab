@@ -6,6 +6,10 @@
 
 Dark navy/black interface with cyan accents and the **exact official I2PS Engineering crown-and-star logo** in cyan. Sidebar should not extend unnecessarily below content; keep the authorization controls comfortably visible. Do not substitute generic company logos.
 
+## Fixed sidebar (every screen)
+
+Identical official cyan I2PS logo asset and identical DUAL-ISA / RANDOMX LAB font geometry on each page. Sidebar must not change width, height, vertical position, menu order, or icon sizes between pages. Use these seven menu entries in this order: Overview, Setup Assistant, Benchmark Authorization (clipboard-check icon; no diamond), Wallet Setup, Live Mining, Results, Methodology. Only the selected navigation row may change its active highlight. The benchmark screenshot uses visibly marked simulated data. See [the GUI asset manifest](GUI_ASSET_RELEASE_v04.md).
+
 ## Authorization screen
 
 Main heading: **Online Benchmark Authorization**.
