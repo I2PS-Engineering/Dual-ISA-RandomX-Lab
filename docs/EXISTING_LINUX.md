@@ -1,28 +1,22 @@
-# Existing Linux users — keep your OS
+# Existing Linux users - direct installation from GitHub
 
-**First automated development target:** Ubuntu/Debian x86-64. Other distributions and Linux ARM64 do not yet have the same verified one-command route.
+**Keep your current operating system.** No reinstall, reformatting or miner reconfiguration.
 
-## Planned public v0.4 path
-
-1. Download an approved I2PS release from GitHub Releases.
-2. Extract the official application package.
-3. Launch the app and follow its proposed first-run Setup Assistant.
-4. After the user approves setup, the app checks Python, system utilities and downloads/verifies a compatible official XMRig build when needed.
-5. Read the license and authorize online mining. **Installing dependencies alone never starts mining.**
-
-**Status:** v0.4 first-run automation and 24-hour online benchmark are not implemented yet.
-
-## For local development tests of v0.3.1
-
-Run from the extracted `dual_isa_randomx_lab` folder:
+The user-friendly public distribution route uses the official GitHub bootstrap, rather than downloading an old development ZIP. On supported Ubuntu/Debian, open Terminal:
 
 ```bash
-bash install_i2ps_linux.sh --plan
-bash install_i2ps_linux.sh
+curl -fL --proto '=https' --tlsv1.2 -o install_from_github.sh https://raw.githubusercontent.com/I2PS-Engineering/Dual-ISA-RandomX-Lab/main/install_from_github.sh
+bash install_from_github.sh --plan
+# When an approved stable app release is available:
+bash install_from_github.sh
 ```
 
-Run as a normal user, **not** `sudo bash`. The script can ask for `sudo` when it needs to install missing distribution packages, uses separately verified upstream XMRig, and is designed not to overwrite existing miner configurations.
+The tool checks release availability and platform compatibility, verifies SHA-256, preserves local data and the previous installation, and asks before opening the app. It will not mine or silently install a random GitHub commit.
 
-No OS reinstall, unattended mining, pool change or existing worker reconfiguration is intended. Do not use the old development script as evidence that the v0.4 workflow has shipped.
+To check for releases without installing: `bash install_from_github.sh --check`.
 
-Official XMRig: https://github.com/xmrig/xmrig/releases
+**Current status:** The installer/checker is published and the app's local update-check UI has been tested. No approved stable binary I2PS application Release has been published. The intended v0.4 online-only 24-hour benchmark and first-launch automatic dependency wizard are not implemented yet.
+
+The older `install_i2ps_linux.sh` script belongs to the privately tested v0.3.x development package; once a stable package ships, it can be run from the downloaded app to prepare separately licensed and verified XMRig, after consent.
+
+See [complete GitHub installation/updates guide](GITHUB_INSTALLATION.md), [Windows-to-Ubuntu instructions](WINDOWS_TO_UBUNTU.md), and [release status](STATUS.md).
