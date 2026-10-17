@@ -1,0 +1,26 @@
+# Local secrets and private experimental material
+.env
+.env.*
+*.key
+*.pem
+*.seed
+*.wallet
+wallets/
+private/
+secrets/
+config.local.json
+mining_config*.json
+logs/
+tmp/
+*.sqlite
+*.sqlite3
+__pycache__/
+.pytest_cache/
+.DS_Store
+# Executables and release archives must go through reviewed GitHub Releases
+vendor/
+releases/
+*.zip
+*.tar.gz
+*.exe
+*.dmg
