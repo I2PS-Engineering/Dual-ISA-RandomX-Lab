@@ -33,4 +33,4 @@ Official restore resources: https://www.getmonero.org/resources/user-guides/rest
 
 Seventeen automated tests passed locally, including existing ZTM diagnostic tests and six wallet storage/launch safeguards. Wallet screens were rendered from the actual Tk GUI at 1090x760; overlap on the Create view was corrected and rerendered. These are UI and synthetic tests, not a live official Monero-wallet creation or hardware benchmark test.
 
-**The wallet change is available in a separately built local 0.1.1 alpha2 .deb, but is now available through the alpha2 one-command GitHub installer, though it is not a production release.** No claim of full in-app Monero key generation is made: creation is performed by the separately installed official Monero GUI.
+**The wallet change is available in the published 0.1.1-alpha2 engineering `.deb` and via the signed [one-command Ubuntu installer](ZTM_ONE_COMMAND.md). This is not a production release.** No claim of full in-app Monero key generation is made: creation is performed by the separately installed official Monero GUI.
