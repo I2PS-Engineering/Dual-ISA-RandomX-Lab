@@ -1,0 +1,11 @@
+{
+  "schema": 2,
+  "project": "ZTM - Zero to Monero",
+  "channel": "alpha",
+  "version": "0.1.1-alpha2",
+  "dpkg_version": "0.1.1~alpha2",
+  "architecture": "amd64",
+  "asset": "downloads/ZTM-Zero-to-Monero_0.1.1-alpha2_amd64.deb",
+  "bytes": 23004,
+  "sha256": "62f15c7a253261fe6ba003416ff3a8c88f4fe6702291a04269e57caeecaffdbe"
+}
