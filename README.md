@@ -65,6 +65,9 @@ The initial 24-hour run uses CPU resources and electricity; its mining rewards b
 
 ## Documentation
 
+- [ZTM — Zero to Monero: one-click Ubuntu GUI engineering alpha and current availability](docs/ZTM_ZERO_TO_MONERO.md)
+
+
 - [Project and implementation status](docs/STATUS.md)
 - [Complete text user guide](docs/USER_GUIDE.md)
 - [Installation overview](docs/INSTALLATION.md)
