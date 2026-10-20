@@ -1,0 +1,11 @@
+{
+  "schema": 2,
+  "project": "ZTM - Zero to Monero",
+  "channel": "alpha",
+  "version": "0.1.2-alpha3-surgical",
+  "dpkg_version": "0.1.2~alpha3surgical1",
+  "architecture": "amd64",
+  "asset": "downloads/ZTM-Zero-to-Monero_0.1.2-alpha3-surgical_amd64.deb",
+  "bytes": 23212,
+  "sha256": "0fbedd3c8660299d17f2708857e9905654e905a6f76410f2bd428dda464eb800"
+}
