@@ -31,4 +31,4 @@ The actual .deb, signed manifest and pinned bootstrap are hosted in the reposito
 
 Wallet offers **I have an existing wallet** or **I do not have a wallet — create one**. New wallets are created and password-encrypted locally through the official Monero GUI application, not by ZTM's own cryptography. On completion ZTM displays a file, address, password, seed and recovery-responsibility notice, then accepts only the public receiving address. See [Wallet workflow and recovery notice](ZTM_WALLET_WORKFLOW.md).
 
-**Binary status:** The local 0.1.1 alpha2 contains these changes; the currently signed GitHub one-command installer has NOT yet been updated to alpha2. Do not claim these wallet screens are in its current download.
+**Binary status:** ZTM 0.1.1-alpha2, including the two-choice Wallet tab and recovery notice, is now published in the repository's downloads directory and available from the verified signed [one-command Ubuntu installer](ZTM_ONE_COMMAND.md). The official Monero wallet program remains separately installed; the ZTM alpha does not generate private keys.
