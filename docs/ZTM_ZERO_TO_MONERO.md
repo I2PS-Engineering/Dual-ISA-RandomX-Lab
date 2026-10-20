@@ -1,6 +1,6 @@
 # ZTM — Zero to Monero (Ubuntu Desktop alpha)
 
-**20 October 2026: local installable engineering alpha built; NOT uploaded to GitHub Releases.** This is not the completed I2PS RandomX v0.4 24-hour production benchmark.
+**20 October 2026: engineering alpha published to the repository downloads directory, with a signed manifest and a one-command verified Ubuntu bootstrap. It is not yet a GitHub Release or production v0.4.** This is not the completed I2PS RandomX v0.4 24-hour production benchmark.
 
 ## Actual first-user experience
 
@@ -23,6 +23,6 @@
 
 ZTM alpha is a **short engineering diagnostic using the test operator's explicitly entered receiving address**. It is not the official v0.4 first-run 24-hour Dev Wallet benchmark, and **does not replace its approved payout and mandatory Dev Donate requirements**. Full production release remains blocked pending those validations and completed functionality.
 
-No .deb binary has been uploaded through the connected GitHub interface, which currently supports source/document edits, not release asset uploads. The file must be independently published and verified before giving beginners a GitHub download link. Avoid advertising an unavailable release or calling a mock screenshot a completed benchmark.
+The actual .deb, signed manifest and pinned bootstrap are hosted in the repository downloads directory and can be installed with the [single verified command](ZTM_ONE_COMMAND.md). This is still an alpha; do not describe an untested 24-hour benchmark as verified.
 
 **Third party:** XMRig is fetched from the official upstream repository under its separate GPLv3 license; no XMRig executable is included in the Debian package.
