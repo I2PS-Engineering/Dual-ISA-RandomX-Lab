@@ -8,7 +8,8 @@ ASSET='downloads/ZTM-Zero-to-Monero_0.1.3-alpha4-surgical_amd64.deb'
 SHA='27f241dae46c4077abf6a92d1bc46a2084b6e4de730bf6924f2d4ea03e6dc535'
 SIZE='23440'
 VERSION='0.1.3-alpha4-surgical'
-RAW="https://raw.githubusercontent.com/$REPO/main/$ASSET"
+PACKAGE_COMMIT='166f14e9d2c80cbf6f7664f1be4e55baba8e067e'
+RAW="https://raw.githubusercontent.com/$REPO/$PACKAGE_COMMIT/$ASSET"
 [[ "$(uname -s)" == Linux && "$(uname -m)" == x86_64 ]] || { echo 'ZTM requires Ubuntu Linux x86-64.' >&2; exit 1; }
 [[ "${EUID:-0}" -ne 0 ]] || { echo 'Run this as your normal desktop user, not root.' >&2; exit 1; }
 [ -r /etc/os-release ] || { echo 'Cannot identify Linux distribution.' >&2; exit 1; }
