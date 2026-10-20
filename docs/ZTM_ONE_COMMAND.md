@@ -1,40 +1,37 @@
-# ZTM — One-command GitHub installer (engineering alpha)
+# ZTM — One-command GitHub installation (Ubuntu Desktop x86-64)
+**Current published engineering alpha: 0.1.1-alpha2, including the Wallet tab. Published 20 October 2026.**
 
-**Published 20 October 2026.** The actual ZTM 0.1.0-alpha1 Ubuntu amd64 .deb is checked into this repository under downloads/. It is not yet a GitHub Release or a finished v0.4 24-hour benchmark.
-
-## One terminal command (Ubuntu Desktop x86-64)
-
-Copy and paste this complete line into Ubuntu Terminal. It pins the audited bootstrap to an immutable GitHub commit, verifies that script's SHA-256 before execution, then downloads and checks the **latest signed alpha manifest** and the referenced .deb. It never silently starts mining.
+From a **fresh Ubuntu Desktop x86-64** installation, open Terminal as your normal user (do not prefix the command with sudo), paste **this single command**, and press Enter:
 
 ```bash
-bash -c 'set -e; f=$(mktemp); trap '\''rm -f "$f"'\'' EXIT; curl -fLsS --proto "=https" --tlsv1.2 -o "$f" "https://raw.githubusercontent.com/I2PS-Engineering/Dual-ISA-RandomX-Lab/8ea1b588bd00fe2eb4894ee8f4e14d88e7870544/install-ztm.sh"; printf "%s  %s\n" "51114d1ee1d7aaa9f39c4e9a6a4ae73807d3482fb6bc46f99f70d838d4aaf14c" "$f" | sha256sum -c -; bash "$f"'
+python3 -c 'import hashlib,subprocess,urllib.request;u="https://raw.githubusercontent.com/I2PS-Engineering/Dual-ISA-RandomX-Lab/88b10f0c9bc6587ea5fbcfc275d5728c3cba3ef3/install-ztm-v2.sh";b=urllib.request.urlopen(u,timeout=30).read();assert hashlib.sha256(b).hexdigest()=="339d241363a7d5f7b518c7094d7feec5ed4f9e4e090762973ece768b5501518c", "SECURITY STOP: installer checksum mismatch";subprocess.run(["bash","-s"],input=b,check=True)'
 ```
 
-Use your ordinary Ubuntu desktop user (do not run the command through sudo). The script checks the operating system, downloads a signed release manifest, validates the Ed25519 signature with its embedded public key, confirms download size and SHA-256, displays a confirmation prompt, uses sudo apt-get for local package installation, and then launches the ZTM GUI.
+No separate manual file download is needed. The single command authenticates the installer against a fixed SHA-256 and immutable GitHub commit, downloads the signed current alpha manifest, verifies its Ed25519 signature, obtains and checks the exact Ubuntu `.deb`, installs the ZTM application and starts the GUI.
 
-In ZTM, click **Prepare Linux + Install XMRig**. The GUI displays the actual APT and XMRig installer output. Enter a pool and **public** Monero receiving address and authorize the online test. A full v0.4 24-hour Dev Wallet protocol is not yet implemented by this alpha.
+## What the user sees next
 
-## Dry-run and verification
+1. In the launched ZTM GUI click **PREPARE LINUX + INSTALL XMRIG**. This visibly runs the required APT setup and downloads a SHA-256-pinned official XMRig 6.26.0 package.
+2. On the **Wallet** tab choose **Existing Wallet** (public receiving address) or **Create Wallet** (opens the official Monero GUI; it must be installed separately). The official wallet software handles local encryption/password and private keys; ZTM does not.
+3. Enter the pool and TLS settings, choose CPU threads and diagnostic duration, read and check the two alpha-test authorizations, then explicitly select **START REAL RANDOMX BENCHMARK**. Results appear in the GUI and are saved to `~/ZTM-Results`.
 
-Safest local inspection: download the same pinned bootstrap manually, verify its SHA-256 and run it with --plan or --verify-only. These modes never install or mine.
+**Installation never starts mining automatically.** The actual mining test requires a pool, public address, and distinct informed user consent. The operator's wallet receives this alpha test's rewards; this is NOT the production v0.4 first-24-hour Dev Wallet flow.
 
-## Integrity and update mechanism
+## Authenticity controls
 
-- Bootstrap: fixed GitHub commit + fixed SHA-256 included in the command.
-- Version selection: mutable downloads/latest-ztm.json from the official repository, paired with downloads/latest-ztm.sig.
-- Trust root: Ed25519 public key embedded in the pinned bootstrap. Updating the GitHub repository alone cannot produce an accepted forged manifest without the corresponding private signing key.
-- Package: path from signed manifest, exact file length and SHA-256 verified before calling apt-get.
-- XMRig: retrieved by the application from the official upstream 6.26.0 source, SHA-256 pinned in its engine.
-- The signing key used here is an **engineering-alpha key created for this publication**. Before any production release, I2PS should create, hold and safeguard its own signing key and publish a newly pinned bootstrap.
-- These controls substantially reduce tampering and substitution risk but do not guarantee immunity from malicious code, host compromise, stolen signing keys, or upstream vulnerabilities.
+- The one-command bootstrap is pinned to GitHub commit `88b10f0c9bc6587ea5fbcfc275d5728c3cba3ef3` and SHA-256 `339d241363a7d5f7b518c7094d7feec5ed4f9e4e090762973ece768b5501518c`.
+- Inside the script, the mutable current-alpha manifest is verified against an embedded **Ed25519 engineering-alpha public key**, before any package is installed.
+- The `.deb` filename, expected version, architecture, exact byte count and SHA-256 are checked against the signed manifest; the install stops if any verification fails.
+- This is a development signing key generated for the alpha; I2PS must replace/assume custody of a production signing key and pin a corresponding reviewed installer before public production distribution.
+- These mechanisms reduce substitution/tampering risks; they do **not** establish immunity to malware, stolen signing keys, vulnerable dependencies or compromised machines.
 
-## Verification status
+## Verification performed before publication
 
-Four offline installer tests passed: valid signed package, no-change plan, tampered package rejection and tampered manifest rejection. Public repository tree confirms package and signed manifest. This alpha has **not** completed installation on your clean Ubuntu machine or mined an accepted live pool share; perform the machine test before claiming validated functionality.
+- Signed alpha2 manifest verified using the matching local Ed25519 public key.
+- GitHub Git-blob hashes for installer, manifest, signature and actual `.deb` match the locally generated files.
+- Non-root simulated installation workflow succeeded, including signature, checksum, dpkg metadata and launcher flow, without changing system packages.
+- Deliberate signature tampering was rejected.
+- Wallet UI tests: 17 passed in the prior local alpha2 suite.
+- **Not yet verified**: installation and XMRig provisioning on a separate clean Ubuntu computer, an accepted live mining share, or a continuous 24-hour benchmark.
 
-## Source of truth
-
-- [Installer source](../install-ztm.sh)
-- [Signed latest manifest](../downloads/latest-ztm.json)
-- [Signature](../downloads/latest-ztm.sig)
-- [Downloaded .deb](../downloads/ZTM-Zero-to-Monero_0.1.0-alpha1_amd64.deb)
+This is a GitHub-hosted **engineering alpha package**, not a finished v0.4 production benchmark. The binary is published under `downloads/`, not GitHub Releases.
