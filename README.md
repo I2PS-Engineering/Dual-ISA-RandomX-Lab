@@ -1,5 +1,8 @@
 # Dual-ISA RandomX Lab
 
+**Release readiness (20 Oct 2026): no v0.4 application binary is published on GitHub Releases.** A separate online-only engineering prototype has been assembled and tested locally with synthetic process fixtures, but live pool mining and the required full 24-hour hardware run remain unverified. [Read the precise 20 October release gates](docs/RELEASE_READINESS_2026-10-20.md). Do not present design previews as a downloadable completed product.
+
+
 **I2PS Engineering** · *Zero to Monero — Part 2*  
 **Built in Morocco. Engineered for the future.**
 
