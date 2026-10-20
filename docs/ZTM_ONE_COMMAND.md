@@ -1,47 +1,37 @@
-# ZTM — One-command Ubuntu Desktop installer
+# ZTM_Benchmark — One-command installation (v0.1.5-alpha6-mining)
 
-**Latest published engineering release: ZTM 0.1.4-alpha5-optimizer.**
+**Engineering alpha, 20 October 2026.** The original alpha5 benchmark appearance and existing controls are retained; this release adds the gated Wallet and Mining navigation and personal mining mode.
 
-This is the existing alpha4 ZTM interface with a surgical benchmark-engine update only.
+## Step 1 — Install and launch on Ubuntu Desktop x86-64
 
-- GUI, Wallet tab, logo, layout, terminal, Duration control, CPU Threads display and both authorization checkboxes are unchanged.
-- Embedded HashVault connection, configured Dev Wallet payout, MSR/huge-page preparation and dedicated worker identity `ZTM-Zero-to-Monero` are retained.
-- **CPU Threads: Auto** now benchmarks multiple active-thread profiles internally, scores sustained performance/stability/share quality, selects the best measured profile and uses it for the remainder of the selected benchmark duration.
-- The benchmark still stops automatically at the selected duration, and closing ZTM still stops its miner process.
-
-## One command
-
-Run this as your normal Ubuntu Desktop x86-64 user:
+Stop any running earlier ZTM mining/benchmark and close that ZTM window first. Open Ubuntu Terminal as your normal desktop user (not sudo), and copy this **single complete command**:
 
 ```bash
-python3 -c 'import hashlib,subprocess,urllib.request;u="https://raw.githubusercontent.com/I2PS-Engineering/Dual-ISA-RandomX-Lab/7bc2a91ba0c389db63dbea322afa86067aa29aa2/install-ztm-v5.sh";b=urllib.request.urlopen(u,timeout=30).read();assert hashlib.sha256(b).hexdigest()=="e615232a75c3497dee9ec167cfa277381a03dc3f9d5df42db9babe1db5b3cb83","SECURITY STOP: installer checksum mismatch";subprocess.run(["bash","-s"],input=b,check=True)'
+python3 -c 'import hashlib,subprocess,urllib.request;u="https://raw.githubusercontent.com/I2PS-Engineering/ZTM_Benchmark/0a1054a2f28de7d49ac3c538f789682a6a5a3b40/install-ztm-v6.sh";b=urllib.request.urlopen(u,timeout=30).read();assert hashlib.sha256(b).hexdigest()=="523cfe41db898b4d689a64b99ad5286c896a890d9c534f5f66d8ea43e53ff505","SECURITY STOP: installer checksum mismatch";subprocess.run(["bash","-s"],input=b,check=True)'
 ```
 
-The pinned installer reconstructs the alpha5 Debian package from immutable GitHub-hosted transfer fragments at package commit `fd444f718724d40b423d3b058d4adf2fe49b7d92`, then verifies the completed package before installation.
+The pinned bootstrap verifies its own SHA-256, downloads the GitHub-published package from pinned commit `6d0568aa93631199338cf016b5dc8473b2ab7673` as seven fixed-size transfer fragments, rebuilds the original .deb, checks its SHA-256 and Debian metadata, updates APT, installs the application and opens its GUI. Mining does not start automatically.
 
-Verified package:
-- Debian version: `0.1.4~alpha5optimizer1`
-- architecture: `amd64`
-- package size: **27,448 bytes**
-- package SHA-256: `ef41146e5de18201bb5f0a92d2729006c9b00bdff9b851ce2fd5a66884c52daf`
+**Package SHA-256:** `86262258c70707ad15a4154935175f8394bc3b5d98c4f305b692e90fac4109cd`  
+**Package size:** 30,380 bytes.  
+**Debian version:** `0.1.5~alpha6mining1`.
 
-After installation ZTM launches. Mining does not start until the existing GUI authorization is completed.
+## Step 2 — Prepare Linux + XMRig
 
-## Automatic optimizer behavior
+Click **PREPARE LINUX + INSTALL XMRIG** in the unchanged benchmark page. Its terminal displays the setup and miner output. Pool, payout and TLS remain internal to benchmarking; CPU threads use the existing automatic optimizer and duration defaults to 24 hours in this engineering build.
 
-The selected overall Duration remains the hard deadline. Profile exploration is part of that duration, not added on top.
+## Step 3 — Complete the benchmark
 
-- under 5 minutes: single-profile connectivity/measurement run;
-- 5–15 minutes: up to 3 total profiles, 60 seconds each;
-- 15–60 minutes: up to 5 total profiles, 90 seconds each;
-- 60 minutes or more: up to 6 total profiles, 120 seconds each.
+Start the authorized online benchmark and allow it to complete **24 uninterrupted hours** with actual accepted shares. ZTM saves a report in `~/ZTM-Results`. Short, cancelled, interrupted or shareless tests do not unlock personal mining. Before eligibility, Wallet and Mining appear grey; clicking either displays the completion requirement without opening the tab. This is enforced in GUI navigation and the personal-mining backend, using a locally stored benchmark report.
 
-ZTM first measures XMRig Auto, then tests sensible alternate thread counts. The best measured profile is chosen using sustained median hashrate, stability, and accepted/rejected share quality. The remaining time runs on the selected profile.
+## Step 4 — Wallet and Mining
 
-See [alpha5 release notes](ZTM_ALPHA5_RELEASE_NOTES.md).
+After qualifying completion, open **WALLET**. Choose an existing wallet (enter only the public Monero receiving address) or create one in the official Monero GUI (where password, private keys and recovery seed remain). Select **START MINING** to open the new **MINING** tab. Read **VIEW TERMS**, accept the one Terms & Conditions checkbox and press **START MINING**. **STOP MINING** and application exit end the session.
 
-## Validation status
+Personal mining uses HashVault and the selected thread profile. It retains XMRig's native `donate-level: 1` for XMRig developers and uses a separate 60-second I2PS pool interval per 6,000 seconds. Scheduled time does not guarantee a 1% share/revenue fraction; the independent schedules can overlap. Terms are included with the installed application, not repeated as banners throughout the GUI.
 
-Package metadata, package hash, unchanged GUI/Wallet hashes, and synthetic end-to-end optimizer behavior were verified locally. The synthetic test hot-switched one miner process across 2 → 1 → 3 → 4 threads, selected the controlled 2-thread winner, retained cumulative share accounting, continued with the winner, and stopped at the configured deadline.
+## Validation boundary
 
-A real Ubuntu/HashVault alpha5 run is still required to validate the optimizer against physical hardware. The successful live run shown with the previous build verifies real mining and accepted shares, not alpha5 profile selection.
+Local alpha6 eligibility/navigation tests passed and GitHub package bytes were checked against the tested local .deb; these checks are **not** a real 24-hour Ubuntu test. Real physical testing is still needed to verify the completed 24-hour unlock, wallet-to-mining transition, sustained dual donation behavior, correct pool worker attribution, and process termination. The eligibility file is a local report, not cryptographically attested proof.
+
+[Source repository](https://github.com/I2PS-Engineering/ZTM_Benchmark) · [Alpha6 release package fragments](https://github.com/I2PS-Engineering/ZTM_Benchmark/tree/main/downloads) · [Mining integration status](ZTM_ALPHA6_MINING_INTEGRATION_STATUS.md)
