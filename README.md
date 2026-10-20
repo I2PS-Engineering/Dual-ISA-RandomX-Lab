@@ -32,7 +32,9 @@ It does **not** simulate CPU performance.
 
 **Do not use existing v0.3.x builds as if they implement the approved v0.4 flow.** Older prototypes have an offline benchmark; **the intended v0.4 product has no offline benchmark option**.
 
-## Install and update from GitHub
+## Planned v0.4 stable-release updater (not ZTM alpha)
+
+For **currently downloadable ZTM 0.1.1-alpha2**, use the [single verified Ubuntu installer](docs/ZTM_ONE_COMMAND.md) instead of the commands in this section.
 
 The public Linux installer and version checker are now available as **reviewable text scripts** in this repository. There is **no approved binary stable release yet**, so the scripts will not install an application until one is published.
 
