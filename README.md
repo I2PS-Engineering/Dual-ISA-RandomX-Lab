@@ -11,6 +11,9 @@
 
 ## About the project
 
+**ZTM Ubuntu engineering alpha:** A downloadable verified `.deb` is now hosted under [downloads/](downloads/), with a [single-command, signed-manifest Linux installer](docs/ZTM_ONE_COMMAND.md). **This is not the finished v0.4 benchmark**, and real-pool/clean-Ubuntu testing remains pending.
+
+
 Dual-ISA RandomX Lab is a CPU benchmarking application by I2PS Engineering. Its purpose is to help users measure real RandomX performance on their own hardware, test thread configurations, compare sustained hashrate and understand the results. The laboratory investigates **x86-64 and ARM64** systems and uses **XMRig** as a separately licensed third-party execution engine.
 
 It does **not** simulate CPU performance.
