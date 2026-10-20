@@ -1,37 +1,26 @@
-# ZTM — One-command GitHub installation (Ubuntu Desktop x86-64)
-**Current published engineering alpha: 0.1.1-alpha2, including the Wallet tab. Published 20 October 2026.**
+# ZTM — Zero to Monero: one-command Ubuntu installation
 
-From a **fresh Ubuntu Desktop x86-64** installation, open Terminal as your normal user (do not prefix the command with sudo), paste **this single command**, and press Enter:
+**Current GitHub-hosted engineering build: 0.1.2-alpha3-surgical** (20 October 2026). The application is not a completed or 24-hour-verified production release.
+
+On a fresh **Ubuntu Desktop x86-64**, open Terminal as your normal user and paste this single command (**do not prefix with sudo**):
 
 ```bash
-python3 -c 'import hashlib,subprocess,urllib.request;u="https://raw.githubusercontent.com/I2PS-Engineering/Dual-ISA-RandomX-Lab/88b10f0c9bc6587ea5fbcfc275d5728c3cba3ef3/install-ztm-v2.sh";b=urllib.request.urlopen(u,timeout=30).read();assert hashlib.sha256(b).hexdigest()=="339d241363a7d5f7b518c7094d7feec5ed4f9e4e090762973ece768b5501518c", "SECURITY STOP: installer checksum mismatch";subprocess.run(["bash","-s"],input=b,check=True)'
+python3 -c 'import hashlib,subprocess,urllib.request;u="https://raw.githubusercontent.com/I2PS-Engineering/Dual-ISA-RandomX-Lab/296244e5f3861bf5125194ff06bb29c6fa0aa8b2/install-ztm-v3.sh";b=urllib.request.urlopen(u,timeout=30).read();assert hashlib.sha256(b).hexdigest()=="ec836fe9b855cd6b05025851e76e6938b19e8c32087791b655d521ebdd36fe95","SECURITY STOP: installer checksum mismatch";subprocess.run(["bash","-s"],input=b,check=True)'
 ```
 
-No separate manual file download is needed. The single command authenticates the installer against a fixed SHA-256 and immutable GitHub commit, downloads the signed current alpha manifest, verifies its Ed25519 signature, obtains and checks the exact Ubuntu `.deb`, installs the ZTM application and starts the GUI.
+### Then in the GUI
 
-## What the user sees next
+1. Click **Prepare Linux + Install XMRig**. ZTM displays real APT and XMRig setup output.
+2. Under **Benchmark Setup**, CPU threads are **Auto**; the default duration is **24 hours** and can still be changed in this alpha.
+3. Pool, TLS connection details, and benchmark payout are embedded in the application, not shown as editable benchmark fields. Benchmark payout goes to the configured I2PS test receiving address. Verify the intended receiving address and consent before mining.
+4. Read and tick both authorization checkboxes, then click **Start Real RandomX Benchmark**. No CPU mining should begin until explicit authorization.
+5. Open the local results folder when the run ends. The full 24-hour performance and payout flow has **not been independently validated**.
 
-1. In the launched ZTM GUI click **PREPARE LINUX + INSTALL XMRIG**. This visibly runs the required APT setup and downloads a SHA-256-pinned official XMRig 6.26.0 package.
-2. On the **Wallet** tab choose **Existing Wallet** (public receiving address) or **Create Wallet** (opens the official Monero GUI; it must be installed separately). The official wallet software handles local encryption/password and private keys; ZTM does not.
-3. Enter the pool and TLS settings, choose CPU threads and diagnostic duration, read and check the two alpha-test authorizations, then explicitly select **START REAL RANDOMX BENCHMARK**. Results appear in the GUI and are saved to `~/ZTM-Results`.
+### Verification
 
-**Installation never starts mining automatically.** The actual mining test requires a pool, public address, and distinct informed user consent. The operator's wallet receives this alpha test's rewards; this is NOT the production v0.4 first-24-hour Dev Wallet flow.
+- Bootstrap source is pinned to GitHub commit `296244e5f3861bf5125194ff06bb29c6fa0aa8b2` and checked against SHA-256 `ec836fe9b855cd6b05025851e76e6938b19e8c32087791b655d521ebdd36fe95` before execution.
+- The pinned bootstrap validates the Ed25519-signed manifest `downloads/latest-ztm-v3.json` using its embedded publisher key, then downloads and SHA-256-checks the package.
+- Current ZTM package: `downloads/ZTM-Zero-to-Monero_0.1.2-alpha3-surgical_amd64.deb`, 23,212 bytes, SHA-256 `0fbedd3c8660299d17f2708857e9905654e905a6f76410f2bd428dda464eb800`.
+- Repository file hashes and the local signed-manifest check were verified; clean Ubuntu installation and a complete real 24-hour mining run still require physical-machine testing.
 
-## Authenticity controls
-
-- The one-command bootstrap is pinned to GitHub commit `88b10f0c9bc6587ea5fbcfc275d5728c3cba3ef3` and SHA-256 `339d241363a7d5f7b518c7094d7feec5ed4f9e4e090762973ece768b5501518c`.
-- Inside the script, the mutable current-alpha manifest is verified against an embedded **Ed25519 engineering-alpha public key**, before any package is installed.
-- The `.deb` filename, expected version, architecture, exact byte count and SHA-256 are checked against the signed manifest; the install stops if any verification fails.
-- This is a development signing key generated for the alpha; I2PS must replace/assume custody of a production signing key and pin a corresponding reviewed installer before public production distribution.
-- These mechanisms reduce substitution/tampering risks; they do **not** establish immunity to malware, stolen signing keys, vulnerable dependencies or compromised machines.
-
-## Verification performed before publication
-
-- Signed alpha2 manifest verified using the matching local Ed25519 public key.
-- GitHub Git-blob hashes for installer, manifest, signature and actual `.deb` match the locally generated files.
-- Non-root simulated installation workflow succeeded, including signature, checksum, dpkg metadata and launcher flow, without changing system packages.
-- Deliberate signature tampering was rejected.
-- Wallet UI tests: 17 passed in the prior local alpha2 suite.
-- **Not yet verified**: installation and XMRig provisioning on a separate clean Ubuntu computer, an accepted live mining share, or a continuous 24-hour benchmark.
-
-This is a GitHub-hosted **engineering alpha package**, not a finished v0.4 production benchmark. The binary is published under `downloads/`, not GitHub Releases.
+**Compatibility:** Ubuntu Desktop x86-64; not Windows/macOS. After an Ubuntu migration, use the same command. This is an engineering alpha.
