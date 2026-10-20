@@ -1,38 +1,45 @@
 # ZTM — One-command Ubuntu Desktop installer
 
-**Latest published signed engineering release: ZTM 0.1.2-alpha3-surgical (20 October 2026).**
-This is the alpha2 UI with only the requested benchmark setup changes: HashVault pool, configured receiving address and TLS internal to the application, CPU Threads Auto, 24-hour default duration (still adjustable), and the two authorization checkboxes retained.
+**Latest published engineering release: ZTM 0.1.3-alpha4-surgical.**
 
-## Step 1 — Install directly from GitHub
+This is the existing ZTM interface with a surgical backend update only:
+- HashVault pool and payout remain internally configured.
+- CPU Threads remains **Auto**.
+- Duration remains **24 hours by default** and adjustable in this engineering release.
+- The two benchmark authorization checkboxes remain.
+- Wallet tab, terminal, logo, layout and visual design remain unchanged.
+- **Prepare Linux + Install XMRig** now installs `kmod` and `msr-tools`, loads the Linux `msr` module, and the verified XMRig process is elevated through `pkexec` so XMRig can apply its own RandomX MSR preset and huge-page allocation.
+- HashVault worker identity is fixed to **ZTM-Zero-to-Monero** using both the pool password field and XMRig `rig-id`.
 
-On Ubuntu Desktop **x86-64**, open Terminal **as your ordinary user** (do not add sudo to this command). Copy and paste this one line:
+## One command
+
+Run this as your normal Ubuntu Desktop x86-64 user:
 
 ```bash
-python3 -c 'import hashlib,subprocess,urllib.request;u="https://raw.githubusercontent.com/I2PS-Engineering/Dual-ISA-RandomX-Lab/83a0e08bb82c39125bac4c49c9e8b062f21c4e2f/install-ztm-v3.sh";b=urllib.request.urlopen(u,timeout=30).read();assert hashlib.sha256(b).hexdigest()=="ec836fe9b855cd6b05025851e76e6938b19e8c32087791b655d521ebdd36fe95", "SECURITY STOP: installer checksum mismatch";subprocess.run(["bash","-s"],input=b,check=True)'
+python3 -c 'import hashlib,subprocess,urllib.request;u="https://raw.githubusercontent.com/I2PS-Engineering/Dual-ISA-RandomX-Lab/b636d5d488d72d8ab0f7b79776f320b07866cf16/install-ztm-v4.sh";b=urllib.request.urlopen(u,timeout=30).read();assert hashlib.sha256(b).hexdigest()=="70a9b7371c95f5c50ab314342c24078c4bcbeac18d06a7f72e4de7d71335a1fa","SECURITY STOP: installer checksum mismatch";subprocess.run(["bash","-s"],input=b,check=True)'
 ```
 
-No ZIP or manually downloaded .deb is required. The pinned immutable GitHub bootstrap is checked against the SHA-256 above before execution. The bootstrap installs curl/openssl dependencies using apt as needed, retrieves the signed alpha3 manifest, verifies its Ed25519 signature and the Debian package size/SHA-256, installs the .deb, and starts ZTM. Ubuntu will ask for your administrative password when needed. Installation does **not** silently start mining.
+The pinned installer downloads the alpha4 Debian package from immutable package commit `166f14e9d2c80cbf6f7664f1be4e55baba8e067e` and verifies:
 
-## Step 2 — Prepare benchmarking
+- package path: `downloads/ZTM-Zero-to-Monero_0.1.3-alpha4-surgical_amd64.deb`
+- package size: **23,440 bytes**
+- package SHA-256: `27f241dae46c4077abf6a92d1bc46a2084b6e4de730bf6924f2d4ea03e6dc535`
+- Debian version: `0.1.3~alpha4surgical1`
 
-In the **original ZTM GUI**, click **PREPARE LINUX + INSTALL XMRIG** and watch the integrated live terminal until preparation succeeds.
+After installation, ZTM launches. Mining still does not start until the user explicitly authorizes it in the GUI.
 
-## Step 3 — Start the real benchmark
+## Worker identity note
 
-The pool endpoint, payout address, and TLS mode are embedded in the benchmark controller and are not editable fields. CPU Threads is **Auto**. Duration defaults to **1440 minutes (24 hours)** but remains selectable in this engineering alpha. Review both existing CPU mining and Dev Wallet acknowledgment checkboxes, check them, then click **START REAL RANDOMX BENCHMARK**. Mining is real CPU work with electricity and thermal load; **STOP** remains available.
+HashVault can use the pool password as the worker name, while XMRig also supports a pool-side `rig-id`. This build sets both to `ZTM-Zero-to-Monero`.
 
-## Step 4 — Results
+If ZTM uses the **same receiving address** as the existing Linux fleet, HashVault will still include it in that wallet's total worker count. The dedicated name makes it visibly separate; a completely separate wallet dashboard requires a separate receiving address.
 
-Results appear in `~/ZTM-Results`.
+## Validation status
 
-## Security and release status
+Local structural and simulated end-to-end testing passed:
+- package syntax and metadata verified;
+- GUI source differs from alpha3 only in backend preparation steps;
+- XMRig test configuration includes huge pages, MSR, and dedicated worker name;
+- accepted-share parsing updates the existing GUI counter.
 
-- [Installer source](../install-ztm-v3.sh)
-- [Signed release manifest](../downloads/latest-ztm-v3.json)
-- [Detached signature](../downloads/latest-ztm-v3.sig)
-- [Pinned public verification key](../downloads/ztm-v3-public.pem)
-- [Ubuntu x86-64 .deb](../downloads/ZTM-Zero-to-Monero_0.1.2-alpha3-surgical_amd64.deb)
-- Built package SHA-256: `0fbedd3c8660299d17f2708857e9905654e905a6f76410f2bd428dda464eb800`.
-- Original alpha2's prior installer remains unchanged for reproducibility, but this page points to the new signed alpha3.
-- **Not validated yet:** installation on the user's clean Ubuntu hardware; any live accepted pool share; uninterrupted 24-hour benchmarking; independent ownership confirmation of the embedded payout address.
-- The engineering-alpha signing key is provisional; a production release requires an I2PS-controlled signing key and further testing.
+Still requires a real Ubuntu test to confirm the machine reports successful MSR application, non-zero/100% huge pages, the dedicated worker identity on HashVault, and a real accepted share.
