@@ -1,5 +1,7 @@
 # Dual-ISA RandomX Lab
 
+**Latest downloadable ZTM (20 October 2026):** Wallet-enabled engineering alpha `0.1.1-alpha2` is published as a SHA-256-verified `.deb` under `downloads/` with an Ed25519-signed alpha manifest. **[One-command Ubuntu x86-64 installation](docs/ZTM_ONE_COMMAND.md)**. It is not the validated 24-hour production v0.4 release.
+
 **Release readiness (20 Oct 2026): no v0.4 application binary is published on GitHub Releases.** A separate online-only engineering prototype has been assembled and tested locally with synthetic process fixtures, but live pool mining and the required full 24-hour hardware run remain unverified. [Read the precise 20 October release gates](docs/RELEASE_READINESS_2026-10-20.md). Do not present design previews as a downloadable completed product.
 
 
