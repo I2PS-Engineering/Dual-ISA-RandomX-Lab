@@ -1,10 +1,10 @@
 # ZTM v0.1.5-alpha6 Mining integration — engineering status
 
-**Status: local Ubuntu .deb built and tested; NOT yet published as a GitHub one-command installation.**
+**Status: alpha6 package and pinned one-command installer published on the renamed GitHub repository; real 24-hour live validation pending.**
 
-Alpha5 remains the most recently published GitHub installer. Do **not** describe the existing `install-ztm-v5.sh` as installing alpha6.
+Alpha5 remains available for rollback. The new [`install-ztm-v6.sh`](../install-ztm-v6.sh) and [one-command instructions](ZTM_ONE_COMMAND.md) install alpha6, and the package is stored as SHA-256-verified GitHub fragments.
 
-## Surgical changes implemented in a local test build
+## Surgical changes implemented in the published alpha6 engineering build
 
 - Original alpha5 benchmark GUI, wallet backend, official I2PS logo and source mining engine behavior retained. An added third **Mining** navigation tab does not redesign the benchmark layout.
 - Before a qualifying **24-hour uninterrupted, pool-verified** RandomX benchmark, both **Wallet** and **Mining** navigation entries are greyed out. Clicking them displays the 24-hour requirement rather than opening a tab.
@@ -21,4 +21,4 @@ Alpha5 remains the most recently published GitHub installer. Do **not** describe
 
 **Not validated:** a full real 24-hour benchmark unlocking tabs, live personal mining/donation payouts, or full process shutdown on actual Ubuntu hardware. Results stored locally are evidence of completion but not cryptographically signed.
 
-**Publication gate:** GitHub installer and binary upload/verification remain pending. Preserve alpha5 as the default until verified.
+**Publication verification:** Seven GitHub-hosted package fragments were retrieved from pinned commit `6d0568aa93631199338cf016b5dc8473b2ab7673` and exactly matched the locally tested 30,380-byte Debian package (SHA-256 `86262258c70707ad15a4154935175f8394bc3b5d98c4f305b692e90fac4109cd`). The pinned new GitHub installer is in `install-ztm-v6.sh`. This does not establish that a real Ubuntu installation or mining-cycle test passed.
