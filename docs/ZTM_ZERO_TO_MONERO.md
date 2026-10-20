@@ -26,3 +26,9 @@ ZTM alpha is a **short engineering diagnostic using the test operator's explicit
 The actual .deb, signed manifest and pinned bootstrap are hosted in the repository downloads directory and can be installed with the [single verified command](ZTM_ONE_COMMAND.md). This is still an alpha; do not describe an untested 24-hour benchmark as verified.
 
 **Third party:** XMRig is fetched from the official upstream repository under its separate GPLv3 license; no XMRig executable is included in the Debian package.
+
+## Wallet tab — updated local alpha
+
+Wallet offers **I have an existing wallet** or **I do not have a wallet — create one**. New wallets are created and password-encrypted locally through the official Monero GUI application, not by ZTM's own cryptography. On completion ZTM displays a file, address, password, seed and recovery-responsibility notice, then accepts only the public receiving address. See [Wallet workflow and recovery notice](ZTM_WALLET_WORKFLOW.md).
+
+**Binary status:** The local 0.1.1 alpha2 contains these changes; the currently signed GitHub one-command installer has NOT yet been updated to alpha2. Do not claim these wallet screens are in its current download.
