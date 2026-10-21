@@ -52,6 +52,23 @@ jobs:
             exit 1
           fi
           PYTHONPATH=macos/ztm python3 -c 'import ztm_gui, ztm_engine, ztm_mining, ztm_native, ztm_wallet; print("Imports OK")'
+          PYTHONPATH=macos/ztm python3 macos/ztm/test_winner.py
+          PYTHONPATH=macos/ztm python3 - <<'PY'
+          from ztm_gui import benchmark_session, os_is_supported
+          from ztm_engine import BenchError
+          from ztm_winner import build_winning_configuration
+          assert os_is_supported()
+          for m, t in [(60, None), (1440, 3)]:
+              try:
+                  benchmark_session('pool.hashvault.pro:443',
+                      '4' + 'A' * 94, False, m, t)
+              except BenchError:
+                  pass
+              else:
+                  raise AssertionError('Bypassed macOS GUI stable restrictions')
+          print('GUI benchmark lock OK')
+          PY
+
 
       - name: Verify native official XMRig
         run: |
