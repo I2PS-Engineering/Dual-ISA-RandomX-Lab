@@ -68,6 +68,23 @@ jobs:
                   raise AssertionError('Bypassed macOS GUI stable restrictions')
           print('GUI benchmark lock OK')
           PY
+          PYTHONPATH=macos/ztm python3 - <<'PY'
+          import os
+          import subprocess
+          from ztm_native import process_identity, process_identity_alive
+          own = process_identity(os.getpid())
+          assert own is not None
+          assert process_identity_alive(own[0], own[1])
+          assert not process_identity_alive(own[0], own[1] + ' changed')
+          assert not process_identity_alive(99999999, 'invalid')
+          child = subprocess.Popen(['/bin/sleep', '0.1'])
+          child_id = process_identity(child.pid)
+          assert child_id is not None
+          assert process_identity_alive(child_id[0], child_id[1])
+          child.wait(timeout=5)
+          assert not process_identity_alive(child_id[0], child_id[1])
+          print('GUI owner process identity watchdog OK')
+          PY
 
 
       - name: Verify native official XMRig
@@ -183,7 +200,7 @@ jobs:
           - Qualification gate for Wallet and personal mining after a verified uninterrupted 24-hour run.
           - Public Monero receiving addresses only, no private wallet keys or recovery phrases.
           - Upstream XMRig plus I2PS developer contribution disclosed in the GUI.
-          - Native user-level XMRig process guardian; no macOS administrator escalation.
+          - Native user-level XMRig process guardian, with GUI PID/start-time monitoring to stop mining after normal close, force-quit, or unexpected GUI exit; no macOS administrator escalation.
 
           ## Testing status
 
@@ -196,17 +213,34 @@ jobs:
           Do not confuse this engineering preview with the verified Ubuntu package `ZTM-SRP1V1`. The Linux stable release remains unchanged.
           NOTES
 
-          gh release create ZTM-macOS-P1 \
-            publish/ZTM-macOS-P1-arm64.dmg \
-            publish/ZTM-macOS-P1-arm64.zip \
-            publish/SHA256SUMS-arm64.txt \
-            publish/ZTM-macOS-P1-x86_64.dmg \
-            publish/ZTM-macOS-P1-x86_64.zip \
-            publish/SHA256SUMS-x86_64.txt \
-            --title 'ZTM macOS Preview P1 — Apple Silicon and Intel' \
-            --notes-file /tmp/ztm-macos-release-notes.md \
-            --target "$GITHUB_SHA" \
-            --prerelease
+          if gh release view ZTM-macOS-P1 >/dev/null 2>&1; then
+            gh release upload ZTM-macOS-P1 \
+              publish/ZTM-macOS-P1-arm64.dmg \
+              publish/ZTM-macOS-P1-arm64.zip \
+              publish/SHA256SUMS-arm64.txt \
+              publish/ZTM-macOS-P1-x86_64.dmg \
+              publish/ZTM-macOS-P1-x86_64.zip \
+              publish/SHA256SUMS-x86_64.txt \
+              --clobber
+            gh release edit ZTM-macOS-P1 \
+              --title 'ZTM macOS Preview P1 — Apple Silicon and Intel' \
+              --notes-file /tmp/ztm-macos-release-notes.md \
+              --prerelease
+            gh api --method PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/ZTM-macOS-P1" \
+              -f sha="$GITHUB_SHA" -F force=true
+          else
+            gh release create ZTM-macOS-P1 \
+              publish/ZTM-macOS-P1-arm64.dmg \
+              publish/ZTM-macOS-P1-arm64.zip \
+              publish/SHA256SUMS-arm64.txt \
+              publish/ZTM-macOS-P1-x86_64.dmg \
+              publish/ZTM-macOS-P1-x86_64.zip \
+              publish/SHA256SUMS-x86_64.txt \
+              --title 'ZTM macOS Preview P1 — Apple Silicon and Intel' \
+              --notes-file /tmp/ztm-macos-release-notes.md \
+              --target "$GITHUB_SHA" \
+              --prerelease
+          fi
 
       - name: Verify prerelease
         env:
