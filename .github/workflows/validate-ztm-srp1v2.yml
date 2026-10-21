@@ -1,0 +1,71 @@
+name: Validate ZTM-SRP1V2 Linux GUI
+
+on:
+  push:
+    paths:
+      - '.github/workflows/validate-ztm-srp1v2.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V1.1 package
+        env:
+          GH_TOKEN: \${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/ztm-v2
+          gh release download ZTM-SRP1V1 -R I2PS-Engineering/ZTM_Benchmark -p ZTM-SRP1V1_amd64.deb -D /tmp/ztm-v2
+          echo 'acd4bee9a502e39a673cbf39679710553fd83720cc261f5915166e8eb1c6dd56  /tmp/ztm-v2/ZTM-SRP1V1_amd64.deb' | sha256sum -c -
+          dpkg-deb -R /tmp/ztm-v2/ZTM-SRP1V1_amd64.deb /tmp/ztm-v2/pkg
+      - name: Apply controlled patch and verify invariants
+        run: |
+          set -euo pipefail
+          ROOT=/tmp/ztm-v2/pkg
+          find "$ROOT" -type f ! -path '*/DEBIAN/control' ! -path '*/usr/lib/ztm/ztm_gui.py' ! -path '*/usr/lib/ztm/ztm_engine.py' ! -path '*/usr/lib/ztm/ztm_mining.py' -print0 | sort -z | xargs -0 sha256sum > /tmp/ztm-v2/before
+          python3 release/patch_srp1v2.py "$ROOT"
+          python3 -m compileall -q "$ROOT/usr/lib/ztm"
+          find "$ROOT/usr/lib/ztm" -type d -name __pycache__ -prune -exec rm -rf '{}' +
+          find "$ROOT" -type f ! -path '*/DEBIAN/control' ! -path '*/usr/lib/ztm/ztm_gui.py' ! -path '*/usr/lib/ztm/ztm_engine.py' ! -path '*/usr/lib/ztm/ztm_mining.py' -print0 | sort -z | xargs -0 sha256sum > /tmp/ztm-v2/after
+          cmp /tmp/ztm-v2/before /tmp/ztm-v2/after
+          ENGINE="$ROOT/usr/lib/ztm/ztm_engine.py"
+          python3 "$ENGINE" --plan --minutes 1440 >/tmp/ztm-v2/plan24
+          if python3 "$ENGINE" --plan --minutes 60 >/tmp/ztm-v2/plan60 2>&1; then echo 'FAIL: 60-minute plan accepted'; exit 1; fi
+          test "$(grep -Fo ZTM-RX1V2-L "$ENGINE" | wc -l)" -eq 2
+          test "$(grep -Fo ZTM-RX1V2-L "$ROOT/usr/lib/ztm/ztm_mining.py" | wc -l)" -eq 2
+          dpkg-deb --build --root-owner-group "$ROOT" /tmp/ztm-v2/ZTM-SRP1V2_amd64.deb
+          test "$(dpkg-deb -f /tmp/ztm-v2/ZTM-SRP1V2_amd64.deb Version)" = '1.2.0~srp1v2'
+          sha256sum /tmp/ztm-v2/ZTM-SRP1V2_amd64.deb
+      - name: GUI render and zoom smoke test at 1366x768
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -qq -y xvfb python3-tk
+          xvfb-run -a -s '-screen 0 1366x768x24' /usr/bin/python3 - <<'PY'
+          import sys, tkinter as tk
+          sys.path.insert(0,'/tmp/ztm-v2/pkg/usr/lib/ztm')
+          import ztm_gui
+          root=tk.Tk()
+          app=ztm_gui.ZTMApp(root)
+          root.update_idletasks()
+          assert app._font_zoom==1.65
+          assert len(app._font_registry)>=8
+          assert all(f.actual('size')>=round(key[1]*1.65) for key,f in app._font_registry.items())
+          first=next(iter(app._font_registry.values()))
+          before=first.actual('size')
+          app.change_zoom(0.15)
+          assert first.actual('size')>before
+          app.change_zoom(-0.15)
+          assert app.ui_zoom_status.get()=='UI 165%'
+          print('GUI smoke pass',root.winfo_geometry(),'fonts',len(app._font_registry))
+          assert root.winfo_width()<=1366 and root.winfo_height()<=768
+          root.destroy()
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ZTM-SRP1V2-verified-deb
+          path: /tmp/ztm-v2/ZTM-SRP1V2_amd64.deb
