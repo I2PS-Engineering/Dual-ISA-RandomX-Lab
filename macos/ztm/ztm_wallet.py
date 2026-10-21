@@ -23,7 +23,7 @@ class WalletError(ValueError):
 
 
 def public_record_path(home=None):
-    return Path(home or Path.home()) / '.local' / 'share' / 'ztm' / 'wallet-public.json'
+    return Path(home or Path.home()) / 'Library' / 'Application Support' / 'I2PS' / 'ZTM' / 'wallet-public.json'
 
 
 def write_public_record(address, chosen_wallet_file='', *, destination=None):
@@ -86,12 +86,15 @@ def read_public_record(*, destination=None):
 
 
 def find_monero_gui():
-    """Use only a wallet GUI already installed/selected by the local user."""
-    candidates = [shutil.which('monero-wallet-gui'),
-                  Path.home() / 'Monero' / 'monero-wallet-gui',
-                  Path.home() / 'Applications' / 'monero-wallet-gui.AppImage']
+    """Locate the official wallet application locally; never examine wallet secrets."""
+    candidates = [
+        Path('/Applications/Monero GUI Wallet.app/Contents/MacOS/monero-wallet-gui'),
+        Path('/Applications/monero-wallet-gui.app/Contents/MacOS/monero-wallet-gui'),
+        Path.home() / 'Applications' / 'Monero GUI Wallet.app' / 'Contents' / 'MacOS' / 'monero-wallet-gui',
+        shutil.which('monero-wallet-gui'),
+    ]
     for candidate in candidates:
-        if candidate and Path(candidate).is_file() and os.access(candidate, os.X_OK):
+        if candidate is not None and Path(candidate).is_file() and os.access(candidate, os.X_OK):
             return Path(candidate)
     return None
 
