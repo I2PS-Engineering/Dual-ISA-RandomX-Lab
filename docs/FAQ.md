@@ -1,41 +1,76 @@
-# Frequently asked questions
+# ZTM-SRP1V1 FAQ
 
-### Is this free software?
+### What is the current release?
 
-I2PS intends to provide the application free for permitted use, but **not as open source**. Its chosen proprietary license is PolyForm Strict 1.0.0, which permits noncommercial use subject to restrictions.
+**ZTM-SRP1V1 — Stable Release V1.1**.
 
-### Can I redistribute it under my own brand?
+### What operating system is supported?
 
-No. PolyForm Strict does not grant redistribution, rebranding or modification rights to I2PS-owned software. Share the **official repository link** instead.
+The current stable package targets **Ubuntu Desktop x86-64**.
 
-### Can I currently download a working v0.4 online benchmark?
+### Is ZTM open source?
 
-**No.** As of 17 October 2026, the complete online-only 24-hour benchmark controller is not implemented or validated. This is a documentation/design repository pending an approved distributable release.
+No.
 
-### Is the CPU benchmark simulated?
+I2PS-owned ZTM software is distributed under **PolyForm Strict License 1.0.0** for permitted noncommercial use.
 
-No in the planned application: real RandomX work runs on the user's actual physical CPU. Illustrative charts or previous design mockups are not benchmark measurements.
+### Is the benchmark simulated?
 
-### Why does an initial benchmark use the Dev Wallet?
+No.
 
-The proposed 24-hour benchmark directs its mining rewards to the Dev Wallet to help fund software engineering, updates and keeping the application free. It must be **prominently disclosed and explicitly authorized before any mining begins**.
+ZTM runs real RandomX CPU work through XMRig and connects to a real mining pool.
 
-### Can I turn Dev Donate off?
+### Can I choose a shorter benchmark?
 
-The planned personal-mining implementation contains no Dev Donate toggle. The mechanism and rate must be disclosed before starting the session. Users must always be able to stop mining.
+No.
 
-### Can I use an existing Linux installation?
+ZTM-SRP1V1 is locked to **24 hours**. The duration selector was removed, and the engine rejects shorter benchmark durations.
 
-Yes, the earlier development Quickstart targets Ubuntu/Debian x86-64 without reinstalling the operating system. Production v0.4 setup is still under development.
+### Can I choose CPU threads manually?
 
-### What wallet information is required?
+Not for the stable benchmark.
 
-Only your **public Monero receiving address** during the personal-mining stage. **Never** enter private spend/view keys or a recovery seed.
+The benchmark uses **CPU Threads: Auto** and evaluates the supported tested profiles automatically.
 
-### Can I run it on a work/company computer?
+### What happens if I stop before 24 hours?
 
-Use only computers you own or are authorized to use. PolyForm Strict prohibits commercial use of I2PS-owned code except as separately permitted; business or revenue-generating mining may need a different license. See the license review note in [LICENSE.md](../LICENSE.md).
+The CPU work stops, but that run does not qualify as a completed 24-hour benchmark and does not unlock the qualified Wallet/Mining workflow.
 
-### What if I stop the 24-hour benchmark?
+### What do the two benchmark checkboxes say?
 
-Mining must stop. An interrupted session must not be labeled a completed continuous 24-hour benchmark.
+1. **I authorize real CPU work for 24 hours, including electricity use and heat.**
+2. **I understand this online benchmark uses both XMRig and I2PS dev contribution.**
+
+### Does ZTM need my wallet seed or private keys?
+
+No.
+
+ZTM only needs a **public Monero receiving address** for the user's personal-mining workflow.
+
+Never enter a recovery seed, wallet password, private spend key or private view key into ZTM.
+
+### Does ZTM store my Ubuntu administrator password?
+
+No.
+
+The privileged preparation uses a per-session authorization mechanism. ZTM does not store the password or install a permanent passwordless sudo rule.
+
+### Does XMRig have its own developer contribution?
+
+XMRig is independent software and retains its own upstream behavior and GPLv3 licensing. ZTM's I2PS contribution is separate.
+
+### Does ZTM guarantee a particular hashrate?
+
+No.
+
+Hashrate is measured on the actual machine and depends on the CPU, memory, thermals, system state, pool conditions and tested profile.
+
+### Where do I download the stable release?
+
+https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/tag/ZTM-SRP1V1
+
+### Where do I report a problem?
+
+General technical reports: **engineering@i2psolutions.com**
+
+Security reports: follow [SECURITY.md](../SECURITY.md).
