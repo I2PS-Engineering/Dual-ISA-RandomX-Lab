@@ -1,9 +1,7 @@
 name: Build ZTM alpha9 final
 
 on:
-  push:
-    paths:
-      - '.github/workflows/build-ztm-alpha9-final.yml'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -123,21 +121,23 @@ jobs:
           SH
           sed -i "s/__PKG_SHA__/$PKG_SHA/;s/__PKG_SIZE__/$PKG_SIZE/" install-ztm-v9.sh
           chmod +x install-ztm-v9.sh
-          cat > docs/ZTM_ALPHA9_FINAL.md <<EOF
-          # ZTM α9 final
+          python3 - <<PY
+          from pathlib import Path
+          Path('docs/ZTM_ALPHA9_FINAL.md').write_text("""# ZTM α9 final
 
-          Final α9 integration release built from the tested one-authentication backend and desktop-launcher baseline.
+Final α9 integration release built from the tested one-authentication backend and desktop-launcher baseline.
 
-          Surgical changes only:
-          - Benchmark XMRig rig ID: `ZTM-α9`.
-          - Official ZTM 0–10K H/s performance-gauge desktop icon installed as the application icon.
-          - Desktop shortcut behavior retained.
-          - Benchmark optimizer, Wallet, Mining, donation logic, 24-hour gate, and privileged shutdown/session behavior unchanged.
+Surgical changes only:
+- Benchmark XMRig rig ID: `ZTM-α9`.
+- Official ZTM 0–10K H/s performance-gauge desktop icon installed as the application icon.
+- Desktop shortcut behavior retained.
+- Benchmark optimizer, Wallet, Mining, donation logic, 24-hour gate, and privileged shutdown/session behavior unchanged.
 
-          Package SHA-256: `$PKG_SHA`
-          Package bytes: `$PKG_SIZE`
-          Debian version: `0.1.8~alpha9final1`
-          EOF
+Package SHA-256: `$PKG_SHA`
+Package bytes: `$PKG_SIZE`
+Debian version: `0.1.8~alpha9final1`
+""", encoding='utf-8')
+          PY
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
