@@ -1,43 +1,93 @@
-# Dual-ISA RandomX Lab — user guide
+# ZTM-SRP1V1 user guide
 
-This is the public text counterpart to the planned installation PDF.
+## What ZTM does
 
-**Product:** I2PS Dual-ISA RandomX Lab  
-**Author:** I2PS Engineering / I2PS Solutions  
-**Use:** Free for qualifying noncommercial use; proprietary, not open source. [License](../LICENSE.md).
+ZTM measures real RandomX performance on the physical CPU of an Ubuntu x86-64 computer.
 
-## What the program is for
+It uses a real XMRig workload and a real mining-pool connection.
 
-Measure **real RandomX performance on the CPU of the user's own computer**, compare supported thread configurations over sustained operation, and report the strongest **tested** configuration. It is not a CPU simulation and does not promise a universal optimum or profitability.
+The goal is to identify a strong **tested** CPU thread configuration and measure sustained behavior over a full 24-hour benchmark.
 
-## Getting started
+## 1. Prepare the machine
 
-1. Read the [release status](STATUS.md). A production-ready v0.4 application is **not yet available**.
-2. [Install from GitHub](GITHUB_INSTALLATION.md): existing Linux users open Terminal; Windows migrants first install Ubuntu, then use the **same** official GitHub bootstrap. The installer is published but no approved stable binary application release exists yet.
-3. Once a reviewed release is available, the installer verifies its SHA-256, preserves your previous installation and local data, and can open the app. The current setup assistant offers independently licensed verified XMRig after user confirmation. The full automatic v0.4 first-launch wizard is still pending. Installation is not mining authorization.
-4. Read the licensing conditions and the Dev Wallet disclosure before agreeing to CPU mining.
-5. Once you authorize it, the intended online RandomX benchmark runs for **at least 24 hours of continuous active time**, with initial mining rewards directed to the Dev Wallet.
-6. Review share and sustained hashrate metrics; an interrupted run must not be labeled complete.
-7. After completion, enter **only your own public Monero receiving address** to configure personal mining. If you lack a wallet, see [official wallet resources](MONERO_WALLET_GUIDE.md).
-8. Personal mining uses a distinct authorized session; built-in Dev Donate remains part of the planned developer-support model, with exact terms pending specification.
+Open ZTM and select:
 
-## First authorization
+**1 PREPARE LINUX + INSTALL XMRIG**
 
-**Exactly two acknowledgments** appear in the approved v0.4 interface:
+Ubuntu requests administrator authorization for the preparation operations.
 
-1. “I understand this benchmark uses my CPU continuously for approximately 24 hours so I can get the best result running my own RandomX miner.”
-2. “I understand the terms and conditions of using I2PS RandomX CPU Benchmark software.”
+ZTM uses one privileged authorization session while the application remains open. It does not store the password.
 
-The Dev Wallet recipient and electricity/CPU implications are disclosed **separately and prominently**. Users must be able to **stop mining** at any time.
+Preparation does not begin mining automatically.
 
-## Security
+## 2. Review the benchmark setup
 
-Never paste private spend/view keys, seed phrases or passwords into this app. Keep the local server inaccessible to public networks. Back up files before an OS migration.
+ZTM-SRP1V1 has no duration selector.
 
-## Checking for updates
+The benchmark is always:
 
-After accepting the application license, use **CHECK GITHUB UPDATES** on the dashboard to see the latest approved compatible version. This checks GitHub metadata only; it does not install binaries or start mining. To upgrade, stop mining, exit the application and rerun `bash install_from_github.sh`. There is no stable public application release yet.
+**24 hours**
 
-## Further reading
+CPU thread control is:
 
-[Installation](INSTALLATION.md) · [Benchmark specification](ONLINE_BENCHMARK.md) · [Wallet guide](MONERO_WALLET_GUIDE.md) · [FAQ](FAQ.md) · [Support](../SUPPORT.md)
+**Auto**
+
+The two required acknowledgements are:
+
+1. **I authorize real CPU work for 24 hours, including electricity use and heat.**
+2. **I understand this online benchmark uses both XMRig and I2PS dev contribution.**
+
+## 3. Start the benchmark
+
+Select:
+
+**START 24-HOUR RANDOMX BENCHMARK**
+
+ZTM starts real RandomX CPU work through XMRig.
+
+The live terminal shows benchmark/miner activity. ZTM records hashrate and pool-share behavior and evaluates the supported thread profiles.
+
+A short peak is not treated as the final result. The objective is sustained measured performance.
+
+You can stop the benchmark. A stopped or incomplete run does not qualify as a completed 24-hour benchmark.
+
+## 4. Result and qualification
+
+A qualifying run must complete the full 24-hour requirement and satisfy the pool-verification conditions used by ZTM.
+
+The result records information including the selected thread profile, elapsed time, hashrate samples and accepted/rejected share behavior.
+
+Wallet and Mining remain gated until the qualifying benchmark completes.
+
+## 5. Wallet
+
+For personal mining, ZTM requires only a **public Monero receiving address**.
+
+Never enter into ZTM:
+
+- recovery seed;
+- wallet password;
+- private spend key;
+- private view key.
+
+Wallet creation and recovery are performed using wallet software, not ZTM.
+
+## 6. Personal mining
+
+After qualification, ZTM uses the tested CPU configuration for the personal-mining workflow.
+
+The user's public receiving address is the payout destination for the user's mining path.
+
+The developer-contribution behavior remains part of the software, while XMRig also retains its own independent upstream contribution behavior.
+
+## 7. Stop and close
+
+The Stop control must terminate active CPU work.
+
+Closing the ZTM session also closes the privileged authorization session.
+
+## Performance interpretation
+
+Hashrate depends on the actual CPU, memory behavior, thermal state, operating environment, pool conditions and tested thread profile.
+
+ZTM does not guarantee profitability or a universal best hashrate.
