@@ -1,6 +1,6 @@
-# ZTM-SRP1V1 — 24-hour online RandomX benchmark
+# ZTM-SRP1V2 — 24-hour online RandomX benchmark
 
-This document describes the benchmark implemented by **ZTM-SRP1V1 — Stable Release V1.1**.
+This document describes the benchmark implemented by **ZTM-SRP1V2 — Stable Release V1.2**.
 
 ## Fixed benchmark rules
 
@@ -50,7 +50,7 @@ Shorter sessions cannot be combined to create a qualifying 24-hour result.
 
 The stable release uses worker identification:
 
-`ZTM-R-A-10-E-R`
+`ZTM-RX1V2-L`
 
 in both supported pool-identification fields.
 
@@ -59,3 +59,7 @@ in both supported pool-identification fields.
 RandomX can place sustained load on the CPU and cooling system.
 
 Use ZTM only on machines you own or are authorized to operate. Monitor the hardware appropriately for its environment.
+
+## Winning configuration at completion
+
+After a qualifying 24-hour pool-verified run, ZTM displays the **Winning Configuration**, including the selected active threads, score, tested profile, sustained hashrate median/mean/min/max, highest reading across the full run, peak from tested profiles, accepted/rejected shares, elapsed seconds and saved JSON report. The peak result is not substituted for sustained performance.
