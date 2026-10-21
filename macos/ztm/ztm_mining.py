@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ZTM Mining: single verified XMRig with existing 1% XMRig + 1% timed I2PS pool interval.
+"""ZTM macOS P1: verified native XMRig with upstream and I2PS dev contributions.
 
 Donation fraction is scheduling time, not a guaranteed revenue or accepted-share fraction.
 No XMRig subprocess survives deliberate termination of this controller.
@@ -33,8 +33,8 @@ def mining_config(address: str, *, donation: bool = False, threads: int | None =
                    'pass': 'ZTM-I2PS-Donate' if donation else 'ZTM-Personal-Mining',
                    'rig-id': 'ZTM-I2PS-Donate' if donation else 'ZTM-Personal-Mining',
                    'tls': False, 'keepalive': True}],
-        'cpu': {'enabled': True, 'huge-pages': True},
-        'randomx': {'init': -1, 'rdmsr': True, 'wrmsr': True, '1gb-pages': False},
+        'cpu': {'enabled': True, 'huge-pages': False},
+        'randomx': {'init': -1, 'rdmsr': False, 'wrmsr': False, '1gb-pages': False},
         'opencl': {'enabled': False}, 'cuda': {'enabled': False},
         'print-time': 10, 'colors': False, 'http': {'enabled': False},
     }
@@ -68,27 +68,16 @@ def mine(address: str, result_dir: Path | None = None) -> int:
     if not 1 <= threads <= (os.cpu_count() or 1):
         raise SystemExit('PERSONAL MINING LOCKED: qualified CPU profile does not match this machine.')
     address = validate_address(address)
-    binary = local_binary(Path.home() / '.local' / 'share' / 'i2ps-randomx-test' / f'xmrig-{VERSION}')
+    binary = local_binary(Path.home() / 'Library' / 'Application Support' / 'I2PS' / 'ZTM' / f'xmrig-{VERSION}')
     with tempfile.TemporaryDirectory(prefix='ztm-mine-') as directory:
         path = Path(directory) / 'xmrig.json'
         write_config(path, mining_config(address, threads=threads))
-        from ztm_root_guard import process_identity
-        owner_id = process_identity(os.getpid())
-        if owner_id is None:
-            raise RuntimeError('Unable to verify controller process')
-        stop_flag = Path(directory) / 'stop.request'
-        if os.environ.get('ZTM_SESSION_SOCKET'):
-            command = [sys.executable, '-u',
-                str(Path(__file__).with_name('ztm_privilege_client.py')),
-                'miner', str(binary), str(path), str(stop_flag),
-                str(os.getpid()), str(owner_id[1])]
-        else:
-            command = ['pkexec','/usr/bin/python3',
-                str(Path(__file__).with_name('ztm_root_guard.py')),
-                '--xmrig', str(binary), '--config', str(path), '--stop-flag', str(stop_flag),
-                '--owner-pid', str(os.getpid()), '--owner-start', str(owner_id[1])]
+        # macOS uses a non-root guardian; controller stdin closure stops XMRig.
+        from ztm_native import child_command
+        command = child_command('guardian', '--xmrig', str(binary),
+                                '--config', str(path))
         process = subprocess.Popen(command,
-            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
             errors='replace', bufsize=1, start_new_session=True)
         started = time.monotonic()
         print(f'[ZTM] Using qualified 24-hour benchmark: {threads} active CPU thread(s)', flush=True)
@@ -123,12 +112,13 @@ def mine(address: str, result_dir: Path | None = None) -> int:
         except KeyboardInterrupt:
             print('[ZTM] Stopping personal mining', flush=True)
         finally:
-            stop_flag.touch(mode=0o600, exist_ok=True)
+            if process.stdin is not None and not process.stdin.closed:
+                process.stdin.close()
             try:
                 process.wait(timeout=15)
             except subprocess.TimeoutExpired:
-                print('[ZTM] CRITICAL: privileged miner shutdown not confirmed',flush=True)
-                raise RuntimeError('Privileged miner did not confirm shutdown')
+                print('[ZTM] CRITICAL: native miner shutdown not confirmed', flush=True)
+                raise RuntimeError('Native XMRig did not confirm shutdown')
             thread.join(timeout=4)
     return 0 if process.returncode in (0, -signal.SIGTERM, -signal.SIGINT) else (process.returncode or 0)
 
@@ -139,7 +129,7 @@ def main():
     parser.add_argument('--output', default=str(Path.home() / 'ZTM-Results'))
     args = parser.parse_args()
     if not args.session_stdin or os.geteuid() == 0:
-        raise SystemExit('Use ZTM GUI as the normal Ubuntu desktop user.')
+        raise SystemExit('Use ZTM GUI as a normal macOS desktop user.')
     payload = json.loads(sys.stdin.readline())
     if payload.get('authorized') is not True:
         raise SystemExit('Mining Terms & Conditions acceptance required.')
