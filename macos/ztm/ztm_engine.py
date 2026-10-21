@@ -536,9 +536,15 @@ def run_benchmark(executable: Path, pool: str, wallet: str, tls: bool, duration_
         "status": status, "actual_24_hour_benchmark": bool(duration_s >= 86400 and elapsed >= 86400 and ran_full_time and online_verified),
         "source": "XMRig console readings; profile search uses sustained median, stability and rejection quality",
     }
+    from ztm_winner import build_winning_configuration, format_winning_configuration
+    winner = build_winning_configuration(report)
+    report["winning_configuration"] = winner
     target = output_dir / f"run_{runid}.json"
     target.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     target.chmod(0o600)
+    winning_file = output_dir / f"run_{runid}_winning_configuration.txt"
+    winning_file.write_text(format_winning_configuration(winner), encoding="utf-8")
+    winning_file.chmod(0o600)
     print("\n" + "=" * 63)
     print(" I2PS RANDOMX — ACTUAL ONLINE CPU TEST RESULT")
     print("=" * 63)
@@ -552,7 +558,9 @@ def run_benchmark(executable: Path, pool: str, wallet: str, tls: bool, duration_
     print(f" Verification:        {status}")
     print(f" JSON report:         {target}")
     print(f" Diagnostic log:      {logfile}")
+    print(f" Winning profile:     {winning_file}")
     print("=" * 63)
+    print(format_winning_configuration(winner), flush=True)
     if not values:
         return report, 3
     return report, 0 if ran_full_time and online_verified else 2
