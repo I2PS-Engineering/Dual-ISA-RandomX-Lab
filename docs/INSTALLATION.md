@@ -1,6 +1,6 @@
-# Installing ZTM-SRP1V1
+# Installing ZTM-SRP1V2
 
-**Stable Release V1.1** supports Ubuntu Desktop on x86-64 systems.
+**Stable Release V1.2** supports Ubuntu Desktop on x86-64 systems.
 
 ## Before installing
 
@@ -17,32 +17,36 @@ Run the installer as your **normal Ubuntu desktop user**, not as root.
 ## Recommended one-command installation
 
 ```bash
-python3 -c 'import hashlib,subprocess,urllib.request;u="https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/download/ZTM-SRP1V1/install-ztm-srp1v1.sh";b=urllib.request.urlopen(u,timeout=60).read();assert hashlib.sha256(b).hexdigest()=="ec069736a9e683b3e6294a4af066963a0c21ae2d5e835157a483c4c2b31b85ff","SECURITY STOP: installer checksum mismatch";subprocess.run(["bash","-s"],input=b,check=True)'
+python3 -c 'import hashlib,subprocess,urllib.request;u="https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/download/ZTM-SRP1V2/install-ztm-srp1v2.sh";b=urllib.request.urlopen(u,timeout=60).read();assert hashlib.sha256(b).hexdigest()=="428cd6c872f81325c3b18de8c04a88d3f085daec5795f7cf4723a881734020dd","SECURITY STOP: installer checksum mismatch";subprocess.run(["bash","-s"],input=b,check=True)'
 ```
 
 This verifies the installer before executing it.
 
 The installer then verifies the stable Debian package before installation.
 
+## One-file README ZIP
+
+Download [ZTM-SRP1V2_Linux_One_Command_README.zip](https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/download/ZTM-SRP1V2/ZTM-SRP1V2_Linux_One_Command_README.zip). Extract `README.txt`, then copy the installer command into Terminal.
+
 ## Manual installation
 
 Release page:
 
-https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/tag/ZTM-SRP1V1
+https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/tag/ZTM-SRP1V2
 
 Download:
 
-- `ZTM-SRP1V1_amd64.deb`
+- `ZTM-SRP1V2_amd64.deb`
 - `SHA256SUMS.txt`
 
 Expected package SHA-256:
 
-`acd4bee9a502e39a673cbf39679710553fd83720cc261f5915166e8eb1c6dd56`
+`ab4e8339a100957df62b2dc83849d9efe6dee3b1fc51fca41a18f7a7b5f18077`
 
 Install the verified package:
 
 ```bash
-sudo apt install ./ZTM-SRP1V1_amd64.deb
+sudo apt install ./ZTM-SRP1V2_amd64.deb
 ```
 
 ## What installation does
@@ -60,7 +64,7 @@ The stable benchmark is fixed at:
 - Duration: **24 hours**
 - CPU Threads: **Auto**
 
-There is no shorter benchmark option in ZTM-SRP1V1.
+There is no shorter benchmark option in ZTM-SRP1V2.
 
 Read and check both acknowledgements, then select **START 24-HOUR RANDOMX BENCHMARK**.
 
