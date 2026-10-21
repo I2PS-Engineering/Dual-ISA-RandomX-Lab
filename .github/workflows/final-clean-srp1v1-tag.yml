@@ -1,0 +1,28 @@
+name: Final Clean ZTM-SRP1V1 Tag
+
+on:
+  push:
+    paths:
+      - '.github/workflows/final-clean-srp1v1-tag.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Remove this workflow and retag clean tree
+        run: |
+          set -euo pipefail
+          git config user.name 'I2PS Engineering'
+          git config user.email 'engineering@i2psolutions.com'
+          git rm .github/workflows/final-clean-srp1v1-tag.yml
+          git commit -m 'cleanup: finalize ZTM-SRP1V1 clean repository tree'
+          git push origin HEAD:main
+          git tag -f -a ZTM-SRP1V1 -m 'ZTM-SRP1V1 — Stable Release V1.1' HEAD
+          git push --force origin refs/tags/ZTM-SRP1V1
