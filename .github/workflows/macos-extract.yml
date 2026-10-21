@@ -1,0 +1,30 @@
+name: Extract macOS port baseline
+on:
+  push:
+    branches: [feature/macos-native]
+    paths: ['.github/workflows/macos-extract.yml']
+permissions:
+  contents: write
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Import existing application source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -e
+          mkdir -p macos/ztm macos/assets /tmp/ztmbase
+          gh release download ZTM-SRP1V1 -R I2PS-Engineering/ZTM_Benchmark -p ZTM-SRP1V1_amd64.deb -D /tmp/ztmbase
+          echo 'acd4bee9a502e39a673cbf39679710553fd83720cc261f5915166e8eb1c6dd56  /tmp/ztmbase/ZTM-SRP1V1_amd64.deb' | sha256sum -c -
+          dpkg-deb -x /tmp/ztmbase/ZTM-SRP1V1_amd64.deb /tmp/ztmbase/root
+          cp /tmp/ztmbase/root/usr/lib/ztm/*.py macos/ztm/
+          cp /tmp/ztmbase/root/usr/lib/ztm/*.md macos/ztm/
+          cp /tmp/ztmbase/root/usr/lib/ztm/*.png macos/ztm/
+          cp /tmp/ztmbase/root/usr/share/icons/hicolor/64x64/apps/ztm.png macos/assets/icon.png
+          git config user.email 'engineering@i2psolutions.com'
+          git config user.name 'I2PS Engineering'
+          git add macos
+          git commit -m 'macOS: import stable app source'
+          git push
