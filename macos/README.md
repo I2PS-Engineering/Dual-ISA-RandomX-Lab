@@ -17,3 +17,17 @@ Official XMRig v6.26.0:
 - Intel archive: xmrig-6.26.0-macos-x64.tar.gz; SHA-256 1da924b358c0089e361540c4a9e6f8b09538b29efeafa2379590e0f6db358ff4
 
 These checksums are from the official XMRig release page.
+
+## Native dependency verification
+
+Both matrix jobs succeeded: [macOS compatibility check](https://github.com/I2PS-Engineering/ZTM_Benchmark/actions/runs/39630653245).
+
+The tests checked Darwin architecture, tkinter availability, upstream XMRig v6.26.0 archive integrity, and matching native binaries.
+
+The [native preparation script](prepare-native-xmrig.sh) can set up the verified dependency without starting a workload.
+
+## Release status
+
+Native dependency preparation has passed. The full macOS GUI and runtime are not yet built or released. A separate application-level verification is required before calling this a stable macOS release.
+
+The existing Ubuntu SRP1V1 release is unchanged.
