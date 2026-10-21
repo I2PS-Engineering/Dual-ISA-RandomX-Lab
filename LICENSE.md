@@ -1,17 +1,17 @@
-# I2PS Dual-ISA RandomX Lab — License and ownership
+# ZTM-SRP1V1 — License and ownership
 
 **Copyright © 2026 I2PS Solutions. All rights reserved in I2PS-owned materials.**
 
-**I2PS-owned software and artwork: PolyForm Strict License 1.0.0.** The text of the chosen standard license is reproduced below unchanged in its operative provisions; original source: https://polyformproject.org/licenses/strict/1.0.0/
+**ZTM-SRP1V1 I2PS-owned software and artwork: PolyForm Strict License 1.0.0.** The text of the chosen standard license is reproduced below unchanged in its operative provisions; original source: https://polyformproject.org/licenses/strict/1.0.0/
 
 ## Plain-language notice (informational only)
 
 - **Free for permitted noncommercial use**, subject to license terms.
 - **Not open source.** Posting documentation in a public repository does not grant a source-code license.
 - No redistribution, rebranding, modification, derivative builds, sublicensing or commercial use of I2PS-owned software unless separately authorized in writing by I2PS.
-- Users may publish their **own benchmark measurements** and share a link to the official repository.
+- Users may publish their **own benchmark measurements** and share the official ZTM repository or release link.
 - This notice does not replace or amend the standard license below.
-- **Important:** A revenue-generating or other commercial mining use may fall outside PolyForm Strict's permitted purposes. Separate permission or revised licensing is required before claiming that such use is permitted. The developer-contribution funding arrangement also requires legal review before release.
+- **Commercial or revenue-generating use is not granted by PolyForm Strict.** Personal mining or other activity with an anticipated commercial application may require separate written permission. The presence of ZTM's developer-contribution mechanism does not expand the user's license rights.
 - The independently maintained **XMRig** program remains under its **own GPLv3** licensing. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ---
