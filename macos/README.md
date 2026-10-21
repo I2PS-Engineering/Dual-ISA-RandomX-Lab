@@ -44,8 +44,8 @@ If a benchmark is interrupted, any provisional profile remains explicitly **inco
 ## Process safety
 
 The native macOS guardian runs XMRig as the current logged-in user; it does not elevate privileges.
-The controller keeps a pipe open to the guardian.
-When the user stops work or the controller process terminates, the guardian receives EOF, signals its XMRig process group, and waits for shutdown.
+The benchmark/mining controller keeps a pipe open to the guardian. The worker also periodically verifies the GUI process ID and its macOS process start identity.
+When the user stops work, the GUI exits unexpectedly, or the benchmark controller terminates, the guardian receives EOF, signals the XMRig process group, and waits for shutdown.
 A separate real-hardware validation of stop/kill behavior is required before stable publication.
 
 ## GUI
