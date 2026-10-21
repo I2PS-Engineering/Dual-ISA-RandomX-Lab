@@ -1,14 +1,57 @@
-# Feedback and contributions
+# Contributing and feedback — ZTM-SRP1V1
 
-This is a **proprietary, public-download documentation repository**, not an open-source development repository.
+ZTM is a **publicly distributed proprietary application**, not an open-source development project.
 
-We welcome **non-sensitive bug reports, compatibility reports, and documentation feedback**. Please report sensitive security issues privately to **engineering@i2psolutions.com**.
+The current supported release is **ZTM-SRP1V1 — Stable Release V1.1**.
 
-Before posting:
-- Do not include private keys, recovery phrases, wallet passwords, login tokens, wallet seeds or private mining configuration.
-- Disclose whether any benchmark result was **measured on real hardware**, a controlled fake-process test, or a design preview.
-- Include operating system, CPU architecture, version, reproduction steps and sanitized logs only when relevant.
+## What we welcome
 
-No permission to redistribute, fork commercially, rebrand or modify I2PS-owned software is granted by this document. Rights are governed by [LICENSE.md](LICENSE.md).
+We welcome:
 
-External code submissions are not being accepted for the proprietary application at this stage. Contact **engineering@i2psolutions.com** regarding authorized engineering collaborations.
+- reproducible bug reports;
+- Ubuntu x86-64 compatibility reports;
+- benchmark-behavior reports;
+- documentation corrections;
+- accessibility and GUI feedback;
+- security reports through the private security channel.
+
+When reporting a technical issue, include only what is needed to reproduce it:
+
+- ZTM release: `ZTM-SRP1V1`;
+- Ubuntu version;
+- CPU model;
+- what you expected;
+- what actually happened;
+- exact reproduction steps;
+- sanitized log excerpts when relevant.
+
+For benchmark reports, distinguish sustained results from momentary peaks and include whether the 24-hour run completed.
+
+## Do not post secrets
+
+Never submit:
+
+- Monero recovery seeds or mnemonic phrases;
+- wallet passwords;
+- private spend keys;
+- private view keys;
+- login credentials;
+- access tokens;
+- administrator passwords;
+- private mining credentials.
+
+A public Monero receiving address is not a private key, but users should still avoid posting personal wallet information unless it is necessary for a report.
+
+## Code submissions
+
+External source-code submissions to the proprietary ZTM application are not accepted by default.
+
+Authorized engineering collaboration can be discussed with **engineering@i2psolutions.com**.
+
+Nothing in this document grants permission to redistribute, rebrand, modify, sublicense or commercially exploit I2PS-owned software. See [LICENSE.md](LICENSE.md).
+
+## Security issues
+
+Do not open a public issue for a vulnerability that could expose credentials, wallet information, privileged execution, installation integrity or unintended mining behavior.
+
+Report those privately as described in [SECURITY.md](SECURITY.md).
