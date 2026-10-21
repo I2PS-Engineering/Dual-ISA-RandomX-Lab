@@ -1,0 +1,112 @@
+name: Build native macOS P1
+
+on:
+  push:
+    branches: [feature/macos-native]
+    paths:
+      - 'macos/**'
+      - '.github/workflows/build-macos-preview.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  macos:
+    name: macOS native ${{ matrix.arch }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            arch: arm64
+          - runner: macos-15-intel
+            arch: x86_64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify native platform
+        run: |
+          set -euo pipefail
+          test "$(uname -s)" = Darwin
+          test "$(uname -m)" = "${{ matrix.arch }}"
+          python3 --version
+
+      - name: Compile app and verify 24-hour lock
+        run: |
+          set -euo pipefail
+          python3 -m compileall -q macos/ztm
+          python3 macos/ztm/launcher.py --ztm-child engine --plan --minutes 1440 > /tmp/ztm-plan.txt
+          grep -Fq '86400 s' /tmp/ztm-plan.txt
+          if python3 macos/ztm/launcher.py --ztm-child engine --plan --minutes 60 >/tmp/ztm-invalid.txt 2>&1; then
+            echo 'SECURITY STOP: engine accepted 60 minutes' >&2
+            exit 1
+          fi
+          if python3 macos/ztm/launcher.py --ztm-child engine --plan --minutes 1440 --threads 2 >/tmp/ztm-threads.txt 2>&1; then
+            echo 'SECURITY STOP: engine accepted manual threads' >&2
+            exit 1
+          fi
+          PYTHONPATH=macos/ztm python3 -c 'import ztm_gui, ztm_engine, ztm_mining, ztm_native, ztm_wallet; print("Imports OK")'
+
+      - name: Verify native official XMRig
+        run: |
+          set -euo pipefail
+          python3 macos/ztm/launcher.py --ztm-child prepare
+          XMRIG="$HOME/Library/Application Support/I2PS/ZTM/xmrig-6.26.0/xmrig"
+          test -x "$XMRIG"
+          "$XMRIG" --version
+          file "$XMRIG"
+
+      - name: Build self-contained macOS application
+        run: |
+          set -euo pipefail
+          python3 -m pip install --upgrade 'pyinstaller==6.16.0'
+          mkdir -p /tmp/ztm.iconset
+          for size in 16 32 128 256 512; do
+            sips -s format png -z "$size" "$size" macos/assets/icon.png --out "/tmp/ztm.iconset/icon_${size}x${size}.png" >/dev/null
+            doubled=$((size * 2))
+            sips -s format png -z "$doubled" "$doubled" macos/assets/icon.png --out "/tmp/ztm.iconset/icon_${size}x${size}@2x.png" >/dev/null
+          done
+          iconutil -c icns /tmp/ztm.iconset -o /tmp/ZTM.icns
+          python3 -m PyInstaller --clean --noconfirm --windowed --onedir \
+            --name ZTM --osx-bundle-identifier com.i2psolutions.ztm.macos.p1 \
+            --paths macos/ztm --icon /tmp/ZTM.icns \
+            --add-data 'macos/ztm/i2ps-logo.png:.' \
+            --add-data 'macos/ztm/MINING_TERMS.md:.' \
+            macos/ztm/launcher.py
+          test -d dist/ZTM.app
+          plutil -lint dist/ZTM.app/Contents/Info.plist
+          codesign --verify --deep dist/ZTM.app
+
+      - name: Check packaged child-mode 24-hour lock
+        run: |
+          set -euo pipefail
+          APP=dist/ZTM.app/Contents/MacOS/ZTM
+          "$APP" --ztm-child engine --plan --minutes 1440 > /tmp/ztm-bundled-plan.txt
+          grep -Fq '86400 s' /tmp/ztm-bundled-plan.txt
+          if "$APP" --ztm-child engine --plan --minutes 60 >/dev/null 2>&1; then
+            echo 'SECURITY STOP: packaged engine accepted shorter duration' >&2
+            exit 1
+          fi
+
+      - name: Package test artifacts
+        run: |
+          set -euo pipefail
+          mkdir -p out
+          hdiutil create -volname "ZTM macOS P1" -srcfolder dist/ZTM.app -ov \
+            -format UDZO "out/ZTM-macOS-P1-${{ matrix.arch }}.dmg"
+          (cd dist && ditto -c -k --sequesterRsrc --keepParent ZTM.app "../out/ZTM-macOS-P1-${{ matrix.arch }}.zip")
+          shasum -a 256 out/* > "out/SHA256SUMS-${{ matrix.arch }}.txt"
+          ls -lh out
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ZTM-macOS-P1-${{ matrix.arch }}
+          path: out/*
+          if-no-files-found: error
+          retention-days: 30
