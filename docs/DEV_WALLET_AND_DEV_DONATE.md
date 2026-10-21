@@ -1,27 +1,37 @@
-# Dev Wallet and Dev Donate
+# Developer contribution — ZTM-SRP1V1
 
-**Approved product policy, implementation pending.**
+ZTM-SRP1V1 discloses developer contribution directly in the benchmark authorization.
 
-## Dev Wallet — initial benchmark
+The second required acknowledgement is:
 
-The first online RandomX benchmark uses the user's physical CPU for **at least 24 continuous active hours**. After explicit, informed authorization, mining proceeds to the **Dev Wallet** for this initial benchmark period.
+> **I understand this online benchmark uses both XMRig and I2PS dev contribution.**
 
-The application's user-facing explanation is:
+The previous separate Dev Wallet explanatory line is not shown in the stable benchmark setup.
 
-> **Dev Wallet** — This contributes in the development of the software, of its future versions, and keeping it alive and always free, as it was first intended.
+## XMRig contribution
 
-The software must prominently explain that **the initial 24-hour mining rewards benefit I2PS Engineering**; electricity and CPU load are borne by the participant. The actual receiving address is not displayed in the graphical interface, but payout accounting must be testable and must not misrepresent the beneficiary.
+XMRig is independent GPLv3 software and may include its own upstream developer-contribution behavior.
 
-## Dev Donate — personal mining phase
+ZTM does not claim that contribution as I2PS-owned and does not change XMRig's license.
 
-**Dev Donate** is the built-in developer contribution supporting I2PS software engineering, maintenance, future releases and continuous support. It is **not** an optional charity toggle in the planned design. Users should be informed about the mechanic and its rate **before** they authorize any personal mining session.
+## I2PS contribution
 
-- There is **no Dev Donate ON/OFF switch** in the planned UI.
-- Mining cannot begin automatically without clear informed authorization of the material terms.
-- Users can **Stop Mining** or exit at any time.
-- Do **not** interfere with XMRig's own separate developer donation and GPLv3 obligations.
-- Contribution **percentage, scheduling and accounting are not finalized**. No unsupported number or automatic switching claim should appear in public builds.
+ZTM also includes I2PS developer-contribution behavior supporting continued software development and maintenance.
 
-## License issue requiring approval before release
+This is separate from XMRig's upstream contribution.
 
-The current I2PS software license, **PolyForm Strict 1.0.0**, permits noncommercial use and restricts commercial use. Because personal cryptocurrency mining may constitute revenue-generating commercial activity, we must resolve this legal/product mismatch before distributing a production mining application. Do not imply that paying Dev Donate overrides license restrictions automatically.
+The user is informed of both before starting the 24-hour benchmark.
+
+## User control
+
+CPU work does not begin merely because ZTM was installed or opened.
+
+The user must explicitly authorize and start the benchmark.
+
+A visible Stop control remains available, and the user can stop personal mining as well.
+
+## Wallet secrets
+
+Developer-contribution behavior does not require the user's recovery seed, wallet password or private keys.
+
+For the user's personal-mining path, ZTM requires only the user's public Monero receiving address.
