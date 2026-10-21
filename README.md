@@ -1,6 +1,6 @@
 # ZTM — Zero to Monero
 
-**Current stable release: ZTM-SRP1V1 — Stable Release V1.1**
+**Current stable release: ZTM-SRP1V2 — Stable Release V1.2**
 
 **I2PS Engineering** · Built in Morocco. Engineered for the Future.
 
@@ -10,7 +10,7 @@ ZTM does not simulate mining.
 
 ## Stable release
 
-ZTM-SRP1V1 is the current supported release for **Ubuntu Desktop x86-64**.
+ZTM-SRP1V2 is the current supported release for **Ubuntu Desktop x86-64**.
 
 The stable benchmark is intentionally fixed:
 
@@ -31,25 +31,35 @@ The benchmark authorization contains the two approved acknowledgements:
 
 ## Install
 
+**[Download the one-README installation ZIP](https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/download/ZTM-SRP1V2/ZTM-SRP1V2_Linux_One_Command_README.zip)** — unzip, open README.txt, copy and paste its command.
+
 Official release:
 
-**[ZTM-SRP1V1 — Stable Release V1.1](https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/tag/ZTM-SRP1V1)**
+**[ZTM-SRP1V2 — Stable Release V1.2](https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/tag/ZTM-SRP1V2)**
 
 Run the verified one-command installer as your normal Ubuntu desktop user:
 
 ```bash
-python3 -c 'import hashlib,subprocess,urllib.request;u="https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/download/ZTM-SRP1V1/install-ztm-srp1v1.sh";b=urllib.request.urlopen(u,timeout=60).read();assert hashlib.sha256(b).hexdigest()=="ec069736a9e683b3e6294a4af066963a0c21ae2d5e835157a483c4c2b31b85ff","SECURITY STOP: installer checksum mismatch";subprocess.run(["bash","-s"],input=b,check=True)'
+python3 -c 'import hashlib,subprocess,urllib.request;u="https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/download/ZTM-SRP1V2/install-ztm-srp1v2.sh";b=urllib.request.urlopen(u,timeout=60).read();assert hashlib.sha256(b).hexdigest()=="428cd6c872f81325c3b18de8c04a88d3f085daec5795f7cf4723a881734020dd","SECURITY STOP: installer checksum mismatch";subprocess.run(["bash","-s"],input=b,check=True)'
 ```
 
 The installer downloads the stable Debian package, verifies its exact size, SHA-256, package name, architecture and Debian version before installation.
 
 ### Stable package
 
-- Package: `ZTM-SRP1V1_amd64.deb`
-- Debian version: `1.1.0~srp1v1`
+- Package: `ZTM-SRP1V2_amd64.deb`
+- Debian version: `1.2.0~srp1v2`
 - Architecture: `amd64`
-- SHA-256: `acd4bee9a502e39a673cbf39679710553fd83720cc261f5915166e8eb1c6dd56`
-- Size: `45,728` bytes
+- SHA-256: `ab4e8339a100957df62b2dc83849d9efe6dee3b1fc51fca41a18f7a7b5f18077`
+- Size: `47,094` bytes
+
+## Readable GUI and winning configuration
+
+The Linux GUI starts at **165% text zoom**, with live **A− / A+** zoom controls (125–200%). Text, buttons, checkboxes and terminal output now scale as interface elements instead of only enlarging the window.
+
+After a qualifying 24-hour run, **Winning Configuration** reports the selected active threads, winning tested profile, optimization score, sustained mean/median, highest recorded hashrate, profile peak, share counts, elapsed time, and saved JSON results. An instantaneous peak is distinguished from sustained performance.
+
+Worker ID: **`ZTM-RX1V2-L`**.
 
 ## What happens during the benchmark
 
@@ -67,17 +77,18 @@ ZTM does not create, request, store or recover private wallet secrets. Wallet cr
 
 ## Release verification
 
-The SRP1V1 package was built with guarded stable-release changes and checked for:
+The SRP1V2 package was built with guarded stable-release changes and checked for:
 
 - fixed 24-hour duration in both GUI and engine;
 - rejection of a shorter 60-minute engine run;
 - fixed CPU Threads: Auto workflow;
 - approved authorization wording;
 - removal of the old duration selector and extra Dev Wallet explanatory line;
-- adaptive GUI sizing;
+- adaptive GUI sizing and live font zoom at 165% default;
 - desktop launcher and official ZTM icon;
-- rig identification `ZTM-R-A-10-E-R`;
+- rig identification `ZTM-RX1V2-L`;
 - preserved optimizer, Wallet, Mining, eligibility, donation and shutdown behavior;
+- winning-configuration JSON and completion UI;
 - package identity and SHA-256 integrity.
 
 Real hashrate remains hardware-dependent. A 24-hour run measures the specific machine being tested; ZTM does not promise a universal hashrate or profitability.
