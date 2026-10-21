@@ -282,7 +282,7 @@ assert "I understand this online benchmark uses both XMRig and I2PS dev contribu
 assert "START 24-HOUR RANDOMX BENCHMARK" in g
 assert "minutes = 1440" in g and "duration_menu" not in g
 assert "a.minutes != 1440" in e and "a.seconds != 86400" in e
-assert e.count("ZTM-RX1V2-L") == 2
+assert e.count("ZTM-RX1V2-L") >= 4
 assert m.count("ZTM-RX1V2-L") == 2
 assert "ZTM-R-A-10-E-R" not in e
 assert "winning_configuration" in e and "show_winning_configuration" in g
