@@ -442,6 +442,27 @@
    659	
    660	    def stop(self):
 
+## Engine run_benchmark lines 252-270
+   252	    temporary.write_text(json.dumps(cfg), encoding="utf-8")
+   253	    temporary.chmod(0o600)
+   254	    os.replace(temporary, cfg_path)
+   255	
+   256	
+   257	def run_benchmark(executable: Path, pool: str, wallet: str, tls: bool, duration_s: int,
+   258	                  threads: int | None, output_dir: Path, confirm: bool) -> tuple[dict, int]:
+   259	    if not confirm:
+   260	        if not sys.stdin.isatty():
+   261	            raise BenchError("Interactive authorization is required (or use --yes to explicitly consent).")
+   262	        print("\nYou are authorizing REAL online CPU mining for this engineering test.")
+   263	        print(f"Pool: {pool} | TLS: {'enabled' if tls else 'disabled'} | Duration: {duration_s} seconds")
+   264	        print("Mining rewards are attributed to the configured public receiving address.")
+   265	        print("XMRig also has its own configurable developer donation mechanism.")
+   266	        print("Mining consumes electricity, heats the CPU, and can be stopped with Ctrl+C.")
+   267	        if input("Type RUN to start this test: ").strip() != "RUN":
+   268	            raise BenchError("Authorization declined; no mining started.")
+   269	
+   270	    output_dir.mkdir(parents=True, exist_ok=True)
+
 ## Engine argument/session lines 560-625
    560	    print(f" Diagnostic log:      {logfile}")
    561	    print("=" * 63)
