@@ -23,7 +23,7 @@ def main(argv=None):
     rest = args[2:]
     if mode == "prepare":
         from ztm_native import main as prepare
-        return prepare(rest)
+        return prepare(["prepare"])
     if mode == "engine":
         from ztm_engine import main as benchmark
         return benchmark(rest)
