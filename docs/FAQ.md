@@ -1,8 +1,8 @@
-# ZTM-SRP1V1 FAQ
+# ZTM-SRP1V2 FAQ
 
 ### What is the current release?
 
-**ZTM-SRP1V1 — Stable Release V1.1**.
+**ZTM-SRP1V2 — Stable Release V1.2**.
 
 ### What operating system is supported?
 
@@ -24,7 +24,7 @@ ZTM runs real RandomX CPU work through XMRig and connects to a real mining pool.
 
 No.
 
-ZTM-SRP1V1 is locked to **24 hours**. The duration selector was removed, and the engine rejects shorter benchmark durations.
+ZTM-SRP1V2 is locked to **24 hours**. The duration selector was removed, and the engine rejects shorter benchmark durations.
 
 ### Can I choose CPU threads manually?
 
@@ -67,10 +67,18 @@ Hashrate is measured on the actual machine and depends on the CPU, memory, therm
 
 ### Where do I download the stable release?
 
-https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/tag/ZTM-SRP1V1
+https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/tag/ZTM-SRP1V2
 
 ### Where do I report a problem?
 
 General technical reports: **engineering@i2psolutions.com**
 
 Security reports: follow [SECURITY.md](../SECURITY.md).
+
+### Does ZTM show the winning configuration after 24 hours?
+
+Yes. A qualifying completed run displays the selected active threads, winning profile, optimization score, sustained and peak hashrates, pool shares, and a JSON report. **Highest peak** and **best sustained configuration** are distinguished.
+
+### How can I enlarge the interface?
+
+ZTM-SRP1V2 starts at 165% font scaling. The A− and A+ buttons in the top bar adjust interface text between 125% and 200%.
