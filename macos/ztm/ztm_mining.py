@@ -123,11 +123,11 @@ def mine(address: str, result_dir: Path | None = None) -> int:
     return 0 if process.returncode in (0, -signal.SIGTERM, -signal.SIGINT) else (process.returncode or 0)
 
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('--session-stdin', action='store_true')
     parser.add_argument('--output', default=str(Path.home() / 'ZTM-Results'))
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     if not args.session_stdin or os.geteuid() == 0:
         raise SystemExit('Use ZTM GUI as a normal macOS desktop user.')
     payload = json.loads(sys.stdin.readline())
