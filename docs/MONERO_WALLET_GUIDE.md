@@ -1,32 +1,36 @@
-# Monero wallet guide — public address only
+# Monero wallet safety — ZTM-SRP1V1
 
-After the **completed** online benchmark, users may configure personal mining using their **own Monero wallet**.
+After a qualifying 24-hour benchmark, ZTM can use the user's **public Monero receiving address** for personal mining.
 
-## What the app should request
+## What ZTM needs
 
-**Only a public Monero receiving address**, which allows a pool to send earned payouts to the user's wallet.
+| Item | Needed by ZTM? |
+| --- | --- |
+| Public receiving address | **Yes** |
+| Recovery seed / mnemonic | **Never** |
+| Wallet password | **Never** |
+| Private spend key | **Never** |
+| Private view key | **Never** |
 
-| Item | Purpose | Enter in I2PS Lab? |
-| --- | --- | --- |
-| Public receiving address | Receives mining payouts | **Yes** |
-| Public spend/view keys | Public cryptographic elements | **No — not needed** |
-| Private spend key | Authorizes spending of wallet funds | **Never** |
-| Private view key | Can reveal wallet incoming-transaction history | **Never** |
-| Recovery seed / mnemonic | Can restore control over wallet funds | **Never** |
-| Wallet password | Protects local wallet access | **Never** |
+A public receiving address allows mining payouts to be directed to the user's wallet. It does not give ZTM authority to spend the user's funds.
 
-The receiving address is not identical to the private spend key. The software should validate a public address without requesting any secret.
+## Creating or restoring a wallet
 
-## Do not have a wallet yet?
+Use wallet software you trust and obtain it from its official source.
 
-- Official Monero wallet downloads: https://www.getmonero.org/downloads/
-- Official Monero user guides: https://www.getmonero.org/resources/user-guides/
-- Official Monero website: https://www.getmonero.org/
+Official Monero resources:
 
-Users should install wallet software from official sources, create a wallet, **back up their seed offline**, and copy **only the public receiving address** into the I2PS application's user-wallet form.
+- https://www.getmonero.org/downloads/
+- https://www.getmonero.org/resources/user-guides/
 
-## Separate sessions
+Back up recovery information securely and offline.
 
-The initial 24-hour online benchmark is paid to the **Dev Wallet** with prior consent. Personal mining is a different session, using the user's entered public wallet, with the built-in and disclosed **Dev Donate** mechanism. The exact Dev Donate rate is **not yet finalized**; personal mining with that mechanism must not be released without full specification and verification.
+Do not paste a recovery seed or private key into ZTM, a GitHub issue, an email support request or a chat.
 
-Never publish wallet credentials, seeds or sensitive user identity information in benchmark logs or GitHub issues.
+## ZTM wallet workflow
+
+The Wallet section remains gated until a qualifying 24-hour benchmark completes.
+
+When the user proceeds to personal mining, ZTM stores/uses only the public-address information required for that workflow.
+
+ZTM does not recover lost wallets and cannot retrieve a forgotten wallet password or recovery seed.
