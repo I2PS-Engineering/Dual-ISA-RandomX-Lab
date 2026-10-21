@@ -40,6 +40,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          grep -n -C 3 'ZTM-α9' /tmp/ztm-srp1v1/pkg/usr/lib/ztm/ztm_engine.py || true
           python3 release/build_srp1v1.py /tmp/ztm-srp1v1/pkg
           python3 -m compileall -q /tmp/ztm-srp1v1/pkg/usr/lib/ztm
           find /tmp/ztm-srp1v1/pkg/usr/lib/ztm -type d -name __pycache__ -prune -exec rm -rf '{}' +
