@@ -1,21 +1,54 @@
-# Security policy and responsible use
+# Security policy — ZTM-SRP1V1
 
-## Support and reporting
+This policy applies to the current stable release, **ZTM-SRP1V1 — Stable Release V1.1**.
 
-Report security concerns **privately** to **engineering@i2psolutions.com**, with subject **Dual-ISA RandomX Lab — Security**. Do not post private keys, seed phrases, wallet recovery data, credentials or private miner configurations in GitHub issues.
+## Reporting a security issue
 
-## Operational boundaries
+Report security concerns privately to **engineering@i2psolutions.com**.
 
-- The benchmarking/mining application operates only with the machine owner's explicit authorization.
-- The software must not mine silently after installation, run hidden tasks, or defeat Stop/exit requests.
-- Initial online benchmarking routes rewards to the **Dev Wallet**; beneficiary, 24-hour operation and costs must be disclosed before consent.
-- Personal mining is a **separate** user-authorized operation.
-- Only public Monero receiving addresses are needed. Never request private spend keys, private view keys or wallet seeds.
-- Use independently released and integrity-verified XMRig; preserve its GPLv3 rights and default developer contribution.
-- A local control server should remain loopback-only. Do not expose it to the Internet without an explicit authentication/security design.
-- Benchmark exports should omit hostnames, local IPs, wallet secrets, pool credentials and raw configuration files.
-- XMRig can stress CPU, cooling and power. Users should monitor equipment and use systems they have permission to operate.
+Suggested subject:
 
-## Status
+**ZTM-SRP1V1 — Security**
 
-The full 24-hour online architecture and its security controls are **not released or hardware-verified**. Do not treat design previews as security assurance.
+Do not publish sensitive vulnerability details in a public issue before they have been reviewed.
+
+## Security boundaries
+
+ZTM is designed around the following boundaries:
+
+- CPU mining/benchmarking begins only after explicit user authorization.
+- The stable benchmark duration is fixed at **24 hours**.
+- The user must check both benchmark acknowledgements before the benchmark starts.
+- A visible Stop control remains available during CPU work.
+- ZTM must not silently mine after installation.
+- ZTM must not ignore Stop/exit requests or intentionally persist mining after the application session ends.
+- Ubuntu privileged preparation uses a per-session authorization broker. ZTM does not store the user's administrator password and does not install a permanent passwordless sudo rule.
+- The benchmark and mining engine use a separately licensed XMRig installation that is integrity-verified before use.
+- Only a **public Monero receiving address** is required from the user for personal mining.
+- ZTM never needs a recovery seed, wallet password, private spend key or private view key.
+- Benchmark/result data should not expose wallet secrets, login credentials or unrelated local machine secrets.
+- XMRig can create sustained CPU, electrical and thermal load. Run ZTM only on hardware you own or are authorized to operate.
+
+## Developer contribution
+
+The stable authorization explicitly states:
+
+**I understand this online benchmark uses both XMRig and I2PS dev contribution.**
+
+XMRig's upstream developer contribution is governed independently by XMRig and its GPLv3-licensed implementation. I2PS developer-contribution behavior belongs to ZTM and does not change XMRig's license.
+
+## Release integrity
+
+The official stable package is distributed through the GitHub Release tagged **ZTM-SRP1V1**.
+
+Package identity:
+
+- `ZTM-SRP1V1_amd64.deb`
+- Debian version `1.1.0~srp1v1`
+- SHA-256 `acd4bee9a502e39a673cbf39679710553fd83720cc261f5915166e8eb1c6dd56`
+
+The official installer verifies package size, SHA-256, package name, architecture and Debian version before installation.
+
+## Current validation boundary
+
+The stable package and its release invariants have been verified. Hashrate, thermals, pool behavior and sustained performance remain machine-specific and are measured by the real 24-hour hardware run.
