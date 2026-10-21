@@ -1,24 +1,69 @@
-# Installation overview: GitHub delivery
+# Installing ZTM-SRP1V1
 
-The **same official GitHub installer** serves two audiences:
+**Stable Release V1.1** supports Ubuntu Desktop on x86-64 systems.
 
-1. [Already using Linux](EXISTING_LINUX.md): leave Linux installed, open Terminal, download the GitHub bootstrap, preview and run it.
-2. [Migrating from Windows to Ubuntu](WINDOWS_TO_UBUNTU.md): back up data and install Ubuntu first, then follow the **identical** Terminal procedure.
+## Before installing
 
-Detailed instructions: [GITHUB_INSTALLATION.md](GITHUB_INSTALLATION.md).
-
-## Beginner's three commands
+Close any previous ZTM instance and make sure an existing XMRig process is not running:
 
 ```bash
-curl -fL --proto '=https' --tlsv1.2 -o install_from_github.sh https://raw.githubusercontent.com/I2PS-Engineering/Dual-ISA-RandomX-Lab/main/install_from_github.sh
-bash install_from_github.sh --plan
-bash install_from_github.sh
+pgrep -a -x xmrig
 ```
 
-The final command installs nothing until a reviewed **stable GitHub Release** exists with a compatible ZIP and `SHA256SUMS.txt`. Check safely using `bash install_from_github.sh --check`.
+No output means no XMRig process is currently running.
 
-When an approved Release becomes available, installation checks architecture, verifies the checksum and ZIP safety, saves the previous install and local results, then asks whether to open the app. Inside the app, users separately accept the license and approve installation of XMRig. None of these operations starts online mining.
+Run the installer as your **normal Ubuntu desktop user**, not as root.
 
-The intended **v0.4 online-only** benchmark workflow is setup -> two consent acknowledgments and prominent Dev Wallet notice -> 24 continuous hours of actual online RandomX CPU work -> results -> personal public Monero wallet -> explicitly authorized mining. **No offline benchmark is available** in v0.4. This runtime **has not yet been implemented**. v0.3.x contains a legacy offline prototype only.
+## Recommended one-command installation
 
-The official GUI can check stable-release availability without performing an update. Exit the application before running the installer to update.
+```bash
+python3 -c 'import hashlib,subprocess,urllib.request;u="https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/download/ZTM-SRP1V1/install-ztm-srp1v1.sh";b=urllib.request.urlopen(u,timeout=60).read();assert hashlib.sha256(b).hexdigest()=="ec069736a9e683b3e6294a4af066963a0c21ae2d5e835157a483c4c2b31b85ff","SECURITY STOP: installer checksum mismatch";subprocess.run(["bash","-s"],input=b,check=True)'
+```
+
+This verifies the installer before executing it.
+
+The installer then verifies the stable Debian package before installation.
+
+## Manual installation
+
+Release page:
+
+https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/tag/ZTM-SRP1V1
+
+Download:
+
+- `ZTM-SRP1V1_amd64.deb`
+- `SHA256SUMS.txt`
+
+Expected package SHA-256:
+
+`acd4bee9a502e39a673cbf39679710553fd83720cc261f5915166e8eb1c6dd56`
+
+Install the verified package:
+
+```bash
+sudo apt install ./ZTM-SRP1V1_amd64.deb
+```
+
+## What installation does
+
+Installation places ZTM and its desktop/application launcher on Ubuntu.
+
+Installation itself does **not** start the benchmark.
+
+Inside ZTM, **Prepare Linux + Install XMRig** performs the supported preparation after explicit authorization.
+
+## First benchmark
+
+The stable benchmark is fixed at:
+
+- Duration: **24 hours**
+- CPU Threads: **Auto**
+
+There is no shorter benchmark option in ZTM-SRP1V1.
+
+Read and check both acknowledgements, then select **START 24-HOUR RANDOMX BENCHMARK**.
+
+## Updating
+
+For a future stable release, use the installer published with that release. Do not replace a running ZTM/XMRig process during a benchmark.
