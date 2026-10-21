@@ -1,6 +1,6 @@
-# Support — ZTM-SRP1V1
+# Support — ZTM-SRP1V2
 
-**Current supported release:** ZTM-SRP1V1 — Stable Release V1.1
+**Current supported release:** ZTM-SRP1V2 — Stable Release V1.2
 
 ## Contact
 
@@ -17,13 +17,13 @@ https://github.com/I2PS-Engineering/ZTM_Benchmark
 
 Stable release:
 
-https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/tag/ZTM-SRP1V1
+https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/tag/ZTM-SRP1V2
 
 ## Technical reports
 
 For a useful technical report, include:
 
-- ZTM version: `ZTM-SRP1V1`;
+- ZTM version: `ZTM-SRP1V2`;
 - Ubuntu version;
 - CPU model;
 - whether the 24-hour benchmark completed;
