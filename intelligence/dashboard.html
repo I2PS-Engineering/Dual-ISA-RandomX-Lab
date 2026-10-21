@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>I2PS ZTM · Benchmark Intelligence</title>
+<style>
+:root{--bg:#070e18;--pane:#0c1b2d;--line:#24435d;--blue:#1976ff;--cyan:#39bfff;--soft:#7fd8ff;--txt:#f2f8ff;--muted:#9eb2c6;--good:#59d6b3}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.55 system-ui,-apple-system,Segoe UI,Arial,sans-serif}
+header{padding:22px max(20px,4vw);border-bottom:1px solid var(--line);display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.brand{display:flex;gap:13px;align-items:center}.mark{font-weight:800;font-size:20px;padding:6px 10px;background:var(--blue);border-radius:8px;letter-spacing:.05em}
+h1{font-size:21px;line-height:1.2;margin:0}small,.sub{color:var(--muted)}main{max-width:1400px;margin:auto;padding:28px 24px 50px}
+h2{font-size:19px;margin:5px 0 15px}.eyebrow{font-size:11px;letter-spacing:.16em;color:var(--cyan);text-transform:uppercase;font-weight:750}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:22px 0 32px}
+.kpi{background:var(--pane);border:1px solid var(--line);border-radius:13px;padding:18px}.kpi b{display:block;font-size:30px;line-height:1.4}
+.kpi span{font-size:13px;color:var(--muted)}.split{display:grid;grid-template-columns:1fr 1.45fr;gap:19px}
+.panel{min-width:0;background:var(--pane);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:18px}
+.barline{display:grid;grid-template-columns:150px 1fr 92px;align-items:center;gap:12px;margin:13px 0}
+.barline .cpu{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--soft)}
+.track{background:#183049;height:13px;border-radius:10px;overflow:hidden}
+.fill{background:linear-gradient(90deg,var(--blue),var(--cyan));height:100%;border-radius:10px}
+input,select,button{color:var(--txt);background:#10283f;border:1px solid #34526c;border-radius:9px;padding:11px;font:inherit}
+input{width:100%;max-width:360px}button{cursor:pointer}button:hover{border-color:var(--cyan)}
+.controls{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin:0 0 15px}
+.tablewrap{width:100%;overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:750px;text-align:left}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+th,td{padding:11px 9px;border-bottom:1px solid var(--line)}
+td{font-variant-numeric:tabular-nums}tr:last-child td{border-bottom:0}.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.note{border-left:3px solid var(--cyan);padding:10px 12px;color:var(--muted);background:#10283f;font-size:13px;margin-bottom:18px}
+.good{color:var(--good)}.pill{display:inline-block;border-radius:20px;padding:2px 9px;font-size:12px;border:1px solid var(--line)}
+#state{color:var(--muted)}.footer{margin-top:20px;color:var(--muted);font-size:12px}
+@media(max-width:980px){.kpis{grid-template-columns:repeat(2,1fr)}.split{grid-template-columns:1fr}}
+@media(max-width:500px){header{padding:16px}main{padding:18px 12px}.kpis{gap:9px}.kpi{padding:12px}.kpi b{font-size:24px}.barline{grid-template-columns:90px 1fr 65px;gap:7px}}
+</style>
+</head>
+<body>
+<header><div class="brand"><div class="mark">I2PS</div><div><div class="eyebrow">Engineering · ZTM</div><h1>Benchmark Intelligence</h1><small>Private local administrator dashboard</small></div></div><span id="state">Connecting locally…</span></header>
+<main>
+<div class="eyebrow">Fleet benchmark overview</div>
+<div class="kpis">
+<div class="kpi"><span>Imported benchmark runs</span><b id="runs">—</b></div>
+<div class="kpi"><span>Worker identifiers</span><b id="workers">—</b></div>
+<div class="kpi"><span>CPU models</span><b id="cpus">—</b></div>
+<div class="kpi"><span>Client-reported 24h runs</span><b id="qualified">—</b></div>
+</div>
+<div class="note" id="warning">Awaiting local database. Reported benchmark results are observations until independently validated.</div>
+<div class="split">
+<section class="panel"><div class="eyebrow">CPU comparisons</div><h2>Most-tested CPU models</h2><div id="bars"></div></section>
+<section class="panel"><div class="eyebrow">Configuration evidence</div><h2>Latest benchmark results</h2>
+<div class="controls"><input type="search" id="filter" placeholder="Filter by worker ID, CPU, OS…"><button id="export" type="button">Export filtered CSV</button></div>
+<div class="tablewrap"><table><thead><tr><th>ZTM ID</th><th>CPU</th><th>Threads</th><th>Median H/s</th><th>Peak H/s</th><th>Shares A/R</th><th>24h*</th></tr></thead><tbody id="rows"></tbody></table></div>
+</section></div>
+<div class="footer">*Client-reported qualification; not independent certification. No external analytics, trackers, or third-party scripts. No paid service required.</div>
+</main>
+<script>
+"use strict";
+const qs=(x)=>document.querySelector(x), dom=(tag,text,cls)=>{const e=document.createElement(tag);e.textContent=text;if(cls)e.className=cls;return e};
+let token="", all=[];
+function initializeAuth(){
+ const frag=new URLSearchParams(location.hash.replace(/^#/,""));
+ token=frag.get("token")||"";
+ history.replaceState({}, "", location.pathname);
+ if(!token){qs("#state").textContent="Administrator session token missing";return false}
+ return true;
+}
+function numeric(x){return x==null?"—":Number(x).toLocaleString(undefined,{maximumFractionDigits:1})}
+function bars(rows){
+ const parent=qs("#bars");parent.replaceChildren();
+ const set=rows.slice(0,8), max=Math.max(1,...set.map(x=>Number(x.runs)||0));
+ if(!set.length){parent.append(dom("p","No reports imported yet.","sub"));return}
+ for(const row of set){
+  const line=dom("div","","barline");
+  const cpu=dom("span",row.cpu_model,"cpu");cpu.title=row.cpu_model;
+  const track=dom("div","","track"),fill=dom("div","","fill");
+  fill.style.width=(100*(row.runs/max))+"%";track.append(fill);
+  line.append(cpu,track,dom("span",row.runs+" runs","sub"));parent.append(line);
+ }
+}
+function matchingRows(){
+ const q=qs("#filter").value.toLowerCase();
+ return all.filter(r=>[r.worker_id,r.cpu_model,r.arch,r.os,r.version].join(" ").toLowerCase().includes(q));
+}
+function renderRows(){
+ const parent=qs("#rows");parent.replaceChildren();
+ const filtered=matchingRows();
+ for(const row of filtered.slice(0,250)){
+  const tr=document.createElement("tr");
+  const values=[row.worker_id,row.cpu_model,row.active_threads??"—",numeric(row.median_hs),numeric(row.max_hs),row.accepted+"/"+row.rejected,row.is_qualified?"Claimed":"No"];
+  values.forEach((value,i)=>tr.append(dom("td",String(value),i===0?"mono":"")));
+  parent.append(tr);
+ }
+ if(!filtered.length){const tr=document.createElement("tr");const td=dom("td","No matching results");td.colSpan=7;tr.append(td);parent.append(tr)}
+}
+function exportCsv(){
+ const headings=["ZTM ID","Run ID","CPU","Architecture","OS","Version","Active threads","Mean H/s","Median H/s","Peak H/s","Accepted","Rejected","Client-reported 24h"];
+ const escapeCsv=x=>'"'+String(x??"").replace(/"/g,'""')+'"';
+ const cells=r=>[r.worker_id,r.run_id,r.cpu_model,r.arch,r.os,r.version,r.active_threads,r.mean_hs,r.median_hs,r.max_hs,r.accepted,r.rejected,r.is_qualified];
+ const csv=[headings,...matchingRows().map(cells)].map(a=>a.map(escapeCsv).join(",")).join("\r\n");
+ const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});
+ const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="ztm-benchmark-intelligence.csv";a.click();URL.revokeObjectURL(a.href);
+}
+async function refresh(){
+ try{
+  const response=await fetch("/api/summary",{headers:{"Authorization":"Bearer "+token},cache:"no-store"});
+  if(!response.ok)throw Error("API status "+response.status);
+  const d=await response.json();
+  for(const k of ["runs","workers","cpus","qualified"])qs("#"+k).textContent=numeric(d.summary[k]);
+  qs("#warning").textContent=d.warning;
+  all=d.runs||[];bars(d.cpus||[]);renderRows();
+  qs("#state").textContent="Local data · connected";
+ }catch(error){qs("#state").textContent="Local data unavailable ("+error.message+")"}
+}
+qs("#filter").addEventListener("input",renderRows);
+qs("#export").addEventListener("click",exportCsv);
+if(initializeAuth())refresh();
+</script>
+</body></html>
