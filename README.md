@@ -1,122 +1,119 @@
-# Dual-ISA RandomX Lab
+# ZTM — Zero to Monero
 
-**Latest downloadable ZTM (20 October 2026):** Wallet-enabled engineering alpha `0.1.1-alpha2` is published as a SHA-256-verified `.deb` under `downloads/` with an Ed25519-signed alpha manifest. **[One-command Ubuntu x86-64 installation](docs/ZTM_ONE_COMMAND.md)**. It is not the validated 24-hour production v0.4 release.
+**Current stable release: ZTM-SRP1V1 — Stable Release V1.1**
 
-**Release readiness (20 Oct 2026): no v0.4 application binary is published on GitHub Releases.** A separate online-only engineering prototype has been assembled and tested locally with synthetic process fixtures, but live pool mining and the required full 24-hour hardware run remain unverified. [Read the precise 20 October release gates](docs/RELEASE_READINESS_2026-10-20.md). Do not present design previews as a downloadable completed product.
+**I2PS Engineering** · Built in Morocco. Engineered for the Future.
 
+ZTM is an Ubuntu Desktop application that benchmarks real Monero RandomX performance on the user's physical CPU, tests CPU thread configurations, records real pool activity, and carries the verified result into the personal-mining workflow.
 
-**I2PS Engineering** · *Zero to Monero — Part 2*  
-**Built in Morocco. Engineered for the future.**
+ZTM does not simulate mining.
 
-> **Free to use under a proprietary license — NOT open source.**  
-> **v0.4 online-only 24-hour benchmarking is in development, not a completed release.**
+## Stable release
 
-## About the project
+ZTM-SRP1V1 is the current supported release for **Ubuntu Desktop x86-64**.
 
-**ZTM Ubuntu engineering alpha:** A downloadable verified `.deb` is now hosted under [downloads/](downloads/), with a [single-command, signed-manifest Linux installer](docs/ZTM_ONE_COMMAND.md). **This is not the finished v0.4 benchmark**, and real-pool/clean-Ubuntu testing remains pending.
+The stable benchmark is intentionally fixed:
 
+- **24 hours only** — there is no duration selector.
+- **CPU Threads: Auto** — ZTM evaluates the supported thread profiles automatically.
+- Real RandomX work is executed through a separately licensed, verified XMRig installation.
+- The benchmark uses a real mining-pool connection.
+- Accepted/rejected shares, hashrate and tested profiles are recorded.
+- Wallet and Mining remain gated until a qualifying uninterrupted 24-hour pool-verified benchmark completes.
+- Only a **public Monero receiving address** is required for personal mining. ZTM never asks for a seed phrase, wallet password, private spend key or private view key.
+- Ubuntu administrator authorization is requested once per open ZTM session for the privileged preparation operations. ZTM does not store the administrator password.
+- A visible **Stop** control remains available during CPU work.
 
-Dual-ISA RandomX Lab is a CPU benchmarking application by I2PS Engineering. Its purpose is to help users measure real RandomX performance on their own hardware, test thread configurations, compare sustained hashrate and understand the results. The laboratory investigates **x86-64 and ARM64** systems and uses **XMRig** as a separately licensed third-party execution engine.
+The benchmark authorization contains the two approved acknowledgements:
 
-It does **not** simulate CPU performance.
+1. **I authorize real CPU work for 24 hours, including electricity use and heat.**
+2. **I understand this online benchmark uses both XMRig and I2PS dev contribution.**
 
-### Important release distinction
+## Install
 
-| Item | Status |
-| --- | --- |
-| v0.3.1 Linux Quickstart and local application | Development/test build, **not yet approved as a public production release** |
-| v0.4 authorization screen | UI preview built; no mining triggered by its preview button |
-| v0.4 online-only, 24-hour benchmark controller | **Not implemented or live-validated yet** |
-| v0.4 automatic first-run setup flow | Planned; not completed |
-| v0.4 personal wallet mining and built-in Dev Donate | Approved design; full implementation and verification pending |
+Official release:
 
-**Do not use existing v0.3.x builds as if they implement the approved v0.4 flow.** Older prototypes have an offline benchmark; **the intended v0.4 product has no offline benchmark option**.
+**[ZTM-SRP1V1 — Stable Release V1.1](https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/tag/ZTM-SRP1V1)**
 
-## Planned v0.4 stable-release updater (not ZTM alpha)
-
-For **currently downloadable ZTM 0.1.1-alpha2**, use the [single verified Ubuntu installer](docs/ZTM_ONE_COMMAND.md) instead of the commands in this section.
-
-The public Linux installer and version checker are now available as **reviewable text scripts** in this repository. There is **no approved binary stable release yet**, so the scripts will not install an application until one is published.
-
-- [Beginner guide: GitHub installation on existing Linux or after Windows-to-Ubuntu migration](docs/GITHUB_INSTALLATION.md)
-- [Official GitHub installer script](install_from_github.sh)
-- [Verified stable-release checker/updater](github_updates.py)
-- [Installation overview](docs/INSTALLATION.md)
-
-On Ubuntu/Debian, download the script (do not run an unseen one-liner) and review its plan:
+Run the verified one-command installer as your normal Ubuntu desktop user:
 
 ```bash
-curl -fL --proto '=https' --tlsv1.2 -o install_from_github.sh https://raw.githubusercontent.com/I2PS-Engineering/Dual-ISA-RandomX-Lab/main/install_from_github.sh
-bash install_from_github.sh --plan
-# After a stable release has been published:
-bash install_from_github.sh
+python3 -c 'import hashlib,subprocess,urllib.request;u="https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/download/ZTM-SRP1V1/install-ztm-srp1v1.sh";b=urllib.request.urlopen(u,timeout=60).read();assert hashlib.sha256(b).hexdigest()=="ec069736a9e683b3e6294a4af066963a0c21ae2d5e835157a483c4c2b31b85ff","SECURITY STOP: installer checksum mismatch";subprocess.run(["bash","-s"],input=b,check=True)'
 ```
 
-GitHub updates are checked after application license acceptance; updating and mining remain separate user-controlled actions. The I2PS-owned app is not open source. Third-party XMRig remains GPLv3.
+The installer downloads the stable Debian package, verifies its exact size, SHA-256, package name, architecture and Debian version before installation.
 
-## Planned v0.4 user journey
+### Stable package
 
-1. **Open the I2PS application.** Review the license and setup requirements.
-2. **Prepare the machine.** A first-run assistant will check dependencies and, after confirmation, install a separately licensed official XMRig build with integrity verification.
-3. **Authorize the online benchmark.** Read the prominent CPU/electricity and **Dev Wallet** disclosures, accept the two authorization acknowledgments, and explicitly start mining.
-4. **Run at least 24 hours** of real CPU RandomX mining/benchmarking against a pool. **Initial benchmark rewards are directed to the Dev Wallet.** An interrupted run is not marked complete.
-5. **Review sustained performance.** Compare tested CPU thread profiles, average/median hashrate, share results and stability; do not promise an untested optimum.
-6. **Configure your own Monero wallet.** After completion, supply **only a public receiving address**, or follow the official wallet guides. Private keys and recovery seeds are never requested.
-7. **Start personal mining separately** with the tested configuration. The built-in **Dev Donate** mechanism supports I2PS development, future updates and continuous support. The contribution rate and switching details have **not yet been finalized**, and will need clear disclosure before activation.
+- Package: `ZTM-SRP1V1_amd64.deb`
+- Debian version: `1.1.0~srp1v1`
+- Architecture: `amd64`
+- SHA-256: `acd4bee9a502e39a673cbf39679710553fd83720cc261f5915166e8eb1c6dd56`
+- Size: `45,728` bytes
 
-### Dev Wallet
+## What happens during the benchmark
 
-> **Dev Wallet** — This contributes in the development of the software, of its future versions, and keeping it alive and always free, as it was first intended.
+ZTM prepares the supported Ubuntu environment and verified XMRig, then starts one 24-hour RandomX benchmark after both acknowledgements are checked.
 
-The initial 24-hour run uses CPU resources and electricity; its mining rewards benefit the Dev Wallet. This fact must be explained **before** the user authorizes mining. The application must provide a Stop control. This is not an offline benchmark or a simulation.
+The optimizer evaluates the supported CPU thread profiles and selects the strongest **tested** profile based on measured behavior. ZTM reports sustained performance rather than treating one short hashrate spike as the result.
+
+A benchmark that is stopped or otherwise fails to complete the qualifying 24-hour run does not unlock the qualified personal-mining workflow.
+
+## Wallet and personal mining
+
+After a qualifying benchmark, the user can enter a **public Monero receiving address** and use the tested CPU configuration for personal mining.
+
+ZTM does not create, request, store or recover private wallet secrets. Wallet creation and recovery remain the responsibility of the user's wallet software.
+
+## Release verification
+
+The SRP1V1 package was built with guarded stable-release changes and checked for:
+
+- fixed 24-hour duration in both GUI and engine;
+- rejection of a shorter 60-minute engine run;
+- fixed CPU Threads: Auto workflow;
+- approved authorization wording;
+- removal of the old duration selector and extra Dev Wallet explanatory line;
+- adaptive GUI sizing;
+- desktop launcher and official ZTM icon;
+- rig identification `ZTM-R-A-10-E-R`;
+- preserved optimizer, Wallet, Mining, eligibility, donation and shutdown behavior;
+- package identity and SHA-256 integrity.
+
+Real hashrate remains hardware-dependent. A 24-hour run measures the specific machine being tested; ZTM does not promise a universal hashrate or profitability.
 
 ## Documentation
 
-- [ZTM — Zero to Monero: one-click Ubuntu GUI engineering alpha and current availability](docs/ZTM_ZERO_TO_MONERO.md)
-
-
-- [Project and implementation status](docs/STATUS.md)
-- [Complete text user guide](docs/USER_GUIDE.md)
-- [Installation overview](docs/INSTALLATION.md)
-- [Already using Linux](docs/EXISTING_LINUX.md)
-- [Migrating from Windows to Ubuntu](docs/WINDOWS_TO_UBUNTU.md)
-- [24-hour online benchmark specification](docs/ONLINE_BENCHMARK.md)
-- [Wallet and private-key safety](docs/MONERO_WALLET_GUIDE.md)
-- [Dev Wallet and Dev Donate policy](docs/DEV_WALLET_AND_DEV_DONATE.md)
-- [Software architecture](docs/ARCHITECTURE.md)
-- [Roadmap](docs/ROADMAP.md)
-- [Release acceptance checklist](docs/RELEASE_CHECKLIST.md)
-- [Video recording plan](docs/VIDEO_EPISODES.md)
-- [Frequently asked questions](docs/FAQ.md)
-- [GUI wording and design specification](docs/GUI_SPEC.md)
-- [Standardized v0.4 GUI assets and SHA-256 publication manifest](docs/GUI_ASSET_RELEASE_v04.md)
-- [Screenshots and guide status](docs/MEDIA.md)
-- [Reviewed PDF / PNG upload manifest](docs/ASSET_MANIFEST.md)
-- [Security and responsible operation](SECURITY.md)
-- [Licensing terms](LICENSE.md)
-- [Third-party licenses](THIRD_PARTY_NOTICES.md)
+- [Installation](docs/INSTALLATION.md)
+- [User guide](docs/USER_GUIDE.md)
+- [24-hour online benchmark](docs/ONLINE_BENCHMARK.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Monero wallet safety](docs/MONERO_WALLET_GUIDE.md)
+- [Developer contribution](docs/DEV_WALLET_AND_DEV_DONATE.md)
+- [FAQ](docs/FAQ.md)
+- [Release notes](docs/ZTM_SRP1V1_RELEASE_NOTES.md)
+- [Security policy](SECURITY.md)
+- [Support](SUPPORT.md)
+- [Contributing / feedback](CONTRIBUTING.md)
+- [License](LICENSE.md)
+- [Third-party notices](THIRD_PARTY_NOTICES.md)
 - [Changelog](CHANGELOG.md)
-- [Contact and support](SUPPORT.md)
-- [How to report bugs and feedback](CONTRIBUTING.md)
 
-## Downloads
+## License
 
-**No v0.4 release is available yet.** The seven standardized design PNGs and preview-only user guide have been prepared locally but are not yet uploaded as binary assets to GitHub. The intended destination for approved distributable builds and manuals is [GitHub Releases](https://github.com/I2PS-Engineering/Dual-ISA-RandomX-Lab/releases). Do not treat UI mockups, development ZIPs or placeholder screenshots as production binaries.
+I2PS-owned ZTM software and artwork are distributed under **PolyForm Strict License 1.0.0**. The software is free for permitted noncommercial use under those terms and is **not open source**.
 
-XMRig is **not bundled** with this repository's documents. Obtain XMRig only from its [official repository](https://github.com/xmrig/xmrig), respecting GPLv3.
+XMRig is independent third-party software under **GNU GPL-3.0**. Its licensing and developer contribution remain separate from I2PS-owned ZTM software.
 
-## Legal and rights
+See [LICENSE.md](LICENSE.md) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
-Copyright © 2026 **I2PS Solutions**. All rights reserved in I2PS-owned materials.
+## Contact
 
-The I2PS software is licensed under **PolyForm Strict 1.0.0**: noncommercial use is permitted, but the license does not grant permission to redistribute, rebrand, modify, sublicense or commercialize I2PS software. Public GitHub visibility **does not** make this project open source. XMRig has independent GPLv3 rights. See [LICENSE.md](LICENSE.md) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
-
-The relationship between noncommercial licensing and revenue-generating mining must be reviewed and clearly resolved before public deployment.
-
-## Official I2PS
+**I2PS Engineering / I2PS Solutions**
 
 - Website: https://www.i2psolutions.com
-- Engineering: **engineering@i2psolutions.com**
-- General: **contact@i2psolutions.com**
+- Engineering and technical support: **engineering@i2psolutions.com**
+- General inquiries: **contact@i2psolutions.com**
 
-**I2PS Engineering — Built in Morocco. Engineered for the future.**
+**ZTM — Zero to Monero**  
+**Built in Morocco. Engineered for the Future.**
