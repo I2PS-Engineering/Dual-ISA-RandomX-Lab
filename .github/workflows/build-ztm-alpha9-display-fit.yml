@@ -3,7 +3,7 @@ name: Build ZTM alpha9 display-fit revision
 on:
   push:
     paths:
-      - '.github/workflows/build-ztm-alpha9-display-fit.yml'
+      - '.github/workflows/build-ztm-alpha10-display-fit.yml'
 
 permissions:
   contents: write
@@ -69,7 +69,7 @@ jobs:
           c=control.read_text(encoding='utf-8')
           if c.count('0.1.8~alpha9final1') != 1:
               raise SystemExit('SECURITY STOP: unexpected package version')
-          control.write_text(c.replace('0.1.8~alpha9final1','0.1.8~alpha9final2'),encoding='utf-8')
+          control.write_text(c.replace('0.1.8~alpha9final1','0.1.8~alpha10display1'),encoding='utf-8')
           PY
 
           python3 -m py_compile /tmp/ztm-a9fit/pkg/usr/lib/ztm/ztm_gui.py
@@ -79,7 +79,7 @@ jobs:
           find /tmp/ztm-a9fit/pkg -type f ! -path '*/DEBIAN/control' ! -path '*/usr/lib/ztm/ztm_gui.py' -print0 | sort -z | xargs -0 sha256sum > /tmp/ztm-a9fit/non_gui_after.sha256
           cmp /tmp/ztm-a9fit/non_gui_before.sha256 /tmp/ztm-a9fit/non_gui_after.sha256
 
-          grep -F "ZTM-α9" /tmp/ztm-a9fit/pkg/usr/lib/ztm/ztm_engine.py
+          grep -F "ZTM-R-A-10-E-R" /tmp/ztm-a9fit/pkg/usr/lib/ztm/ztm_engine.py
           grep -F "target_w = min(1600" /tmp/ztm-a9fit/pkg/usr/lib/ztm/ztm_gui.py
           grep -F "ui_scale = max(1.0, min(1.30" /tmp/ztm-a9fit/pkg/usr/lib/ztm/ztm_gui.py
 
@@ -87,15 +87,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          OUT=/tmp/ztm-a9fit/ZTM-Zero-to-Monero_0.1.8-alpha9-final2_amd64.deb
+          OUT=/tmp/ztm-a9fit/ZTM-Zero-to-Monero_0.1.9-alpha10-display_amd64.deb
           dpkg-deb --build --root-owner-group /tmp/ztm-a9fit/pkg "$OUT"
           test "$(dpkg-deb -f "$OUT" Package)" = 'ztm-zero-to-monero'
           test "$(dpkg-deb -f "$OUT" Architecture)" = 'amd64'
-          test "$(dpkg-deb -f "$OUT" Version)" = '0.1.8~alpha9final2'
+          test "$(dpkg-deb -f "$OUT" Version)" = '0.1.8~alpha10display1'
           rm -rf /tmp/ztm-a9fit/verify
           mkdir /tmp/ztm-a9fit/verify
           dpkg-deb -x "$OUT" /tmp/ztm-a9fit/verify
-          grep -F "ZTM-α9" /tmp/ztm-a9fit/verify/usr/lib/ztm/ztm_engine.py
+          grep -F "ZTM-R-A-10-E-R" /tmp/ztm-a9fit/verify/usr/lib/ztm/ztm_engine.py
           grep -F "screen_w = self.root.winfo_screenwidth()" /tmp/ztm-a9fit/verify/usr/lib/ztm/ztm_gui.py
           grep -F "current_tk_scale * ui_scale" /tmp/ztm-a9fit/verify/usr/lib/ztm/ztm_gui.py
           test -f /tmp/ztm-a9fit/verify/usr/share/icons/hicolor/64x64/apps/ztm.png
@@ -105,8 +105,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          OUT=/tmp/ztm-a9fit/ZTM-Zero-to-Monero_0.1.8-alpha9-final2_amd64.deb
-          BASE=downloads/ZTM-Zero-to-Monero_0.1.8-alpha9-final2_amd64.deb.b64
+          OUT=/tmp/ztm-a9fit/ZTM-Zero-to-Monero_0.1.9-alpha10-display_amd64.deb
+          BASE=downloads/ZTM-Zero-to-Monero_0.1.9-alpha10-display_amd64.deb.b64
           rm -f "${BASE}.part"* || true
           base64 -w0 "$OUT" | split -b 6000 -d -a 2 - "${BASE}.part"
           PKG_SHA=$(sha256sum "$OUT" | awk '{print $1}')
@@ -117,12 +117,12 @@ jobs:
           export LC_ALL=C
           umask 077
           REPO='I2PS-Engineering/ZTM_Benchmark'
-          PREFIX='downloads/ZTM-Zero-to-Monero_0.1.8-alpha9-final2_amd64.deb.b64.part'
+          PREFIX='downloads/ZTM-Zero-to-Monero_0.1.9-alpha10-display_amd64.deb.b64.part'
           EXPECTED_SHA='__PKG_SHA__'
           EXPECTED_SIZE='__PKG_SIZE__'
-          DPKG_VERSION='0.1.8~alpha9final2'
+          DPKG_VERSION='0.1.8~alpha10display1'
           RAW="https://raw.githubusercontent.com/$REPO/main"
-          [[ "$(uname -s)" == Linux && "$(uname -m)" == x86_64 ]] || { echo 'ZTM α9 requires Ubuntu Linux x86-64.' >&2; exit 1; }
+          [[ "$(uname -s)" == Linux && "$(uname -m)" == x86_64 ]] || { echo 'ZTM α10 requires Ubuntu Linux x86-64.' >&2; exit 1; }
           [[ "${EUID:-0}" -ne 0 ]] || { echo 'Run as your normal Ubuntu desktop user, not root.' >&2; exit 1; }
           work="$(mktemp -d "${TMPDIR:-/tmp}/ztm-alpha9-fit.XXXXXXXX")"
           trap 'rm -rf "$work"' EXIT
@@ -133,7 +133,7 @@ jobs:
           for i in range(100):
               url=f"{raw}/{prefix}{i:02d}"
               try:
-                  with urllib.request.urlopen(urllib.request.Request(url,headers={'User-Agent':'ZTM-Alpha9-Display/1.0'}),timeout=45) as r:
+                  with urllib.request.urlopen(urllib.request.Request(url,headers={'User-Agent':'ZTM-Alpha10-Display/1.0'}),timeout=45) as r:
                       data=r.read(7001)
               except urllib.error.HTTPError as e:
                   if e.code==404 and i>0: break
@@ -155,15 +155,15 @@ jobs:
             exit 1
           fi
           sudo apt-get install -y "$work/ztm.deb"
-          echo 'ZTM α9 display-fit revision installed. Launching...'
+          echo 'ZTM α10 display-fit revision installed. Launching...'
           nohup /usr/bin/ztm >/tmp/ztm-launch.log 2>&1 &
           SH
           sed -i "s/__PKG_SHA__/$PKG_SHA/;s/__PKG_SIZE__/$PKG_SIZE/" install-ztm-v9-display.sh
           chmod +x install-ztm-v9-display.sh
-          cat > docs/ZTM_ALPHA9_DISPLAY_FIT.md <<EOF
-          # ZTM α9 display-fit revision
+          cat > docs/ZTM_ALPHA10_DISPLAY_FIT.md <<EOF
+          # ZTM α10 display-fit revision
 
-          Package version: `0.1.8~alpha9final2`
+          Package version: `0.1.8~alpha10display1`
 
           GUI-only correction over α9 final1:
           - replaces fixed `1090x760` startup geometry with adaptive, centered sizing;
@@ -172,7 +172,7 @@ jobs:
 
           Every packaged file other than `ztm_gui.py` and Debian `control` was hash-compared before/after and remained unchanged.
 
-          Benchmark rig ID remains exactly `ZTM-α9`.
+          Benchmark rig ID remains exactly `ZTM-R-A-10-E-R`.
           Package SHA-256: `$PKG_SHA`
           Package bytes: `$PKG_SIZE`
           EOF
@@ -183,6 +183,6 @@ jobs:
           set -euo pipefail
           git config user.name 'I2PS Engineering Build'
           git config user.email 'engineering@i2psolutions.com'
-          git add downloads/ZTM-Zero-to-Monero_0.1.8-alpha9-final2_amd64.deb.b64.part* install-ztm-v9-display.sh docs/ZTM_ALPHA9_DISPLAY_FIT.md
-          git commit -m 'release: ZTM α9 adaptive GUI scaling revision' || exit 0
+          git add downloads/ZTM-Zero-to-Monero_0.1.9-alpha10-display_amd64.deb.b64.part* install-ztm-v9-display.sh docs/ZTM_ALPHA10_DISPLAY_FIT.md
+          git commit -m 'release: ZTM α10 adaptive GUI scaling revision' || exit 0
           git push origin HEAD:main
