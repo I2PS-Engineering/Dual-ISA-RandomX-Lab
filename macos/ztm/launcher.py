@@ -29,7 +29,7 @@ def main(argv=None):
         return benchmark(rest)
     if mode == "mining":
         from ztm_mining import main as mine
-        return mine()
+        return mine(rest)
     if mode == "guardian":
         from ztm_macos_guard import main as guardian
         return guardian(rest)
