@@ -11,7 +11,7 @@ Let an active benchmark finish; close the old application. Ensure no miner remai
 Run as your **normal Ubuntu Desktop x86-64 user**, not as root:
 
 ```bash
-python3 -c 'import hashlib,subprocess,urllib.request;u="https://raw.githubusercontent.com/I2PS-Engineering/ZTM_Benchmark/0ef289b5c11ca3a299e07721adbb645f79bd0dc1/install-ztm-v8.sh";b=urllib.request.urlopen(u,timeout=30).read();assert hashlib.sha256(b).hexdigest()=="33b50ef2d2fece6f084986d48b9b3921c0bbc4768486513984a62150ae3932c6","SECURITY STOP: installer checksum mismatch";subprocess.run(["bash","-s"],input=b,check=True)'
+python3 -c 'import hashlib,subprocess,urllib.request;u="https://raw.githubusercontent.com/I2PS-Engineering/ZTM_Benchmark/0ef289b5c11ca3a299e07721adbb645f79bd0dc1/install-ztm-v8.sh";b=urllib.request.urlopen(u,timeout=30).read();assert hashlib.sha256(b).hexdigest()=="da3fe4d2fb88cf9ffc87e5a87ebbc8b8a20622dbfaf58244ddb725d77d1cb31a","SECURITY STOP: installer checksum mismatch";subprocess.run(["bash","-s"],input=b,check=True)'
 ```
 
 The pinned installer verifies its own SHA-256, downloads exactly eight package fragments from immutable commit `838a118a2723eaf65451bdd21a1a0350198ac5c9`, checks package size (**35,428 bytes**), package SHA-256 (`6df838427794da150f44b34fce5f37fbc1691a4f589ec440620a034a044ededf`), and Debian identity/version `0.1.7~alpha8session1` before calling APT and starting ZTM.
@@ -35,3 +35,8 @@ Use the unchanged UI, with CPU Threads: Auto. A 24-hour run must finish to unloc
 Eight focused offline/synthetic tests passed, including a real Unix-socket session conversation and a simulated process launch/stop through the existing guardian. This is **not** proof of a live Ubuntu Polkit prompt or a completed real 24-hour run. Validate one-prompt preparation and automatic shutdown on the actual machine before the full run.
 
 [Release notes](ZTM_ALPHA8_RELEASE_NOTES.md) · [Repository](https://github.com/I2PS-Engineering/ZTM_Benchmark)
+
+
+## Installer checksum correction (21 October 2026)
+
+The pinned GitHub installer at commit `0ef289b5c11ca3a299e07721adbb645f79bd0dc1` has **no final newline**; its exact published SHA-256 is `da3fe4d2fb88cf9ffc87e5a87ebbc8b8a20622dbfaf58244ddb725d77d1cb31a`. The previous one-command line used a local-script digest that included an extra trailing newline (`33b50ef2d2fece6f084986d48b9b3921c0bbc4768486513984a62150ae3932c6`) and therefore stopped correctly with a checksum mismatch. Only the bootstrap checksum in this documentation has been corrected. Do not remove the checksum verification.
