@@ -279,7 +279,7 @@
 /tmp/ztm-sr-inspect/root/usr/lib/ztm/ztm_eligibility.py:21:                report['selected_threads'] > 0 and
 /tmp/ztm-sr-inspect/root/usr/lib/ztm/ztm_eligibility.py:28:    """Find one complete 24-hour, pool-verified run; shorter runs cannot be combined.
 
-## GUI benchmark-handler lines 500-640
+## GUI benchmark-handler lines 500-660
    500	        self.prepare_btn.configure(state='disabled')
    501	        self.benchmark_btn.configure(state='disabled')
    502	        self.stop_btn.configure(state='normal')
@@ -421,3 +421,91 @@
    638	        if not messagebox.askyesno('Authorize REAL CPU benchmark', text):
    639	            return
    640	        RESULTS.mkdir(parents=True, exist_ok=True)
+   641	        self.current_wallet = session['wallet']
+   642	        self.busy_start('2 · Online CPU benchmark running')
+   643	        self.status.set('Real XMRig online benchmark is running. Press STOP to interrupt.')
+   644	        def work():
+   645	            cmd = [sys.executable, '-u', str(ENGINE), '--session-stdin', '--output', str(RESULTS)]
+   646	            result = self.run_command(cmd, json.dumps(session))
+   647	            self.q.put(('done-bench', result))
+   648	        threading.Thread(target=work, daemon=True).start()
+   649	
+   650	    def terminate_process(self, proc):
+   651	        try:
+   652	            if proc.poll() is None:
+   653	                os.killpg(proc.pid, signal.SIGINT)
+   654	        except ProcessLookupError:
+   655	            pass
+   656	        except OSError:
+   657	            try: proc.terminate()
+   658	            except OSError: pass
+   659	
+   660	    def stop(self):
+
+## Engine argument/session lines 560-625
+   560	    print(f" Diagnostic log:      {logfile}")
+   561	    print("=" * 63)
+   562	    if not values:
+   563	        return report, 3
+   564	    return report, 0 if ran_full_time and online_verified else 2
+   565	
+   566	def main(argv=None):
+   567	    parser = argparse.ArgumentParser(description=__doc__)
+   568	    parser.add_argument("--prepare", action="store_true", help="Only download and verify official XMRig; no mining")
+   569	    parser.add_argument("--session-stdin", action="store_true", help="Read pool, public wallet, duration and thread setting as JSON from stdin")
+   570	    parser.add_argument("--pool", help="Pool host:port supporting Monero/RandomX; prompted if omitted")
+   571	    parser.add_argument("--wallet", help="Public Monero receiving address; prompted if omitted; never a private key")
+   572	    parser.add_argument("--minutes", type=int, default=10, help="Run duration in whole minutes (default: 10)")
+   573	    parser.add_argument("--seconds", type=int, help=argparse.SUPPRESS)  # internal automated test option
+   574	    parser.add_argument("--threads", type=int, help="Mining CPU threads; default: XMRig chooses")
+   575	    parser.add_argument("--no-tls", action="store_true", help="For pools without TLS; default requires TLS")
+   576	    parser.add_argument("--xmrig", help="Use an existing XMRig executable instead of downloading it")
+   577	    parser.add_argument("--yes", action="store_true", help="Explicitly authorize CPU work without interactive RUN prompt")
+   578	    parser.add_argument("--plan", action="store_true", help="Show what this test would do; do not download or mine")
+   579	    parser.add_argument("--output", default=str(Path.home() / "i2ps-randomx-results"), help="Output directory for report/log")
+   580	    a = parser.parse_args(argv)
+   581	    if a.session_stdin:
+   582	        payload = json.loads(sys.stdin.readline())
+   583	        a.pool = payload.get("pool")
+   584	        a.wallet = payload.get("wallet")
+   585	        a.minutes = int(payload.get("minutes", 10))
+   586	        a.threads = int(payload["threads"]) if payload.get("threads") else None
+   587	        a.no_tls = not bool(payload.get("tls", True))
+   588	        a.yes = True  # GUI explicitly confirms BEFORE invoking --session-stdin
+   589	    if os.geteuid() == 0 and not a.plan:
+   590	        raise BenchError("Run as your normal Linux user, not as root or with sudo.")
+   591	    if not (1 <= a.minutes <= 1440) or (a.seconds is not None and not 1 <= a.seconds <= 86400):
+   592	        raise BenchError("Duration must be between 1 and 1440 minutes.")
+   593	    if a.threads is not None and not (1 <= a.threads <= (os.cpu_count() or 1)):
+   594	        raise BenchError("--threads must be between 1 and the detected logical CPU count.")
+   595	    if a.plan:
+   596	        print("I2PS ONLINE ENGINEERING SMOKE TEST — PLAN")
+   597	        print(f"- Platform: {platform.system()} {platform.machine()} | CPUs: {os.cpu_count()}")
+   598	        print(f"- XMRig: {'existing provided executable' if a.xmrig else VERSION + ' official upstream SHA-256 pinned Linux x64'}")
+   599	        print(f"- Duration: {a.seconds or a.minutes * 60} s | Threads: {a.threads or 'automatic'}")
+   600	        print(f"- TLS: {not a.no_tls} | Results: {a.output}")
+   601	        print("- Pool and PUBLIC Monero address are required; explicit consent before any mining")
+   602	        print("- No install/mining performed; no OS files or settings modified")
+   603	        return 0
+   604	    if a.prepare:
+   605	        local_binary(Path.home() / ".local" / "share" / "i2ps-randomx-test" / "xmrig-6.26.0", a.xmrig)
+   606	        print("ZTM PREPARATION COMPLETE: verified XMRig ready; no mining started", flush=True)
+   607	        return 0
+   608	    pool = validate_pool(prompt_if_missing(a.pool, "Pool server (host:port): "))
+   609	    wallet = validate_address(prompt_if_missing(a.wallet, "PUBLIC Monero receiving address (not private key): "))
+   610	    print(f"I2PS ENGINEERING ONLINE CPU TEST • CPU: {current_cpu_info()}")
+   611	    print("Only supported for Linux x86-64 in this version; existing OS is preserved.")
+   612	    executable = local_binary(Path.home() / ".local" / "share" / "i2ps-randomx-test" / "xmrig-6.26.0", a.xmrig)
+   613	    print(f"XMRig ready: {executable}")
+   614	    _, code = run_benchmark(executable, pool, wallet, not a.no_tls,
+   615	                            a.seconds or a.minutes * 60, a.threads,
+   616	                            Path(a.output).expanduser(), a.yes)
+   617	    return code
+   618	
+   619	
+   620	if __name__ == "__main__":
+   621	    try:
+   622	        sys.exit(main())
+   623	    except (BenchError, OSError, ValueError, KeyboardInterrupt) as exc:
+   624	        print(f"I2PS benchmark not started/completed: {exc}", file=sys.stderr)
+   625	        sys.exit(1)
