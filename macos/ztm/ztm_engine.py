@@ -159,7 +159,12 @@ def _write_profile_config(cfg_path: Path, cfg: dict, threads: int) -> None:
 
 
 def run_benchmark(executable: Path, pool: str, wallet: str, tls: bool, duration_s: int,
-                  threads: int | None, output_dir: Path, confirm: bool) -> tuple[dict, int]:
+                  threads: int | None, output_dir: Path, confirm: bool,
+                  gui_owner_pid: int = 0, gui_owner_start: str = "") -> tuple[dict, int]:
+    if gui_owner_pid:
+        from ztm_native import process_identity_alive
+        if not process_identity_alive(gui_owner_pid, gui_owner_start):
+            raise BenchError("ZTM GUI controller is no longer running; benchmark not started.")
     if not confirm:
         if not sys.stdin.isatty():
             raise BenchError("Interactive authorization is required (or use --yes to explicitly consent).")
@@ -288,7 +293,15 @@ def run_benchmark(executable: Path, pool: str, wallet: str, tls: bool, duration_
 
             def wait_until(target_time: float) -> bool:
                 nonlocal reached_deadline
+                last_owner_check = 0.0
                 while True:
+                    now = time.monotonic()
+                    if gui_owner_pid and now - last_owner_check >= 3:
+                        from ztm_native import process_identity_alive
+                        if not process_identity_alive(gui_owner_pid, gui_owner_start):
+                            interrupted.set()
+                            raise BenchError("ZTM GUI exited unexpectedly; stopping native miner.")
+                        last_owner_check = now
                     if proc.poll() is not None:
                         return False
                     now = time.monotonic()
@@ -479,6 +492,10 @@ def main(argv=None):
     a = parser.parse_args(argv)
     if a.session_stdin:
         payload = json.loads(sys.stdin.readline())
+        a.gui_owner_pid = int(payload.get("gui_owner_pid", 0))
+        a.gui_owner_start = str(payload.get("gui_owner_start") or "")
+        if a.gui_owner_pid < 1 or not a.gui_owner_start:
+            raise BenchError("Missing required GUI process identity.")
         a.pool = payload.get("pool")
         a.wallet = payload.get("wallet")
         a.minutes = int(payload.get("minutes", 1440))
@@ -517,7 +534,9 @@ def main(argv=None):
     print(f"XMRig ready: {executable}")
     _, code = run_benchmark(executable, pool, wallet, not a.no_tls,
                             a.seconds or a.minutes * 60, a.threads,
-                            Path(a.output).expanduser(), a.yes)
+                            Path(a.output).expanduser(), a.yes,
+                            getattr(a, "gui_owner_pid", 0),
+                            getattr(a, "gui_owner_start", ""))
     return code
 
 
