@@ -20,7 +20,7 @@ First stable-release baseline of ZTM — Zero to Monero.
   - **I authorize real CPU work for 24 hours, including electricity use and heat.**
 - Second acknowledgement:
   - **I understand this online benchmark uses both XMRig and I2PS dev contribution.**
-- Separate development-preview Dev Wallet explanatory line removed.
+- Separate earlier Dev Wallet explanatory line removed.
 
 ### Interface
 
@@ -46,4 +46,4 @@ First stable-release baseline of ZTM — Zero to Monero.
 - Package SHA-256: `acd4bee9a502e39a673cbf39679710553fd83720cc261f5915166e8eb1c6dd56`.
 - Distributed through the GitHub Release tagged `ZTM-SRP1V1`.
 
-Development-alpha history remains available in Git history but is no longer part of the current public repository surface.
+Earlier development history remains available in Git history but is no longer part of the current public repository surface.
