@@ -1,0 +1,43 @@
+name: Inspect ZTM alpha9 GUI sizing
+
+on:
+  push:
+    paths:
+      - '.github/workflows/inspect-ztm-alpha9-gui.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reconstruct alpha9 final
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/ztm-inspect
+          cat downloads/ZTM-Zero-to-Monero_0.1.8-alpha9-final_amd64.deb.b64.part* | base64 -d > /tmp/ztm-inspect/pkg.deb
+          dpkg-deb -x /tmp/ztm-inspect/pkg.deb /tmp/ztm-inspect/root
+      - name: Produce GUI sizing inspection
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo '# ZTM alpha9 GUI sizing inspection'
+            echo
+            echo '## Python files'
+            find /tmp/ztm-inspect/root/usr/lib/ztm -maxdepth 2 -type f -name '*.py' -print
+            echo
+            echo '## Geometry / sizing / fonts / layout'
+            grep -RInE 'geometry\(|minsize\(|maxsize\(|Tk\(|Toplevel\(|font=|Font\(|screenwidth|screenheight|winfo_screen|tk scaling|pack\(|grid\(|place\(' /tmp/ztm-inspect/root/usr/lib/ztm --include='*.py' || true
+          } > docs/ZTM_ALPHA9_GUI_INSPECTION.md
+      - name: Publish inspection
+        shell: bash
+        run: |
+          git config user.name 'I2PS Engineering Build'
+          git config user.email 'engineering@i2psolutions.com'
+          git add docs/ZTM_ALPHA9_GUI_INSPECTION.md
+          git commit -m 'inspect: capture ZTM alpha9 GUI sizing constants' || exit 0
+          git push origin HEAD:main
