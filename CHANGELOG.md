@@ -1,31 +1,49 @@
 # Changelog
 
-This changelog separates internal development artifacts from public releases.
+## ZTM-SRP1V1 — Stable Release V1.1 — 21 October 2026
 
-## Unreleased — v0.4 design specification
+First stable-release baseline of ZTM — Zero to Monero.
 
-- Approved **online-only** RandomX architecture.
-- Minimum **24 continuous active hours** of real CPU benchmarking on a pool.
-- Initial 24-hour benchmark payout assigned to **Dev Wallet**, after prominent disclosure and explicit consent.
-- Dev Wallet development-support explanation approved.
-- Authorization UI reduced to **exactly two acknowledgments**.
-- Post-benchmark user wallet education with public receiving address only.
-- Built-in **Dev Donate** for personal mining approved in principle; rate and implementation pending.
-- Authorization GUI preview and CSS height refinements produced.
-- Continuous benchmark, payout, first-run automatic setup and personal Dev Donate controller **not yet implemented**.
+### Benchmark
 
-## v0.3.1 — Development build only
+- Online RandomX benchmark fixed to exactly **24 hours**.
+- Duration selector removed from the normal GUI.
+- Engine rejects non-24-hour benchmark durations.
+- CPU thread selection fixed to **Auto** for the benchmark workflow.
+- Automatic tested-profile optimizer retained.
+- Pool share and sustained-hashrate measurement retained.
+- Qualifying 24-hour completion remains required before Wallet/Mining unlock.
 
-- Existing-Linux Ubuntu/Debian x86-64 one-command Quickstart authored.
-- Script preview/dry-run path; installer for separately verified upstream XMRig.
-- Current app remains based on its earlier offline/local benchmarking workflow.
-- This is **not** a v0.4 online benchmark release.
+### Authorization and disclosure
 
-## v0.3 — Development build only
+- First acknowledgement:
+  - **I authorize real CPU work for 24 hours, including electricity use and heat.**
+- Second acknowledgement:
+  - **I understand this online benchmark uses both XMRig and I2PS dev contribution.**
+- Separate development-preview Dev Wallet explanatory line removed.
 
-- First-launch proprietary license gate, verified XMRig downloader, optional separate mining interface.
-- Official cyan I2PS logo and beginner-focused PDF documentation.
+### Interface
 
-## Public release history
+- Release header changed to **Linux x86-64 · Stable Release V1.1**.
+- **CPU Threads: Auto** shown beneath the stable-release label.
+- Benchmark button changed to **START 24-HOUR RANDOMX BENCHMARK**.
+- Adaptive GUI sizing retained for compact high-resolution displays.
+- Official ZTM 0–10K H/s desktop/application icon retained.
 
-**No completed/approved v0.4 binary release posted yet.**
+### Runtime
+
+- Rig identification: `ZTM-R-A-10-E-R`.
+- One administrator authorization per open ZTM session retained.
+- Wallet and personal-mining workflow retained.
+- Clean XMRig shutdown guardian retained.
+- Existing developer-contribution behavior retained.
+
+### Distribution
+
+- Stable Debian package: `ZTM-SRP1V1_amd64.deb`.
+- Debian version: `1.1.0~srp1v1`.
+- Architecture: `amd64`.
+- Package SHA-256: `acd4bee9a502e39a673cbf39679710553fd83720cc261f5915166e8eb1c6dd56`.
+- Distributed through the GitHub Release tagged `ZTM-SRP1V1`.
+
+Development-alpha history remains available in Git history but is no longer part of the current public repository surface.
