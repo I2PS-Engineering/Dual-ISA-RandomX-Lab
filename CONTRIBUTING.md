@@ -1,8 +1,8 @@
-# Contributing and feedback — ZTM-SRP1V1
+# Contributing and feedback — ZTM-SRP1V2
 
 ZTM is a **publicly distributed proprietary application**, not an open-source development project.
 
-The current supported release is **ZTM-SRP1V1 — Stable Release V1.1**.
+The current supported release is **ZTM-SRP1V2 — Stable Release V1.2**.
 
 ## What we welcome
 
@@ -17,7 +17,7 @@ We welcome:
 
 When reporting a technical issue, include only what is needed to reproduce it:
 
-- ZTM release: `ZTM-SRP1V1`;
+- ZTM release: `ZTM-SRP1V2`;
 - Ubuntu version;
 - CPU model;
 - what you expected;
