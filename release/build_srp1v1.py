@@ -175,7 +175,10 @@ e = replace_exact(
     "engine duration lock",
 )
 
-e = replace_exact(e, "ZTM-α9", "ZTM-R-A-10-E-R", "rig ID carry-forward")
+rig_count = e.count("ZTM-α9")
+if rig_count != 2:
+    raise SystemExit(f"SECURITY STOP: rig ID carry-forward: expected exactly two pool-identification fields, found {rig_count}")
+e = e.replace("ZTM-α9", "ZTM-R-A-10-E-R")
 engine.write_text(e, encoding="utf-8")
 
 c = control.read_text(encoding="utf-8")
