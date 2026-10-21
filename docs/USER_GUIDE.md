@@ -1,4 +1,4 @@
-# ZTM-SRP1V1 user guide
+# ZTM-SRP1V2 user guide
 
 ## What ZTM does
 
@@ -22,7 +22,7 @@ Preparation does not begin mining automatically.
 
 ## 2. Review the benchmark setup
 
-ZTM-SRP1V1 has no duration selector.
+ZTM-SRP1V2 has no duration selector.
 
 The benchmark is always:
 
@@ -91,3 +91,7 @@ Closing the ZTM session also closes the privileged authorization session.
 Hashrate depends on the actual CPU, memory behavior, thermal state, operating environment, pool conditions and tested thread profile.
 
 ZTM does not guarantee profitability or a universal best hashrate.
+
+## Winning Configuration report
+
+At the end of a qualifying 24-hour benchmark, ZTM displays the best tested configuration in the terminal and a completion dialog. It includes active CPU threads, winning profile and score, sustained hashrate, peak readings, pool shares and the JSON report path. A peak reading is labelled separately from sustained hashrate.
