@@ -18,6 +18,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - name: Validate Neon Functions API syntax
+        run: node --check neon/index.mjs
       - name: Compile and exercise identity module
         run: |
           python -m compileall -q intelligence
