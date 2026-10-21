@@ -3,7 +3,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
-from ztm_local_admin import database, import_report, import_path, dashboard_data, normalize
+from local_admin import database, import_report, import_path, dashboard_data, normalize
 
 def sample(run_id="trial-001", worker_id="A7K92"):
     return {
