@@ -1,42 +1,51 @@
-# ZTM_Benchmark — One-command installation (v0.1.7-alpha8-session)
+# ZTM_Benchmark — One-command installation (α9 final)
 
-**Engineering alpha.** This surgical revision preserves the alpha7 GUI, Benchmark/Wallet/Mining tabs, 24-hour unlock requirement, optimizer, and alpha7 miner-shutdown behavior.
+This is the current ZTM α9 integration release for Ubuntu Desktop x86-64.
 
-## Step 1 — Stop the old version
+## Step 1 — Stop any existing miner
 
-Let an active benchmark finish; close the old application. Ensure no miner remains with `sudo pgrep -a -x xmrig` (no output means none).
-
-## Step 2 — Install and open from GitHub
-
-Run as your **normal Ubuntu Desktop x86-64 user**, not as root:
+Close any older ZTM instance and confirm no XMRig process is already running.
 
 ```bash
-python3 -c 'import hashlib,subprocess,urllib.request;u="https://raw.githubusercontent.com/I2PS-Engineering/ZTM_Benchmark/0ef289b5c11ca3a299e07721adbb645f79bd0dc1/install-ztm-v8.sh";b=urllib.request.urlopen(u,timeout=30).read();assert hashlib.sha256(b).hexdigest()=="da3fe4d2fb88cf9ffc87e5a87ebbc8b8a20622dbfaf58244ddb725d77d1cb31a","SECURITY STOP: installer checksum mismatch";subprocess.run(["bash","-s"],input=b,check=True)'
+pgrep -a -x xmrig
 ```
 
-The pinned installer verifies its own SHA-256, downloads exactly eight package fragments from immutable commit `838a118a2723eaf65451bdd21a1a0350198ac5c9`, checks package size (**35,428 bytes**), package SHA-256 (`6df838427794da150f44b34fce5f37fbc1691a4f589ec440620a034a044ededf`), and Debian identity/version `0.1.7~alpha8session1` before calling APT and starting ZTM.
+No output means no XMRig process is running.
 
-Ubuntu may ask for the administrator password when the **one-command installer** changes installed packages. This is separate from ZTM's subsequent **application session**.
+## Step 2 — Install ZTM α9 final
 
-## Step 3 — Authorize ZTM once
+Run this exact command as your normal Ubuntu desktop user, not root:
 
-Click **PREPARE LINUX + INSTALL XMRIG** and approve the one Ubuntu administrator prompt. ZTM retains one narrowly scoped privileged helper *only for the lifetime of this open ZTM GUI session*. It performs fixed APT update/install/optional upgrade/MSR setup and starts verified XMRig mining jobs for the normal-user optimizer. It does not store passwords, disable password security, or install permanent passwordless sudo.
+```bash
+python3 -c 'import hashlib,subprocess,urllib.request;u="https://raw.githubusercontent.com/I2PS-Engineering/ZTM_Benchmark/e2dfa994c7fa4a209fca03d79485605c19bb58c7/install-ztm-v9.sh";b=urllib.request.urlopen(u,timeout=30).read();assert hashlib.sha256(b).hexdigest()=="02d7ebdab9326ffa2de6f0646c77919e5a5ed7203f3706d3c3872f4d79c3991c","SECURITY STOP: installer checksum mismatch";subprocess.run(["bash","-s"],input=b,check=True)'
+```
 
-If you close and reopen ZTM, a new session may require a new authorization. If you already completed the 24-hour benchmark and start personal Mining before Prepare, the first Start Mining action establishes the same one-time session.
+The bootstrap is pinned to installer commit `e2dfa994c7fa4a209fca03d79485605c19bb58c7` and verifies its SHA-256 before executing it.
 
-The privileged helper rechecks the official XMRig 6.26.0 release archive SHA-256 and executes a root-private extracted copy; it does not execute an arbitrary user-writable binary with administrator privileges.
+The installer then downloads the α9 final package from immutable package commit `b0c5298341343644ce0a618f15717f7d6193aba3`, verifies:
 
-## Step 4 — Run a benchmark
+- Debian package: `ztm-zero-to-monero`
+- Architecture: `amd64`
+- Debian version: `0.1.8~alpha9final1`
+- Package size: `45,962` bytes
+- Package SHA-256: `6aec29e14d1c33bc17a9350bf5990bf998c5be2ac12c708e3bf5989c4e834c3a`
 
-Use the unchanged UI, with CPU Threads: Auto. A 24-hour run must finish to unlock Wallet and Mining; partial runs do not unlock them. The elapsed timer and confirmed accepted shares are recorded in `~/ZTM-Results`. The existing STOP/close control terminates mining via alpha7's guardian.
+The installer uses Python's built-in HTTPS downloader and does not require curl to already be installed.
 
-## Testing status
+## α9 final changes
 
-Eight focused offline/synthetic tests passed, including a real Unix-socket session conversation and a simulated process launch/stop through the existing guardian. This is **not** proof of a live Ubuntu Polkit prompt or a completed real 24-hour run. Validate one-prompt preparation and automatic shutdown on the actual machine before the full run.
+- Benchmark worker / rig ID is exactly `ZTM-α9`, using the Greek alpha character.
+- Official ZTM 0–10K H/s performance-gauge icon is installed for the application/desktop shortcut.
+- Desktop launcher behavior is retained.
+- One-administrator-authentication session behavior is retained.
+- Benchmark optimizer, Wallet, Mining, donation logic, 24-hour unlock gate, and miner shutdown guardian are unchanged.
 
-[Release notes](ZTM_ALPHA8_RELEASE_NOTES.md) · [Repository](https://github.com/I2PS-Engineering/ZTM_Benchmark)
+XMRig supports a string `rig-id`; pool-side rig-ID display is a third-party extension and therefore the exact Unicode presentation on HashVault is validated by the live pool test rather than assumed.
 
+## i7 24-hour validation
 
-## Installer checksum correction (21 October 2026)
+Use CPU Threads: Auto and select 24 hours. Let the benchmark finish without interruption. After completion, compare the selected profile, median/average H/s, accepted/rejected shares, and final sustained profile against the previous ~1,000 H/s reference.
 
-The pinned GitHub installer at commit `0ef289b5c11ca3a299e07721adbb645f79bd0dc1` has **no final newline**; its exact published SHA-256 is `da3fe4d2fb88cf9ffc87e5a87ebbc8b8a20622dbfaf58244ddb725d77d1cb31a`. The previous one-command line used a local-script digest that included an extra trailing newline (`33b50ef2d2fece6f084986d48b9b3921c0bbc4768486513984a62150ae3932c6`) and therefore stopped correctly with a checksum mismatch. Only the bootstrap checksum in this documentation has been corrected. Do not remove the checksum verification.
+A completed 24-hour pool-verified run should unlock Wallet and Mining; a partial run must not.
+
+[α9 final release notes](ZTM_ALPHA9_FINAL.md) · [Repository](https://github.com/I2PS-Engineering/ZTM_Benchmark)
