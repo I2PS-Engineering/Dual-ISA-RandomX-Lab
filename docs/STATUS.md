@@ -1,15 +1,15 @@
 # ZTM project status
 
-**Current public release:** ZTM-SRP1V1 — Stable Release V1.1  
+**Current public release:** ZTM-SRP1V2 — Stable Release V1.2  
 **Release date:** 21 October 2026  
 **Platform:** Ubuntu Desktop x86-64  
-**Package:** `ZTM-SRP1V1_amd64.deb`
+**Package:** `ZTM-SRP1V2_amd64.deb`
 
 ## Released
 
 The stable package is published on GitHub Releases:
 
-https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/tag/ZTM-SRP1V1
+https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/tag/ZTM-SRP1V2
 
 Release engineering checks completed successfully for:
 
