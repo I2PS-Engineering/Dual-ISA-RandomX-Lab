@@ -134,7 +134,7 @@ g = one(
 g = one(
     g,
     "self.label(main, 'Preparation runs APT update, installs prerequisites, then downloads verified official XMRig.\\nPool and payout are preconfigured; no mining begins without authorization.', 10, MUTED, justify='left')",
-    "self.label(main, 'Preparation runs APT update, installs prerequisites, then downloads verified official XMRig.\\nPool and payout are preconfigured; no mining begins without authorization.', 10, MUTED, justify='left', wraplength=max(600, target_w - 100))",
+    "self.label(main, 'Preparation runs APT update, installs prerequisites, then downloads verified official XMRig.\\nPool and payout are preconfigured; no mining begins without authorization.', 10, MUTED, justify='left', wraplength=max(600, int(self.root.winfo_screenwidth() * 0.80)))",
     "preparation subtitle wrapping",
 )
 
