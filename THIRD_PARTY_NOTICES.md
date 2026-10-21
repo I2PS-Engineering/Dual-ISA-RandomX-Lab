@@ -1,20 +1,41 @@
-# Third-party components and licenses
+# Third-party components and licenses — ZTM-SRP1V1
+
+ZTM contains I2PS-owned software and also works with independently maintained third-party software.
 
 ## XMRig
 
-**XMRig** is an independent CPU-mining/benchmarking application maintained by its own contributors and licensed separately under **GNU GPL-3.0**.
+**XMRig** is an independent RandomX CPU-mining application maintained by its own contributors and licensed under **GNU GPL-3.0**.
 
-- Upstream source: https://github.com/xmrig/xmrig
-- Upstream release downloads: https://github.com/xmrig/xmrig/releases
-- Documentation: https://xmrig.com/docs/miner/command-line-options
-- GPL-3.0: https://www.gnu.org/licenses/gpl-3.0.html
+Official project:
 
-I2PS does **not** claim ownership of XMRig, remove its existing developer donation, or supersede GPL rights with proprietary I2PS terms. XMRig should be retrieved from an official release with checksum verification. The v0.3.x development installer downloads it separately, rather than bundling its binary.
+https://github.com/xmrig/xmrig
 
-The I2PS application is separately governed by [PolyForm Strict 1.0.0](LICENSE.md) for components owned by I2PS. Any future bundled third-party binaries must ship their required license notices and comply with redistribution duties.
+Documentation:
 
-## Ubuntu, Debian, Python, and other software
+https://xmrig.com/docs
 
-Ubuntu, Debian, Python, and system packages have their own licenses and trademarks. An Ubuntu-based I2PS setup does not transfer ownership of Linux, Ubuntu, or any third-party component to I2PS.
+GPL-3.0:
 
-This project is not affiliated with or endorsed by the Monero, XMRig, Ubuntu, Debian, or Python projects.
+https://www.gnu.org/licenses/gpl-3.0.html
+
+ZTM does not claim ownership of XMRig and does not replace or supersede XMRig's GPL rights.
+
+ZTM-SRP1V1 prepares and verifies the supported XMRig installation separately. XMRig's own upstream developer contribution remains independent from the I2PS developer contribution disclosed by ZTM.
+
+## Ubuntu, Debian and Python
+
+Ubuntu, Debian, Python and system packages used by ZTM are independently developed projects with their own licenses, copyright holders and trademarks.
+
+Use of those projects by ZTM does not transfer ownership of them to I2PS.
+
+## Monero
+
+Monero, its software, protocol, trademarks and ecosystem are independent from I2PS Engineering.
+
+ZTM uses RandomX-compatible mining workflows and accepts a user's public Monero receiving address for personal mining. ZTM does not claim ownership of Monero and does not require private wallet keys.
+
+## I2PS-owned components
+
+I2PS-owned ZTM software, documentation and artwork are governed by [LICENSE.md](LICENSE.md).
+
+Third-party license terms continue to apply to third-party components regardless of the I2PS license.
