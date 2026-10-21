@@ -1,5 +1,16 @@
 # Changelog
 
+## ZTM-SRP1V2 — Linux GUI Readability Update V1.2 — 21 October 2026
+
+- Default font zoom increased to **165%** across terminal, navigation, consent labels, buttons and wallet interface.
+- **A− / A+** zoom buttons adjust the UI between 125% and 200% without altering the benchmark.
+- Button padding and descriptive text wrapping improved for laptop displays.
+- New pool rig ID **`ZTM-RX1V2-L`** for the benchmark and personal-mining pool identification.
+- After successful qualifying 24-hour completion, the engine prints and records **Winning Configuration** and the GUI displays it, including selected active threads, optimization score, measured sustained median/mean/min/max, peak rates, accepted/rejected shares, elapsed time and report path.
+- Fixed **24-hour** benchmarking, CPU Threads: Auto, consent, eligibility gate, donation mechanism and termination logic retained.
+- Ubuntu x86-64 package: **`ZTM-SRP1V2_amd64.deb`**; Debian version `1.2.0~srp1v2`.
+- Debian SHA-256: `ab4e8339a100957df62b2dc83849d9efe6dee3b1fc51fca41a18f7a7b5f18077`.
+
 ## ZTM-SRP1V1 — Stable Release V1.1 — 21 October 2026
 
 First stable-release baseline of ZTM — Zero to Monero.
