@@ -1,6 +1,6 @@
-# Security policy — ZTM-SRP1V1
+# Security policy — ZTM-SRP1V2
 
-This policy applies to the current stable release, **ZTM-SRP1V1 — Stable Release V1.1**.
+This policy applies to the current stable release, **ZTM-SRP1V2 — Stable Release V1.2**.
 
 ## Reporting a security issue
 
@@ -8,7 +8,7 @@ Report security concerns privately to **engineering@i2psolutions.com**.
 
 Suggested subject:
 
-**ZTM-SRP1V1 — Security**
+**ZTM-SRP1V2 — Security**
 
 Do not publish sensitive vulnerability details in a public issue before they have been reviewed.
 
@@ -39,13 +39,13 @@ XMRig's upstream developer contribution is governed independently by XMRig and i
 
 ## Release integrity
 
-The official stable package is distributed through the GitHub Release tagged **ZTM-SRP1V1**.
+The official stable package is distributed through the GitHub Release tagged **ZTM-SRP1V2**.
 
 Package identity:
 
-- `ZTM-SRP1V1_amd64.deb`
-- Debian version `1.1.0~srp1v1`
-- SHA-256 `acd4bee9a502e39a673cbf39679710553fd83720cc261f5915166e8eb1c6dd56`
+- `ZTM-SRP1V2_amd64.deb`
+- Debian version `1.2.0~srp1v2`
+- SHA-256 `ab4e8339a100957df62b2dc83849d9efe6dee3b1fc51fca41a18f7a7b5f18077`
 
 The official installer verifies package size, SHA-256, package name, architecture and Debian version before installation.
 
