@@ -1,42 +1,61 @@
-# Online RandomX benchmarking — approved v0.4 specification
+# ZTM-SRP1V1 — 24-hour online RandomX benchmark
 
-**Status: APPROVED DESIGN / NOT IMPLEMENTED.**
+This document describes the benchmark implemented by **ZTM-SRP1V1 — Stable Release V1.1**.
 
-## Core rules
+## Fixed benchmark rules
 
-- **Online only. No offline benchmark is available.**
-- Real RandomX computation executes on the machine's **physical CPU** using a supported XMRig build.
-- A live mining-pool connection is required throughout each active benchmarking interval.
-- The **initial benchmark lasts a minimum of 24 hours of continuous active operation** to assess sustained performance. Do not count outages as successful active time and do not mark interrupted benchmarks complete.
-- **All mining rewards attributable to the initial 24-hour benchmark are directed to the Dev Wallet.** This fact must be prominently disclosed before the first pool connection.
-- Show that mining uses CPU resources and electricity and can cause thermal load. Require explicit, informed authorization before starting any online mining.
-- **Stop** must remain available throughout the run and must terminate mining.
-- No pool mining begins solely because the user installed dependencies or launched the program.
+- Online RandomX CPU work.
+- Ubuntu Desktop x86-64.
+- Real XMRig execution.
+- Real mining-pool connection.
+- **Exactly 24 hours** for the stable benchmark.
+- **CPU Threads: Auto**.
+- No duration selector in the normal GUI.
+- Explicit authorization before CPU work.
+- Visible Stop control during the run.
+- An interrupted run is not treated as a completed qualifying benchmark.
 
-## Authorization screen — exact two acknowledgments
+The engine also enforces the 24-hour rule. Release verification confirmed that a 24-hour plan is accepted and a 60-minute plan is rejected.
 
-1. “I understand this benchmark uses my CPU continuously for approximately 24 hours so I can get the best result running my own RandomX miner.”
-2. “I understand the terms and conditions of using I2PS RandomX CPU Benchmark software.”
+## Required acknowledgements
 
-The program must additionally explain the **Dev Wallet** payout arrangement prominently, not hide it inside the checkboxes.
+The stable GUI requires exactly these two benchmark acknowledgements:
 
-## Dev Wallet text
+1. **I authorize real CPU work for 24 hours, including electricity use and heat.**
+2. **I understand this online benchmark uses both XMRig and I2PS dev contribution.**
 
-> **Dev Wallet** — This contributes in the development of the software, of its future versions, and keeping it alive and always free, as it was first intended.
+## Measurement
 
-The GUI is **not** to display the payout wallet address or any private wallet key. A concealed GUI address must not conceal the beneficiary or prevent auditing the actual mining payout behavior.
+ZTM observes the machine under a real RandomX workload and records the behavior of the tested configurations.
 
-## Measurement protocol (engineering proposal)
+Measurements can include:
 
-- Detect CPU model, ISA, physical/logical cores, available memory, platform, supported RandomX variant and XMRig version.
-- Use configured live pool; capture observed H/s, accepted/rejected/stale share counts, difficulty, uptime, and connection interruptions.
-- Test planned thread profiles for **sufficient sustained observation**, not only transient peak H/s. Avoid changing many independent variables simultaneously.
-- Record test profile, start/end timestamps, accepted active seconds, ambient/power/thermal context where available and mining engine exit status.
-- Distinguish local XMRig hashrate from pool-estimated hashrate and pool-reported shares.
-- Compare profiles by repeated stable intervals, reporting averages, medians, stability and rejection metrics. Do not call a result “optimal” beyond the set of configurations actually tested.
-- Persist progress safely for diagnostic review, but a paused/restarted run is not a successful continuous 24-hour test.
-- After completion, generate a report and **then** guide the user to enter a personal public Monero receiving address.
+- tested CPU thread profiles;
+- sustained hashrate samples;
+- selected profile;
+- accepted shares;
+- rejected shares;
+- elapsed time;
+- pool-verification status.
 
-## Testing gate
+ZTM chooses the strongest configuration from the profiles it actually tested. That is not a claim that every possible hardware/software configuration has been exhaustively tested.
 
-No public claim of operational 24-hour online benchmarking until complete real-hardware trials confirm connectivity, logging, exact payout routing, time accounting, Stop behavior, errors, thermal handling and reporting.
+## Qualification
+
+Wallet and personal mining remain locked until ZTM finds a qualifying uninterrupted 24-hour pool-verified benchmark result for the machine.
+
+Shorter sessions cannot be combined to create a qualifying 24-hour result.
+
+## Benchmark identity
+
+The stable release uses worker identification:
+
+`ZTM-R-A-10-E-R`
+
+in both supported pool-identification fields.
+
+## Safety
+
+RandomX can place sustained load on the CPU and cooling system.
+
+Use ZTM only on machines you own or are authorized to operate. Monitor the hardware appropriately for its environment.
