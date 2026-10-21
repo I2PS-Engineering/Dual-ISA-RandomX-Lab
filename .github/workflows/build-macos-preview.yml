@@ -118,7 +118,7 @@ jobs:
           hdiutil create -volname "ZTM macOS P1" -srcfolder dist/ZTM.app -ov \
             -format UDZO "out/ZTM-macOS-P1-${{ matrix.arch }}.dmg"
           (cd dist && ditto -c -k --sequesterRsrc --keepParent ZTM.app "../out/ZTM-macOS-P1-${{ matrix.arch }}.zip")
-          shasum -a 256 out/* > "out/SHA256SUMS-${{ matrix.arch }}.txt"
+          (cd out && shasum -a 256 *.dmg *.zip > "SHA256SUMS-${{ matrix.arch }}.txt")
           ls -lh out
 
       - uses: actions/upload-artifact@v4
