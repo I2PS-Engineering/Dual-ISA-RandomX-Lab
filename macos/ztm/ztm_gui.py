@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""ZTM — Zero to Monero; real GUI for Ubuntu and opt-in RandomX test.
-Mining requires an explicit 24-hour benchmark gate and Terms acceptance.
+"""ZTM macOS P1 — native opt-in RandomX GUI.
+24-hour qualification, explicit consent, and local wallet secrets boundary.
 """
 from __future__ import annotations
 
@@ -34,11 +34,9 @@ APP = Path(__file__).resolve().parent
 ENGINE = APP / 'ztm_engine.py'
 RESULTS = Path.home() / 'ZTM-Results'
 MINING = APP / 'ztm_mining.py'
-SESSION_CLIENT = APP / 'ztm_privilege_client.py'
-SESSION_BROKER = APP / 'ztm_privileged_session.py'
 
-# I2PS benchmark defaults (public payout address only; no secret keys).
-# This diagnostic alpha is not proof of a validated 24h benchmark.
+# Public benchmark payout address only. Never request private wallet keys.
+# Qualification requires a full, measured, uninterrupted 24-hour result.
 BENCHMARK_POOL = 'pool.hashvault.pro:443'
 BENCHMARK_PAYOUT = '4AZPLhPbHimHbCsJarX6ThB2Rqo8jrHbjLJ3oFjsgA1gVWgFBtxywdQiFkS5Vn2E3eDR69oY7F1VbfnmrqBmbHB9Jpmsz9f'
 BENCHMARK_TLS = False
@@ -60,9 +58,9 @@ def benchmark_session(pool, wallet, tls, minutes, threads):
     pool = validate_pool(pool)
     wallet = validate_address(wallet)
     if minutes != 1440:
-        raise BenchError('Stable Release V1.1 requires one uninterrupted 24-hour benchmark.')
+        raise BenchError('ZTM macOS P1 requires one uninterrupted 24-hour benchmark.')
     if threads is not None:
-        raise BenchError('Stable Release V1.1 uses CPU Threads: Auto.')
+        raise BenchError('ZTM macOS P1 requires CPU Threads: Auto.')
     return {'pool': pool, 'wallet': wallet, 'tls': tls, 'minutes': 1440, 'threads': None}
 
 
@@ -205,6 +203,7 @@ class ZTMApp:
         self.benchmark_btn = ttk.Button(buttons, text='START 24-HOUR RANDOMX BENCHMARK', style='ZTM.TButton', command=self.benchmark, state='disabled')
         self.benchmark_btn.pack(side='left')
         ttk.Button(buttons, text='OPEN RESULTS FOLDER', style='ZTM.TButton', command=self.open_results).pack(side='left', padx=10)
+        ttk.Button(buttons, text='WINNING CONFIGURATION', style='ZTM.TButton', command=self.show_winning_configuration).pack(side='left', padx=4)
         tk.Label(buttons, textvariable=self.rate, bg=PANEL, fg=CYAN, font=('Helvetica', 13, 'bold')).pack(side='right')
         tk.Label(setup, textvariable=self.shares, bg=PANEL, fg=MUTED, font=('Helvetica', 9)).pack(anchor='e')
         panels.add(setup, minsize=245, stretch='never')
@@ -627,10 +626,53 @@ class ZTMApp:
                     self.refresh_navigation()
                     self.busy_end()
                     self.state.set('2 · Finished' if payload == 0 else '2 · Partial / stopped')
-                    self.status.set('Measured report written to ~/ZTM-Results.' if payload == 0 else f'Benchmark incomplete (exit {payload}). View log/report in ~/ZTM-Results.')
+                    self.status.set('Winning configuration saved to ~/ZTM-Results.' if payload == 0 else f'Benchmark incomplete (exit {payload}). View provisional result in ~/ZTM-Results.')
+                    if payload == 0:
+                        self.root.after(150, self.show_winning_configuration)
         except queue.Empty:
             pass
         self.root.after(100, self.pump)
+
+    def show_winning_configuration(self):
+        """Show the latest measured winner after benchmark completion."""
+        from ztm_winner import format_winning_configuration
+        if not RESULTS.is_dir():
+            messagebox.showinfo('Winning configuration', 'No benchmark results have been recorded yet.')
+            return
+        files = sorted(RESULTS.glob('run_*.json'), reverse=True)
+        for path in files:
+            if not path.is_file() or path.is_symlink():
+                continue
+            try:
+                report = json.loads(path.read_text(encoding='utf-8'))
+                winner = report.get('winning_configuration')
+                if not isinstance(winner, dict):
+                    continue
+                chosen = winner.get('chosen_search_profile')
+                if not chosen:
+                    messagebox.showinfo('Winning configuration', 'No verified winning profile was found in the latest benchmark.')
+                    return
+                complete = winner.get('full_24_hour_qualified') is True
+                sustained = winner.get('winner_sustained_profile') or {}
+                lines = [
+                    'ZTM — WINNING CONFIGURATION',
+                    '',
+                    ('24-hour test: QUALIFIED' if complete else '24-hour test: INCOMPLETE — provisional profile only'),
+                    f"CPU: {winner.get('cpu_model')}",
+                    f"Selected active threads: {winner.get('selected_active_threads')}",
+                    f"Search median: {chosen.get('median_hs')} H/s",
+                    f"Sustained median: {sustained.get('median_hs', 'not measured')} H/s",
+                    f"Optimizer score: {chosen.get('score')}",
+                    f"Pool shares (full run): {winner.get('overall_accepted_shares')} accepted / {winner.get('overall_rejected_shares')} rejected",
+                    '',
+                    'Full winning configuration and ranked profiles are saved in:',
+                    str(path.with_name(path.stem + '_winning_configuration.txt')),
+                ]
+                messagebox.showinfo('Winning configuration', '\\n'.join(lines))
+                return
+            except (OSError, UnicodeError, json.JSONDecodeError):
+                continue
+        messagebox.showinfo('Winning configuration', 'No complete benchmark result file has been found.')
 
     def open_results(self):
         RESULTS.mkdir(parents=True, exist_ok=True)
