@@ -1,4 +1,4 @@
-# ZTM-SRP1V1 architecture
+# ZTM-SRP1V2 architecture
 
 ## Stable workflow
 
