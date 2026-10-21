@@ -1,29 +1,32 @@
-# Release status and factual claims
+# ZTM project status
 
-**Last reviewed:** 17 October 2026.
+**Current public release:** ZTM-SRP1V1 — Stable Release V1.1  
+**Release date:** 21 October 2026  
+**Platform:** Ubuntu Desktop x86-64  
+**Package:** `ZTM-SRP1V1_amd64.deb`
 
-| Component | Actual status |
-|---|---|
-| Official GitHub repository | Public repository and updated installation guides published |
-| GitHub bootstrap / release checker | **Published; real stable release not yet available** |
-| Verified release install & rollback | Local code and mocked ZIP tests pass; no live release download to validate |
-| Read-only dashboard GitHub update check | Local application preview implemented; actual remote-network behavior still to validate |
-| v0.3.1 Linux Quickstart script | Authored; dry-run/dependency tests performed |
-| v0.3.x real offline CPU benchmark | Present in development application, not the intended v0.4 release architecture |
-| XMRig installer | Authored with pinned download/checksum logic; live platform installs not fully validated |
-| License acceptance | Built into v0.3.x program; v0.4 two-acknowledgment UI preview rendered |
-| v0.4 seven-image pixel-standardized GUI set | Prepared locally for review; binary PNGs not yet uploaded to GitHub |
-| v0.4 fixed sidebar and GUI gallery | Updated in local preview package; not a fully implemented v0.4 application |
-| v0.4 authorization HTML preview after sidebar adjustment | Two-checkbox GUI preview functional; no mining starts |
-| v0.4 visual installation guide (6 pages) | Created and rendered locally; not yet published to GitHub |
-| v0.4 online-only mode | **Approved specification, not implemented** |
-| v0.4 continuous 24-hour controller | **Not implemented** |
-| v0.4 initial benchmark Dev Wallet payout controller | **Not implemented** |
-| v0.4 automatic first-run dependency wizard | **Not implemented** |
-| v0.4 automatic best-tested CPU profile evaluation | **Not implemented** |
-| v0.4 personal mining with automatic Dev Donate mechanism | **Not implemented; contribution rate not finalized** |
-| Real online benchmark on the new Linux machines | **Not yet verified** |
+## Released
 
-**What the screenshots mean:** Graphics may show design targets or a locally rendered authorization UI. They do not constitute proof that the 24-hour mining system exists or that its measurements are real.
+The stable package is published on GitHub Releases:
 
-**Public release gate:** real hardware testing, license review, payout recipient verification, user consent tests, end-to-end 24-hour run, wallet isolation, Stop/failure recovery tests, and security review must succeed before declaring a public production release.
+https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/tag/ZTM-SRP1V1
+
+Release engineering checks completed successfully for:
+
+- Debian package identity and architecture;
+- exact package SHA-256;
+- fixed 24-hour benchmark duration;
+- rejection of a 60-minute benchmark plan;
+- CPU Threads: Auto;
+- approved two-checkbox authorization wording;
+- removal of the old duration selector;
+- adaptive GUI sizing;
+- desktop launcher and ZTM icon;
+- stable rig identification;
+- preserved optimizer, Wallet, Mining, eligibility, contribution and shutdown logic.
+
+## Hardware measurements
+
+The stable software release is complete.
+
+Individual 24-hour benchmark runs remain hardware measurements. Their hashrate and share results are specific to the machine and operating conditions being tested and should be reported as measurements, not guarantees.
