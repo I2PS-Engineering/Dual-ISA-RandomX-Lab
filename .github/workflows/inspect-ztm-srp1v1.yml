@@ -1,0 +1,50 @@
+name: Inspect ZTM stable-release edit points
+
+on:
+  push:
+    paths:
+      - '.github/workflows/inspect-ztm-srp1v1.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Reconstruct alpha9 final baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/ztm-sr-inspect
+          cat downloads/ZTM-Zero-to-Monero_0.1.8-alpha9-final_amd64.deb.b64.part* | base64 -d > /tmp/ztm-sr-inspect/pkg.deb
+          echo '6aec29e14d1c33bc17a9350bf5990bf998c5be2ac12c708e3bf5989c4e834c3a  /tmp/ztm-sr-inspect/pkg.deb' | sha256sum -c -
+          dpkg-deb -x /tmp/ztm-sr-inspect/pkg.deb /tmp/ztm-sr-inspect/root
+
+      - name: Capture exact stable-release edit points
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo '# ZTM SRP1V1 edit points'
+            echo
+            echo '## GUI lines 120-225'
+            nl -ba /tmp/ztm-sr-inspect/root/usr/lib/ztm/ztm_gui.py | sed -n '120,225p'
+            echo
+            echo '## Duration references'
+            grep -RInE 'duration|DURATION|24 ?h|24-hour|86400|threads|CPU THREADS|Engineering Preview|Dev Wallet|upstream developer' /tmp/ztm-sr-inspect/root/usr/lib/ztm --include='*.py' || true
+          } > docs/ZTM_SRP1V1_EDIT_POINTS.md
+
+      - name: Publish inspection
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'I2PS Engineering Build'
+          git config user.email 'engineering@i2psolutions.com'
+          git add docs/ZTM_SRP1V1_EDIT_POINTS.md
+          git commit -m 'inspect: ZTM SRP1V1 GUI and duration edit points' || exit 0
+          git push origin HEAD:main
