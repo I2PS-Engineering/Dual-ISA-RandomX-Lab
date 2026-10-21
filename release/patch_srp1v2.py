@@ -139,12 +139,128 @@ g = one(
 )
 
 # Keep the stable 24-hour consent strings, engine timing, wallet and optimizer intact.
+# Show the actual winning configuration in the application, after a complete run.
+winner_method = """    def show_winning_configuration(self):
+        # Read only the most recently written benchmark report; do not expose
+        # wallet fields or mark incomplete runs as winners.
+        try:
+            candidates = sorted(RESULTS.glob('run_*.json'), key=lambda p: p.stat().st_mtime, reverse=True)
+            if not candidates:
+                return
+            report = json.loads(candidates[0].read_text(encoding='utf-8'))
+            if not report.get('actual_24_hour_benchmark'):
+                return
+            winner = report.get('winning_configuration') or {}
+            if not winner:
+                return
+            detail = (
+                'WINNING CONFIGURATION — ZTM-SRP1V2\\n'
+                f"CPU: {report.get('cpu_model', 'Unknown')}\\n"
+                f"Rig ID: ZTM-RX1V2-L\\n"
+                f"Selected active CPU threads: {winner.get('threads', 'unknown')}\\n"
+                f"Winning profile: {winner.get('profile', 'unknown')}\\n"
+                f"Winning profile sustained median: {winner.get('sustained_median_hs', 'N/A')} H/s\\n"
+                f"Winning profile sustained mean: {winner.get('sustained_mean_hs', 'N/A')} H/s\\n"
+                f"Highest observed hashrate (whole run): {winner.get('highest_recorded_hs', 'N/A')} H/s\\n"
+                f"Highest peak among tested profiles: {winner.get('peak_profile_hs', 'N/A')} H/s\\n"
+                f"Accepted / rejected shares: {report.get('accepted_shares', 0)} / {report.get('rejected_shares', 0)}\\n"
+                f"Profiles tested: {len(report.get('optimizer_profiles', []))}\\n"
+                f"Duration: {report.get('elapsed_seconds', 'unknown')} seconds\\n"
+                f"Report: {candidates[0]}"
+            )
+            self.append('\\n' + detail + '\\n')
+            messagebox.showinfo('ZTM — Winning Configuration', detail)
+        except (OSError, ValueError, KeyError, TypeError) as exc:
+            self.append('[ZTM] Could not display winning configuration: ' + str(exc))
+
+"""
+g = one(g,
+        "    def open_results(self):\n",
+        winner_method + "    def open_results(self):\n",
+        "winning configuration GUI method")
+g = one(g,
+        "                elif typ == 'done-bench':\n                    self.refresh_navigation()",
+        "                elif typ == 'done-bench':\n                    self.refresh_navigation()\n                    if payload == 0:\n                        self.show_winning_configuration()",
+        "finished benchmark UI call")
+
 gui_file.write_text(g, encoding="utf-8")
 
 e = engine_file.read_text(encoding="utf-8")
 if e.count("ZTM-R-A-10-E-R") != 2:
     raise SystemExit("STOP: benchmark worker ID expected exactly twice")
 e = e.replace("ZTM-R-A-10-E-R", "ZTM-RX1V2-L")
+# Preserve the selected winner and its full measured profile in the JSON
+# report and terminal. A peak is never misrepresented as a sustained score.
+winner_logic = """    candidate_profiles = [
+        p for p in profiles
+        if p.get('label') != 'winner-sustained' and p.get('threads_observed')
+        and p.get('median_hs') is not None
+    ]
+    winner_profile = next(
+        (p for p in candidate_profiles if p.get('threads_observed') == selected_threads),
+        None
+    )
+    sustained_profile = next(
+        (p for p in reversed(profiles) if p.get('label') == 'winner-sustained'),
+        None
+    )
+    peak_profile = max(
+        (p for p in profiles if p.get('max_hs') is not None),
+        key=lambda p: p['max_hs'],
+        default=None
+    )
+    winning_configuration = {
+        'rig_id': 'ZTM-RX1V2-L',
+        'threads': selected_threads,
+        'profile': winner_profile.get('label') if winner_profile else 'xmrig-auto',
+        'optimization_score': winner_profile.get('score') if winner_profile else None,
+        'optimization_median_hs': winner_profile.get('median_hs') if winner_profile else None,
+        'sustained_median_hs': (sustained_profile or winner_profile or {}).get('median_hs'),
+        'sustained_mean_hs': (sustained_profile or winner_profile or {}).get('mean_hs'),
+        'sustained_min_hs': (sustained_profile or winner_profile or {}).get('min_hs'),
+        'sustained_max_hs': (sustained_profile or winner_profile or {}).get('max_hs'),
+        'highest_recorded_hs': report['max_hs'],
+        'peak_profile_hs': peak_profile['max_hs'] if peak_profile else None,
+        'peak_profile_threads': peak_profile.get('threads_observed') if peak_profile else None,
+        'peak_profile_label': peak_profile.get('label') if peak_profile else None,
+        'accepted_shares': report['accepted_shares'],
+        'rejected_shares': report['rejected_shares'],
+        'test_elapsed_seconds': elapsed,
+        'pool': pool,
+        'tls': tls,
+    }
+    report['winning_configuration'] = winning_configuration
+"""
+e = one(
+    e,
+    '    target = output_dir / f"run_{runid}.json"\n',
+    winner_logic + '    target = output_dir / f"run_{runid}.json"\n',
+    "winning configuration report",
+)
+win_print = """    if report['actual_24_hour_benchmark']:
+        wc = report['winning_configuration']
+        print('\\\\n' + '=' * 63, flush=True)
+        print(' WINNING CONFIGURATION — ZTM-RX1V2-L', flush=True)
+        print('=' * 63, flush=True)
+        print(f" CPU:                    {report['cpu_model']}", flush=True)
+        print(f" Active threads:         {wc['threads']}", flush=True)
+        print(f" Winning profile:        {wc['profile']}", flush=True)
+        print(f" Optimization score:     {wc['optimization_score']}", flush=True)
+        print(f" Sustained median:       {wc['sustained_median_hs']} H/s", flush=True)
+        print(f" Sustained mean:         {wc['sustained_mean_hs']} H/s", flush=True)
+        print(f" Sustained min/max:      {wc['sustained_min_hs']} / {wc['sustained_max_hs']} H/s", flush=True)
+        print(f" Highest reading (run):  {wc['highest_recorded_hs']} H/s", flush=True)
+        print(f" Highest profile peak:   {wc['peak_profile_hs']} H/s ({wc['peak_profile_threads']} threads)", flush=True)
+        print(f" Accepted/rejected:      {wc['accepted_shares']} / {wc['rejected_shares']}", flush=True)
+        print(f" Profiles tested:        {len(profiles)}", flush=True)
+        print(f" Elapsed:                {elapsed} seconds", flush=True)
+        print(f" Full JSON result:       {target}", flush=True)
+"""
+e = one(e,
+        '    if not values:\n        return report, 3\n',
+        win_print + '    if not values:\n        return report, 3\n',
+        "completion console summary")
+
 engine_file.write_text(e, encoding="utf-8")
 
 m = mining_file.read_text(encoding="utf-8")
@@ -169,6 +285,7 @@ assert "a.minutes != 1440" in e and "a.seconds != 86400" in e
 assert e.count("ZTM-RX1V2-L") == 2
 assert m.count("ZTM-RX1V2-L") == 2
 assert "ZTM-R-A-10-E-R" not in e
+assert "winning_configuration" in e and "show_winning_configuration" in g
 print(
     f"ZTM-SRP1V2 patched: {len(matched)} explicit font declarations and "
     f"{count} checkboxes now respond to 165% default zoom. "
