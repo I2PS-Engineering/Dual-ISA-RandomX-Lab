@@ -32,12 +32,12 @@ jobs:
           {
             echo '# ZTM SRP1V1 edit points'
             echo
-            echo '## GUI lines 120-225'
-            nl -ba /tmp/ztm-sr-inspect/root/usr/lib/ztm/ztm_gui.py | sed -n '120,225p'
+            echo '## GUI lines 60-225'
+            nl -ba /tmp/ztm-sr-inspect/root/usr/lib/ztm/ztm_gui.py | sed -n '60,225p'
             echo
             echo '## Duration references'
-            grep -RInE 'duration|DURATION|24 ?h|24-hour|86400|threads|CPU THREADS|Engineering Preview|Dev Wallet|upstream developer' /tmp/ztm-sr-inspect/root/usr/lib/ztm --include='*.py' || true
-          } > docs/ZTM_SRP1V1_EDIT_POINTS.md
+            grep -RInE 'duration|DURATION|24 ?h|24-hour|86400|threads|CPU THREADS|Engineering Preview|Dev Wallet|upstream developer|def benchmark|self.duration|selected duration' /tmp/ztm-sr-inspect/root/usr/lib/ztm --include='*.py' || true
+          echo; echo '## GUI benchmark-handler lines 500-640'; nl -ba /tmp/ztm-sr-inspect/root/usr/lib/ztm/ztm_gui.py | sed -n '500,640p'; } > docs/ZTM_SRP1V1_EDIT_POINTS.md
 
       - name: Publish inspection
         shell: bash
