@@ -1,43 +1,68 @@
-# Architecture and design boundaries
+# ZTM-SRP1V1 architecture
 
-## Components
-
-**Target v0.4 architecture (not yet fully implemented)**
+## Stable workflow
 
 ```text
-I2PS local interface (official cyan I2PS branding)
-    |
-    +-- License and online benchmark authorization
-    +-- Setup Assistant / verified XMRig installer
-    +-- Online 24-hour session controller
-    |      +-- CPU / architecture and thread-profile discovery
-    |      +-- Separate verified XMRig subprocess
-    |      +-- Live mining-pool connection
-    |      +-- Time, share and hashrate telemetry
-    |      +-- Stop, failure handling and result persistence
-    |      +-- Initial rewards -> Dev Wallet
-    |
-    +-- Completed run report / tested profile ranking
-    +-- Post-benchmark public wallet address education
-    +-- Separate explicitly authorized personal mining
-           +-- User wallet + defined built-in Dev Donate
+ZTM GUI
+  |
+  +-- Ubuntu preparation
+  |     +-- one authorized privileged session
+  |     +-- prerequisites
+  |     +-- verified XMRig preparation
+  |
+  +-- 24-hour Benchmark
+  |     +-- fixed duration: 86400 seconds
+  |     +-- CPU Threads: Auto
+  |     +-- real RandomX workload
+  |     +-- live pool connection
+  |     +-- tested thread-profile evaluation
+  |     +-- hashrate and share telemetry
+  |     +-- Stop / shutdown handling
+  |     +-- persistent result record
+  |
+  +-- Qualification gate
+  |     +-- full 24-hour completion
+  |     +-- pool verification
+  |     +-- selected tested profile
+  |
+  +-- Wallet
+  |     +-- public Monero receiving address only
+  |
+  +-- Personal Mining
+        +-- qualified CPU thread result
+        +-- user public wallet
+        +-- developer-contribution behavior
+        +-- explicit Start / Stop
 ```
 
-## Platform compatibility
+## Privileged operations
 
-- x86-64 machines (Intel and AMD): primary initial validation targets on Ubuntu/Debian.
-- ARM64/Apple Silicon: comparison target, requires supported OS-specific XMRig and verification.
-- Different RandomX variants and workloads must not be pooled into one unqualified performance comparison.
+ZTM requests Ubuntu administrator authorization for preparation through a per-application-session privileged broker.
 
-## Security boundaries
+The password is handled by the operating-system authorization flow. ZTM does not store it.
 
-- No password, mnemonic or private spend/view keys are ever required.
-- Payout address is configured internally for the initial Dev Wallet session; the beneficiary must nonetheless be explicitly disclosed.
-- The local web application must not expose process-control APIs to a public interface.
-- Download official XMRig only with pinned integrity verification and maintain its separate license obligations.
-- Automatic installation is distinct from authorization to mine; consent and explicit Start are mandatory.
-- Prevent unintended persistence or automatic relaunch of mining when the user's Stop command is used.
+The privileged session ends with the application session.
 
-## Current implementation gap
+## Benchmark engine
 
-The available development backend is from **v0.3.1** and includes an offline benchmark plus an independent mining interface. The **v0.4 online-only continuous 24-hour benchmark**, profile controller and payout logic have not yet been implemented.
+The stable GUI does not expose benchmark duration or manual thread selection.
+
+The engine is also locked to the stable 24-hour duration. This prevents a hidden command-line duration change from turning a short run into a qualifying stable benchmark.
+
+## XMRig
+
+XMRig is an independent GPLv3 project.
+
+ZTM prepares a verified supported XMRig binary and controls it as the RandomX execution engine. XMRig licensing and upstream developer contribution remain separate from I2PS-owned ZTM behavior.
+
+## Wallet boundary
+
+ZTM does not implement custody of private Monero wallet secrets.
+
+The user supplies only a public receiving address for the personal-mining path. Seeds, wallet passwords and private keys stay outside ZTM.
+
+## Result boundary
+
+ZTM reports measured performance from the machine and configurations actually tested.
+
+It does not claim an untested universal optimum or guaranteed profitability.
