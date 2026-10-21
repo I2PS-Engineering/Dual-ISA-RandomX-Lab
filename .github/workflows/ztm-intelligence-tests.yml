@@ -1,0 +1,41 @@
+name: ZTM Intelligence Foundation Tests
+on:
+  push:
+    branches:
+      - feature/ztm-worker-intelligence-v3
+  pull_request:
+    paths:
+      - 'intelligence/**'
+      - 'tests/test_ztm_identity.py'
+      - '.github/workflows/ztm-intelligence-tests.yml'
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile and exercise identity module
+        run: |
+          python -m compileall -q intelligence
+          PYTHONPATH=intelligence python -m unittest discover -s tests -p 'test_ztm_identity.py' -v
+      - name: Verify reporting import and SQLite schema
+        run: |
+          PYTHONPATH=intelligence python - <<'PY'
+          import tempfile
+          from pathlib import Path
+          from ztm_reporting import connect, enqueue
+          with tempfile.TemporaryDirectory() as d:
+              c=connect(Path(d)/'ztm.db')
+              payload={'worker':{'ztm_id':'A7K92'},'hardware':{},'benchmark':{'run_id':'test-run'},'profiles':[],'winner':{}}
+              try:
+                  enqueue(c,payload,consent=False)
+                  raise AssertionError('consent bypass')
+              except PermissionError:
+                  pass
+              assert enqueue(c,payload,consent=True)
+              assert c.execute('select count(*) from submissions').fetchone()[0]==1
+          PY
