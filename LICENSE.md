@@ -1,8 +1,8 @@
-# ZTM-SRP1V1 — License and ownership
+# ZTM-SRP1V2 — License and ownership
 
 **Copyright © 2026 I2PS Solutions. All rights reserved in I2PS-owned materials.**
 
-**ZTM-SRP1V1 I2PS-owned software and artwork: PolyForm Strict License 1.0.0.** The text of the chosen standard license is reproduced below unchanged in its operative provisions; original source: https://polyformproject.org/licenses/strict/1.0.0/
+**ZTM-SRP1V2 I2PS-owned software and artwork: PolyForm Strict License 1.0.0.** The text of the chosen standard license is reproduced below unchanged in its operative provisions; original source: https://polyformproject.org/licenses/strict/1.0.0/
 
 ## Plain-language notice (informational only)
 
