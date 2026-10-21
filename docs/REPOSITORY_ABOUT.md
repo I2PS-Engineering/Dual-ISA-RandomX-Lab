@@ -1,13 +1,13 @@
-# Suggested GitHub repository About details
+# Repository About — ZTM-SRP1V1
 
-These are profile fields to set through **GitHub → Repository → About → Edit**. This file alone does not modify GitHub repository metadata.
+Suggested GitHub repository metadata for the current stable project.
 
-**Description:** Free-to-use, proprietary I2PS Dual-ISA RandomX CPU benchmarking lab. Online-only 24-hour benchmarking planned; currently under development.
+**Description:** ZTM — Zero to Monero. Stable Ubuntu x86-64 RandomX benchmarking and mining workflow with a fixed 24-hour real-pool benchmark.
 
 **Website:** https://www.i2psolutions.com
 
-**Topics:** `randomx`, `monero`, `cpu-benchmark`, `i2ps`, `linux`, `xmrig`, `x86-64`, `arm64`, `engineering`
+**Topics:** `ztm`, `zero-to-monero`, `randomx`, `monero`, `cpu-benchmark`, `xmrig`, `ubuntu`, `x86-64`, `i2ps-engineering`
 
-**Release status:** No production-ready v0.4 release published.
+**Current release:** ZTM-SRP1V1 — Stable Release V1.1
 
-**License:** PolyForm Strict 1.0.0 for I2PS-owned code; XMRig independently GPLv3.
+**License:** PolyForm Strict 1.0.0 for I2PS-owned ZTM software; XMRig independently GPLv3.
