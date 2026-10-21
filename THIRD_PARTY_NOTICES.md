@@ -1,4 +1,4 @@
-# Third-party components and licenses — ZTM-SRP1V1
+# Third-party components and licenses — ZTM-SRP1V2
 
 ZTM contains I2PS-owned software and also works with independently maintained third-party software.
 
@@ -20,7 +20,7 @@ https://www.gnu.org/licenses/gpl-3.0.html
 
 ZTM does not claim ownership of XMRig and does not replace or supersede XMRig's GPL rights.
 
-ZTM-SRP1V1 prepares and verifies the supported XMRig installation separately. XMRig's own upstream developer contribution remains independent from the I2PS developer contribution disclosed by ZTM.
+ZTM-SRP1V2 prepares and verifies the supported XMRig installation separately. XMRig's own upstream developer contribution remains independent from the I2PS developer contribution disclosed by ZTM.
 
 ## Ubuntu, Debian and Python
 
