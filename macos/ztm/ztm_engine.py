@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
-"""ZTM — Zero to Monero: opt-in ONLINE CPU benchmark for fresh Ubuntu.
+"""ZTM macOS P1 — native 24-hour online RandomX optimizer.
 
-This is an engineering diagnostic, not the public v0.4 24-hour Dev Wallet
-benchmark or production release. Runs verified official XMRig v6.26.0.
-Requires user-chosen pool and public Monero address and explicit consent.
-Python standard library only; no sudo required to run this file.
+Run as an ordinary macOS user. Never request private wallet keys or passwords.
 """
 from __future__ import annotations
 
@@ -114,6 +111,12 @@ def verified_release_archive(cache: Path) -> bytes:
 
 
 def local_binary(cache: Path, binary_override: str | None = None) -> Path:
+    from ztm_native import verified_binary
+    if binary_override:
+        raise BenchError("ZTM macOS only accepts its SHA-256-verified native XMRig binary.")
+    return verified_binary()
+
+def _linux_legacy_binary(cache: Path, binary_override: str | None = None) -> Path:
     if binary_override:
         p = Path(binary_override).expanduser().resolve()
         if not p.is_file() or not os.access(p, os.X_OK):
@@ -163,6 +166,10 @@ def prompt_if_missing(value, prompt):
 
 
 def current_cpu_info():
+    from ztm_native import cpu_model
+    return cpu_model()
+
+def _legacy_linux_cpu_info():
     model = "Unknown"
     try:
         for line in Path("/proc/cpuinfo").read_text(encoding="utf-8", errors="replace").splitlines():
@@ -303,8 +310,8 @@ def run_benchmark(executable: Path, pool: str, wallet: str, tls: bool, duration_
                     "rig-id": "ZTM-R-A-10-E-R",
                     "tls": tls, "keepalive": True
                 }],
-                "cpu": {"enabled": True, "huge-pages": True},
-                "randomx": {"init": -1, "rdmsr": True, "wrmsr": True, "1gb-pages": False},
+                "cpu": {"enabled": True, "huge-pages": False},
+                "randomx": {"init": -1, "rdmsr": False, "wrmsr": False, "1gb-pages": False},
                 "opencl": {"enabled": False}, "cuda": {"enabled": False},
                 "print-time": 10, "colors": False,
                 "http": {"enabled": False},
@@ -314,30 +321,14 @@ def run_benchmark(executable: Path, pool: str, wallet: str, tls: bool, duration_
             cfg_path.write_text(json.dumps(cfg), encoding="utf-8")
             cfg_path.chmod(0o600)
 
-            # Elevate only the verified miner. XMRig remains one process for the entire
-            # benchmark; the optimizer changes its watched config file live.
-            # The privileged guardian owns and stops XMRig; user-owned controller
-            # never sends signals to a root-owned process.
-            from ztm_root_guard import process_identity
-            controller_id = process_identity(os.getpid())
-            if controller_id is None:
-                raise BenchError('Unable to verify local controller identity')
-            stop_flag = Path(tempdir) / 'stop.request'
-            guard_args = [str(executable), str(cfg_path), str(stop_flag),
-                          str(os.getpid()), str(controller_id[1])]
-            if os.environ.get('ZTM_SESSION_SOCKET'):
-                command = [sys.executable, '-u',
-                           str(Path(__file__).with_name('ztm_privilege_client.py')),
-                           'miner', *guard_args]
-            else:
-                command = ["pkexec", "/usr/bin/python3",
-                           str(Path(__file__).with_name('ztm_root_guard.py')),
-                           "--xmrig", str(executable), "--config", str(cfg_path),
-                           "--stop-flag", str(stop_flag),
-                           "--owner-pid", str(os.getpid()),
-                           "--owner-start", str(controller_id[1])]
+            # The native macOS guardian runs XMRig without elevation.
+            # It owns the child process group and stops it if the controller
+            # closes, loses the stdin pipe, or requests shutdown.
+            from ztm_native import child_command
+            command = child_command("guardian", "--xmrig", str(executable),
+                                    "--config", str(cfg_path))
             print("\nStarting verified XMRig: actual CPU hashrate measurements will appear below.", flush=True)
-            proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+            proc = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                     encoding="utf-8", text=True, errors="replace", bufsize=1,
                                     start_new_session=True)
 
@@ -500,12 +491,15 @@ def run_benchmark(executable: Path, pool: str, wallet: str, tls: bool, duration_
                 # Ask the root guardian to stop its child before temporary
                 # config is removed. Privileged process cannot be terminated
                 # directly by this normal-user controller.
-                stop_flag.touch(mode=0o600, exist_ok=True)
+                # Closing the controller's pipe makes the native guardian
+                # terminate and reap its XMRig process group.
+                if proc.stdin is not None and not proc.stdin.closed:
+                    proc.stdin.close()
                 try:
                     proc.wait(timeout=15)
                 except subprocess.TimeoutExpired:
-                    print('[ZTM] CRITICAL: privileged miner guardian did not stop; check sudo pgrep -a -x xmrig', flush=True)
-                    raise BenchError('Privileged XMRig did not confirm shutdown')
+                    print('[ZTM] CRITICAL: native miner guardian failed to confirm shutdown.', flush=True)
+                    raise BenchError('Native XMRig guardian did not confirm shutdown')
                 reader.join(timeout=5)
                 if proc.stdout:
                     proc.stdout.close()
@@ -522,8 +516,8 @@ def run_benchmark(executable: Path, pool: str, wallet: str, tls: bool, duration_
               "PARTIAL_NO_ACCEPTED_SHARES" if ran_full_time else
               "STOPPED_OR_INCOMPLETE")
     report = {
-        "project": "I2PS Dual-ISA RandomX Lab — online CPU engineering benchmark",
-        "classification": "engineering_online_optimizer",
+        "project": "ZTM macOS P1 — native RandomX 24-hour online benchmark",
+        "classification": "ztm_macos_native_optimizer",
         "recorded_at_utc": start_wall,
         "host_os": platform.platform(), "architecture": platform.machine(),
         "cpu_model": current_cpu_info(), "logical_cpus": os.cpu_count(),
@@ -571,9 +565,9 @@ def main(argv=None):
     parser.add_argument("--wallet", help="Public Monero receiving address; prompted if omitted; never a private key")
     parser.add_argument("--minutes", type=int, default=1440, help="Stable release benchmark duration: fixed at 1440 minutes (24 hours)")
     parser.add_argument("--seconds", type=int, help=argparse.SUPPRESS)  # internal automated test option
-    parser.add_argument("--threads", type=int, help="Mining CPU threads; default: XMRig chooses")
+    parser.add_argument("--threads", type=int, help=argparse.SUPPRESS)
     parser.add_argument("--no-tls", action="store_true", help="For pools without TLS; default requires TLS")
-    parser.add_argument("--xmrig", help="Use an existing XMRig executable instead of downloading it")
+    parser.add_argument("--xmrig", help=argparse.SUPPRESS)
     parser.add_argument("--yes", action="store_true", help="Explicitly authorize CPU work without interactive RUN prompt")
     parser.add_argument("--plan", action="store_true", help="Show what this test would do; do not download or mine")
     parser.add_argument("--output", default=str(Path.home() / "i2ps-randomx-results"), help="Output directory for report/log")
@@ -587,29 +581,34 @@ def main(argv=None):
         a.no_tls = not bool(payload.get("tls", True))
         a.yes = True  # GUI explicitly confirms BEFORE invoking --session-stdin
     if os.geteuid() == 0 and not a.plan:
-        raise BenchError("Run as your normal Linux user, not as root or with sudo.")
+        raise BenchError("Run as your normal macOS user, not as root.")
+    if a.xmrig:
+        raise BenchError("A custom XMRig binary is not allowed in the verified macOS edition.")
+    if not a.plan:
+        from ztm_native import architecture
+        architecture()
     if a.minutes != 1440 or (a.seconds is not None and a.seconds != 86400):
         raise BenchError("ZTM-SRP1V1 requires exactly 24 hours (1440 minutes / 86400 seconds).")
-    if a.threads is not None and not (1 <= a.threads <= (os.cpu_count() or 1)):
-        raise BenchError("--threads must be between 1 and the detected logical CPU count.")
+    if a.threads is not None:
+        raise BenchError("CPU Threads: Auto is mandatory for the stable benchmark.")
     if a.plan:
-        print("I2PS ONLINE ENGINEERING SMOKE TEST — PLAN")
+        print("ZTM macOS P1 — FIXED 24-HOUR BENCHMARK PLAN")
         print(f"- Platform: {platform.system()} {platform.machine()} | CPUs: {os.cpu_count()}")
-        print(f"- XMRig: {'existing provided executable' if a.xmrig else VERSION + ' official upstream SHA-256 pinned Linux x64'}")
+        print(f"- XMRig: {VERSION} official upstream macOS native asset with SHA-256 verification")
         print(f"- Duration: {a.seconds or a.minutes * 60} s | Threads: {a.threads or 'automatic'}")
         print(f"- TLS: {not a.no_tls} | Results: {a.output}")
         print("- Pool and PUBLIC Monero address are required; explicit consent before any mining")
         print("- No install/mining performed; no OS files or settings modified")
         return 0
     if a.prepare:
-        local_binary(Path.home() / ".local" / "share" / "i2ps-randomx-test" / "xmrig-6.26.0", a.xmrig)
+        local_binary(Path.home() / "Library" / "Application Support" / "I2PS" / "ZTM" / "xmrig-6.26.0", a.xmrig)
         print("ZTM PREPARATION COMPLETE: verified XMRig ready; no mining started", flush=True)
         return 0
     pool = validate_pool(prompt_if_missing(a.pool, "Pool server (host:port): "))
     wallet = validate_address(prompt_if_missing(a.wallet, "PUBLIC Monero receiving address (not private key): "))
     print(f"I2PS ENGINEERING ONLINE CPU TEST • CPU: {current_cpu_info()}")
-    print("Only supported for Linux x86-64 in this version; existing OS is preserved.")
-    executable = local_binary(Path.home() / ".local" / "share" / "i2ps-randomx-test" / "xmrig-6.26.0", a.xmrig)
+    print("Native macOS arm64/x86_64; no root privilege or OS changes.")
+    executable = local_binary(Path.home() / "Library" / "Application Support" / "I2PS" / "ZTM" / "xmrig-6.26.0", a.xmrig)
     print(f"XMRig ready: {executable}")
     _, code = run_benchmark(executable, pool, wallet, not a.no_tls,
                             a.seconds or a.minutes * 60, a.threads,
