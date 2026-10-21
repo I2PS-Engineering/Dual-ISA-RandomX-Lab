@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   macos:
@@ -127,3 +127,89 @@ jobs:
           path: out/*
           if-no-files-found: error
           retention-days: 30
+
+  publish-preview:
+    name: Publish macOS P1 preview
+    runs-on: ubuntu-latest
+    needs: macos
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: ZTM-macOS-P1-*
+          merge-multiple: true
+          path: publish
+
+      - name: Check preview artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd publish
+          for arch in arm64 x86_64; do
+            test -s "ZTM-macOS-P1-$arch.dmg"
+            test -s "ZTM-macOS-P1-$arch.zip"
+            test -s "SHA256SUMS-$arch.txt"
+            shasum -a 256 -c "SHA256SUMS-$arch.txt"
+          done
+
+      - name: Publish separate macOS prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > /tmp/ztm-macos-release-notes.md <<'NOTES'
+          # ZTM — Native macOS Preview P1
+
+          First native macOS preview of I2PS Engineering Zero to Monero.
+
+          **This is a prerelease for engineering testing, not the approved Linux Stable Release V1.1.**
+
+          ## Available macOS builds
+
+          - Apple Silicon: `ZTM-macOS-P1-arm64.dmg` and `ZTM-macOS-P1-arm64.zip`.
+          - Intel Mac: `ZTM-macOS-P1-x86_64.dmg` and `ZTM-macOS-P1-x86_64.zip`.
+          - Separate SHA-256 checksum files for both architectures.
+
+          ## Features
+
+          - Real RandomX using native official XMRig 6.26.0, pinned to upstream SHA-256 hashes.
+          - **Fixed 24-hour online benchmark**, with CPU Threads: Auto.
+          - Retains both benchmark-consent checkboxes.
+          - Tested thread-profile optimization and pool accepted/rejected shares.
+          - **Winning Configuration** result after the benchmark: selected active threads, search median/mean/peak, stability, optimizer score, sustained winner statistics, accepted/rejected shares, comparison of all tested profiles, and the highest instantaneous peak.
+          - Full result JSON plus a separate, readable winning-configuration text file.
+          - Qualification gate for Wallet and personal mining after a verified uninterrupted 24-hour run.
+          - Public Monero receiving addresses only, no private wallet keys or recovery phrases.
+          - Upstream XMRig plus I2PS developer contribution disclosed in the GUI.
+          - Native user-level XMRig process guardian; no macOS administrator escalation.
+
+          ## Testing status
+
+          Native macOS arm64 and x86_64 continuous integration has compiled the code, verified pinned official XMRig downloads, verified the mandatory 24-hour benchmark constraint, built the native application bundles and tested the packaged child commands.
+
+          **Pending:** on-device GUI interaction, full pool-connected 24-hour benchmark, thermal evaluation, and shutdown verification during actual mining on an Intel Mac and Apple Silicon Mac.
+
+          These test builds are **not Developer ID signed or Apple notarized**. macOS Gatekeeper may request explicit user approval through System Settings > Privacy & Security.
+
+          Do not confuse this engineering preview with the verified Ubuntu package `ZTM-SRP1V1`. The Linux stable release remains unchanged.
+          NOTES
+
+          gh release create ZTM-macOS-P1 \
+            publish/ZTM-macOS-P1-arm64.dmg \
+            publish/ZTM-macOS-P1-arm64.zip \
+            publish/SHA256SUMS-arm64.txt \
+            publish/ZTM-macOS-P1-x86_64.dmg \
+            publish/ZTM-macOS-P1-x86_64.zip \
+            publish/SHA256SUMS-x86_64.txt \
+            --title 'ZTM macOS Preview P1 — Apple Silicon and Intel' \
+            --notes-file /tmp/ztm-macos-release-notes.md \
+            --target "$GITHUB_SHA" \
+            --prerelease
+
+      - name: Verify prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view ZTM-macOS-P1 --json tagName,name,isPrerelease,url,assets
