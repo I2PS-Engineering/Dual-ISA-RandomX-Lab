@@ -36,7 +36,41 @@ export default async function handler(request){
   }
   if(request.method==='GET'&&path==='/v1/admin/workers'){
     const denial=auth(request);if(denial)return denial;
-    try{return response({workers:await sql('SELECT ztm_id,registered_at,last_seen FROM ztm_workers WHERE revoked_at IS NULL ORDER BY registered_at DESC LIMIT 100')})}catch{return response({error:'Worker listing failed'},503)}
+    try{
+      const workers=await sql("SELECT w.ztm_id,w.registered_at,w.last_seen,h.observed_at,h.state,h.hashrate_hs,h.temperature_c,h.cpu_percent,h.ram_percent,h.active_threads,CASE WHEN h.observed_at > now()-interval '150 seconds' THEN 'active' WHEN h.observed_at > now()-interval '5 minutes' THEN 'stale' ELSE 'offline' END AS connection_status,coalesce((SELECT e.report #>> '{hardware,cpu_model}' FROM ztm_ingested_events e WHERE e.worker_uuid=w.worker_uuid ORDER BY e.received_at DESC LIMIT 1),'Unknown') AS cpu_model FROM ztm_workers w LEFT JOIN ztm_worker_heartbeats h USING(worker_uuid) WHERE w.revoked_at IS NULL ORDER BY w.registered_at DESC LIMIT 500");
+      return response({workers})
+    }catch{return response({error:'Worker listing failed'},503)}
+  }
+  if(request.method==='GET'&&path.startsWith('/v1/admin/worker/')){
+    const denial=auth(request);if(denial)return denial;
+    const ztmId=path.slice('/v1/admin/worker/'.length).split('/')[0];
+    if(!/^[A-HJ-NP-Z2-9]{5}$/.test(ztmId))return response({error:'Invalid worker ID'},422);
+    try{
+      const worker=await sql('SELECT worker_uuid,ztm_id,registered_at,last_seen FROM ztm_workers WHERE ztm_id=$1 AND revoked_at IS NULL',[ztmId]);
+      if(!worker.length)return response({error:'Worker not found'},404);
+      const id=worker[0].worker_uuid;
+      const series=await sql("SELECT sampled_at,state,hashrate_hs,temperature_c,cpu_percent,ram_percent,active_threads,accepted_shares,rejected_shares FROM ztm_worker_telemetry WHERE worker_uuid=$1 AND sampled_at > now()-interval '24 hours' ORDER BY sampled_at DESC LIMIT 1440",[id]);
+      const runs=await sql("SELECT event_id,received_at,verified,report #>> '{benchmark,run_id}' AS benchmark_id,report #>> '{winner,threads}' AS winning_threads,report #>> '{winner,sustained_mean_hs}' AS sustained_mean_hs FROM ztm_ingested_events WHERE worker_uuid=$1 ORDER BY received_at DESC LIMIT 50",[id]);
+      const status=await sql('SELECT * FROM ztm_worker_heartbeats WHERE worker_uuid=$1',[id]);
+      return response({worker:worker[0],heartbeat:status[0]||null,telemetry:series.reverse(),runs});
+    }catch{return response({error:'Worker details unavailable'},503)}
+  }
+  if(request.method==='POST'&&path==='/v1/heartbeat'){
+    const bearer=request.headers.get('authorization')||'';
+    if(!/^Bearer [A-Za-z0-9_-]{50,}$/.test(bearer))return response({error:'Worker credential required'},401);
+    let doc;try{doc=await body(request)}catch{return response({error:'Invalid heartbeat JSON'},422)}
+    if(!doc||typeof doc!=='object'||!/^[A-HJ-NP-Z2-9]{5}$/.test(doc.ztm_id||'')||!['idle','benchmarking','mining','stopped'].includes(doc.state))return response({error:'Invalid heartbeat'},422);
+    const vals=['hashrate_hs','temperature_c','cpu_percent','ram_percent','active_threads','accepted_shares','rejected_shares'].map(k=>doc[k]==null?null:Number(doc[k]));
+    if(vals.some(x=>x!==null&&(!Number.isFinite(x)||x<0))||[2,3].some(i=>vals[i]!==null&&vals[i]>100))return response({error:'Invalid telemetry values'},422);
+    try{
+      const rows=await sql('SELECT w.worker_uuid FROM ztm_worker_credentials c JOIN ztm_workers w USING(worker_uuid) WHERE c.token_hash=$1 AND c.revoked_at IS NULL AND w.revoked_at IS NULL AND w.ztm_id=$2',[digest(bearer.slice(7)),doc.ztm_id]);
+      if(!rows.length)return response({error:'Invalid worker credential'},403);
+      const id=rows[0].worker_uuid;
+      await sql('INSERT INTO ztm_worker_heartbeats(worker_uuid,observed_at,state,hashrate_hs,temperature_c,cpu_percent,ram_percent,active_threads,accepted_shares,rejected_shares) VALUES($1,now(),$2,$3,$4,$5,$6,$7,$8,$9) ON CONFLICT(worker_uuid) DO UPDATE SET observed_at=now(),state=excluded.state,hashrate_hs=excluded.hashrate_hs,temperature_c=excluded.temperature_c,cpu_percent=excluded.cpu_percent,ram_percent=excluded.ram_percent,active_threads=excluded.active_threads,accepted_shares=excluded.accepted_shares,rejected_shares=excluded.rejected_shares',[id,doc.state,...vals]);
+      await sql('INSERT INTO ztm_worker_telemetry(worker_uuid,state,hashrate_hs,temperature_c,cpu_percent,ram_percent,active_threads,accepted_shares,rejected_shares) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)',[id,doc.state,...vals]);
+      await sql('UPDATE ztm_workers SET last_seen=now() WHERE worker_uuid=$1',[id]);
+      return response({status:'accepted',worker:doc.ztm_id});
+    }catch{return response({error:'Heartbeat unavailable'},503)}
   }
   if(request.method==='POST'&&path==='/v1/admin/register'){
     const denial=auth(request);if(denial)return denial;
