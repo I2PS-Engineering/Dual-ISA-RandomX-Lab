@@ -1,0 +1,49 @@
+name: ZTM macOS Compatibility Check
+
+on:
+  push:
+    paths:
+      - '.github/workflows/macos-compatibility.yml'
+      - 'macos/README.md'
+
+permissions:
+  contents: read
+
+jobs:
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-15
+            arch: arm64
+            archive: xmrig-6.26.0-macos-arm64.tar.gz
+            sha: 6ae4eb4216e99a201ae9a3d2c3a7c275207c5165cfc25da1f3d735d6c4829c18
+          - os: macos-15-intel
+            arch: x86_64
+            archive: xmrig-6.26.0-macos-x64.tar.gz
+            sha: 1da924b358c0089e361540c4a9e6f8b09538b29efeafa2379590e0f6db358ff4
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate native architecture and Tk
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(uname -s)" = Darwin
+          test "$(uname -m)" = "${{ matrix.arch }}"
+          /usr/bin/python3 -c 'import tkinter; print("Tk available, version:", tkinter.TkVersion)'
+      - name: Verify official upstream native XMRig archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 --output /tmp/xmrig.tar.gz \
+            "https://github.com/xmrig/xmrig/releases/download/v6.26.0/${{ matrix.archive }}"
+          printf '%s  %s\n' "${{ matrix.sha }}" /tmp/xmrig.tar.gz | shasum -a 256 -c -
+          mkdir -p /tmp/ztm-native
+          tar -xzf /tmp/xmrig.tar.gz -C /tmp/ztm-native
+          XMRIG="$(find /tmp/ztm-native -type f -name xmrig | head -1)"
+          test -n "$XMRIG"
+          file "$XMRIG"
+          lipo -archs "$XMRIG"
