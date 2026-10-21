@@ -45,18 +45,14 @@ BENCHMARK_TLS = False
 
 
 def os_is_supported(system=None, architecture=None) -> bool:
-    return (system or platform.system()) == 'Linux' and (architecture or platform.machine()).lower() in ('x86_64', 'amd64')
+    return (system or platform.system()) == 'Darwin' and (architecture or platform.machine()).lower() in ('x86_64', 'amd64', 'arm64', 'aarch64')
 
 
-def prepare_steps(pkexec='pkexec'):
-    """User-visible setup steps; privileged work uses the authenticated session."""
-    client = [sys.executable, str(SESSION_CLIENT)]
-    return [
-        ('APT refresh', client + ['apt-update']),
-        ('Install prerequisites', client + ['apt-install']),
-        ('Load CPU MSR support', client + ['load-msr']),
-        ('Install official, SHA-256-verified XMRig', [sys.executable, str(ENGINE), '--prepare']),
-    ]
+def prepare_steps():
+    """User-authorized download and verification of native XMRig."""
+    from ztm_native import child_command
+    return [('Install official SHA-256-verified native XMRig',
+             child_command('prepare'))]
 
 
 def benchmark_session(pool, wallet, tls, minutes, threads):
@@ -73,7 +69,7 @@ def benchmark_session(pool, wallet, tls, minutes, threads):
 class ZTMApp:
     def __init__(self, root):
         self.root = root
-        self.root.title('ZTM-SRP1V1 — Zero to Monero | I2PS Engineering')
+        self.root.title('ZTM macOS P1 — Zero to Monero | I2PS Engineering')
         # Adaptive display sizing for compact high-resolution laptop panels.
         screen_w = self.root.winfo_screenwidth()
         screen_h = self.root.winfo_screenheight()
@@ -102,8 +98,8 @@ class ZTMApp:
         self.prepared = False
         self.cancelled = False
         self.current_wallet = None
-        self.state = tk.StringVar(value='1 · Prepare Linux & XMRig')
-        self.status = tk.StringVar(value='Ready to prepare this Linux machine.')
+        self.state = tk.StringVar(value='1 · Prepare macOS & XMRig')
+        self.status = tk.StringVar(value='Ready to prepare this Mac.')
         self.rate = tk.StringVar(value='— H/s')
         self.shares = tk.StringVar(value='Accepted — / Rejected —')
         self.threads = tk.StringVar(value='Auto')
@@ -129,16 +125,16 @@ class ZTMApp:
         self.root.after(100, self.pump)
         self.root.protocol('WM_DELETE_WINDOW', self.close)
         if not os_is_supported():
-            self.append('UNSUPPORTED: ZTM-SRP1V1 targets Linux x86-64 only.')
+            self.append('UNSUPPORTED: ZTM macOS P1 targets native macOS arm64/x86_64 only.')
             self.prepare_btn.configure(state='disabled')
 
     def label(self, parent, text, size=11, color=WHITE, bold=False, **kw):
-        return tk.Label(parent, text=text, fg=color, bg=parent['bg'], font=('DejaVu Sans', size, 'bold' if bold else 'normal'), **kw)
+        return tk.Label(parent, text=text, fg=color, bg=parent['bg'], font=('Helvetica', size, 'bold' if bold else 'normal'), **kw)
 
     def view(self):
         style = ttk.Style(self.root)
         style.theme_use('clam')
-        style.configure('ZTM.TButton', font=('DejaVu Sans', 10, 'bold'), padding=(13, 10))
+        style.configure('ZTM.TButton', font=('Helvetica', 10, 'bold'), padding=(13, 10))
         style.configure('ZTM.TEntry', fieldbackground='#142740', foreground=WHITE, insertcolor=WHITE)
         bar = tk.Frame(self.root, bg=PANEL, pady=13, padx=20)
         bar.pack(fill='x')
@@ -150,20 +146,20 @@ class ZTMApp:
         self.label(bar, '  ZERO TO MONERO  |  I2PS ENGINEERING', 13, WHITE, True).pack(side='left')
         release_box = tk.Frame(bar, bg=PANEL)
         release_box.pack(side='right')
-        self.label(release_box, 'Linux x86-64 · Stable Release V1.1', 10, MUTED, True).pack(anchor='e')
+        self.label(release_box, 'macOS Intel / Apple Silicon · Preview P1', 10, MUTED, True).pack(anchor='e')
         self.label(release_box, 'CPU Threads: Auto', 9, CYAN, True).pack(anchor='e')
         navigation = tk.Frame(self.root, bg='#091625', padx=20, pady=7)
         navigation.pack(fill='x')
         self.benchmark_nav = tk.Button(navigation, text='  BENCHMARK  ', command=lambda: self.show_page('benchmark'),
-            font=('DejaVu Sans', 10, 'bold'), fg=DARK, bg=CYAN, activebackground='#7fd8ff',
+            font=('Helvetica', 10, 'bold'), fg=DARK, bg=CYAN, activebackground='#7fd8ff',
             activeforeground=DARK, relief='flat', cursor='hand2', padx=18, pady=9)
         self.benchmark_nav.pack(side='left')
         self.wallet_nav = tk.Button(navigation, text='  WALLET  ', command=lambda: self.show_page('wallet'),
-            font=('DejaVu Sans', 10, 'bold'), fg=MUTED, bg=PANEL, activebackground='#17344c',
+            font=('Helvetica', 10, 'bold'), fg=MUTED, bg=PANEL, activebackground='#17344c',
             activeforeground=WHITE, relief='flat', cursor='hand2', padx=20, pady=9)
         self.wallet_nav.pack(side='left', padx=(8,0))
         self.mining_nav = tk.Button(navigation, text='  MINING  ', command=lambda: self.show_page('mining'),
-            font=('DejaVu Sans', 10, 'bold'), fg='#647489', bg=PANEL,
+            font=('Helvetica', 10, 'bold'), fg='#647489', bg=PANEL,
             activebackground='#17344c', activeforeground=WHITE, relief='flat',
             cursor='hand2', padx=20, pady=9)
         self.mining_nav.pack(side='left', padx=(8,0))
@@ -174,11 +170,11 @@ class ZTMApp:
         self.benchmark_page = main
         main.pack(fill='both', expand=True)
         self.label(main, 'ONE INSTALLATION. LIVE TERMINAL. ACTUAL RANDOMX MEASUREMENTS.', 12, CYAN, True).pack(anchor='w', pady=(0, 6))
-        self.label(main, 'Preparation runs APT update, installs prerequisites, then downloads verified official XMRig.\nPool and payout are preconfigured; no mining begins without authorization.', 10, MUTED, justify='left').pack(anchor='w')
-        tk.Checkbutton(main, text='Also upgrade already-installed Ubuntu packages (apt-get upgrade -y; optional)', variable=self.upgrade_all, bg=DARK, fg=WHITE, activebackground=DARK, activeforeground=WHITE, selectcolor=DARK).pack(anchor='w', pady=(5,0))
+        self.label(main, 'Preparation downloads SHA-256-verified native XMRig 6.26.0 for this Mac.\nNo administrator authorization is needed. Mining requires your explicit consent.', 10, MUTED, justify='left').pack(anchor='w')
+        # macOS preparation never modifies OS packages or settings.
         row = tk.Frame(main, bg=DARK)
         row.pack(fill='x', pady=(12, 8))
-        self.prepare_btn = ttk.Button(row, text='1   PREPARE LINUX + INSTALL XMRIG', style='ZTM.TButton', command=self.prepare)
+        self.prepare_btn = ttk.Button(row, text='1   PREPARE MAC + INSTALL XMRIG', style='ZTM.TButton', command=self.prepare)
         self.prepare_btn.pack(side='left')
         self.stop_btn = ttk.Button(row, text='STOP', style='ZTM.TButton', command=self.stop, state='disabled')
         self.stop_btn.pack(side='left', padx=10)
@@ -186,14 +182,14 @@ class ZTMApp:
         self.label(row, '', 10).pack(side='left')
         self.label(row, 'CURRENT STEP: ', 9, MUTED).pack(side='left')
         self.label(row, '', 9).pack(side='left')
-        tk.Label(row, textvariable=self.state, fg=CYAN, bg=DARK, font=('DejaVu Sans', 10, 'bold')).pack(side='left')
+        tk.Label(row, textvariable=self.state, fg=CYAN, bg=DARK, font=('Helvetica', 10, 'bold')).pack(side='left')
         panels = tk.PanedWindow(main, orient=tk.VERTICAL, sashwidth=5, bg=DARK, bd=0)
         panels.pack(fill='both', expand=True)
         term_frame = tk.Frame(panels, bg=PANEL, padx=10, pady=8)
-        self.label(term_frame, 'LIVE TERMINAL OUTPUT  •  APT / SETUP / XMRIG', 10, CYAN, True).pack(anchor='w')
+        self.label(term_frame, 'LIVE TERMINAL OUTPUT  •  SETUP / XMRIG', 10, CYAN, True).pack(anchor='w')
         terminal = tk.Frame(term_frame, bg=PANEL)
         terminal.pack(fill='both', expand=True)
-        self.terminal = tk.Text(terminal, wrap='word', font=('DejaVu Sans Mono', 9), bg='#050b12', fg='#baf9de', insertbackground=WHITE, bd=0, state='disabled', relief='flat')
+        self.terminal = tk.Text(terminal, wrap='word', font=('Menlo', 9), bg='#050b12', fg='#baf9de', insertbackground=WHITE, bd=0, state='disabled', relief='flat')
         sc = ttk.Scrollbar(terminal, orient='vertical', command=self.terminal.yview)
         self.terminal.configure(yscrollcommand=sc.set)
         self.terminal.pack(side='left', fill='both', expand=True)
@@ -209,8 +205,8 @@ class ZTMApp:
         self.benchmark_btn = ttk.Button(buttons, text='START 24-HOUR RANDOMX BENCHMARK', style='ZTM.TButton', command=self.benchmark, state='disabled')
         self.benchmark_btn.pack(side='left')
         ttk.Button(buttons, text='OPEN RESULTS FOLDER', style='ZTM.TButton', command=self.open_results).pack(side='left', padx=10)
-        tk.Label(buttons, textvariable=self.rate, bg=PANEL, fg=CYAN, font=('DejaVu Sans', 13, 'bold')).pack(side='right')
-        tk.Label(setup, textvariable=self.shares, bg=PANEL, fg=MUTED, font=('DejaVu Sans', 9)).pack(anchor='e')
+        tk.Label(buttons, textvariable=self.rate, bg=PANEL, fg=CYAN, font=('Helvetica', 13, 'bold')).pack(side='right')
+        tk.Label(setup, textvariable=self.shares, bg=PANEL, fg=MUTED, font=('Helvetica', 9)).pack(anchor='e')
         panels.add(setup, minsize=245, stretch='never')
         self.wallet_page = tk.Frame(self.page_host, bg=DARK, padx=25, pady=22)
         self.build_wallet_page()
@@ -233,16 +229,16 @@ class ZTMApp:
         stats = tk.Frame(self.mining_page, bg=DARK)
         stats.pack(fill='x', pady=(16,0))
         tk.Label(stats, textvariable=self.rate, bg=DARK, fg=CYAN,
-                 font=('DejaVu Sans', 14, 'bold')).pack(side='left')
+                 font=('Helvetica', 14, 'bold')).pack(side='left')
         tk.Label(stats, textvariable=self.shares, bg=DARK, fg=MUTED,
-                 font=('DejaVu Sans', 10)).pack(side='right')
+                 font=('Helvetica', 10)).pack(side='right')
         self.label(self.mining_page, 'Mining activity and pool responses appear in the existing live terminal on Benchmark.',
                    9, MUTED).pack(anchor='w', pady=(8,0))
         self.wallet.trace_add('write', self.wallet_changed)
         footer = tk.Frame(self.root, bg=PANEL, padx=16, pady=8)
         footer.pack(fill='x')
-        tk.Label(footer, textvariable=self.status, bg=PANEL, fg=CYAN, anchor='w', font=('DejaVu Sans', 10)).pack(fill='x')
-        self.append('ZTM is ready. Click PREPARE LINUX + INSTALL XMRIG to begin. No mining has started.')
+        tk.Label(footer, textvariable=self.status, bg=PANEL, fg=CYAN, anchor='w', font=('Helvetica', 10)).pack(fill='x')
+        self.append('ZTM macOS P1 is ready. Click PREPARE MAC + INSTALL XMRIG. No mining has started.')
 
     def show_page(self, page):
         """Switch tabs without recreating widgets or resetting unsaved field values."""
@@ -318,7 +314,8 @@ class ZTMApp:
                 self.q.put(('line','Authorization error: '+str(exc)))
                 self.q.put(('done-mine',1))
                 return
-            cmd = [sys.executable, '-u', str(MINING), '--session-stdin', '--output', str(RESULTS)]
+            from ztm_native import child_command
+            cmd = child_command('mining', '--session-stdin', '--output', str(RESULTS))
             result = self.run_command(cmd, json.dumps({'public_address': record['public_address'], 'authorized': True}))
             self.q.put(('done-mine', result))
         threading.Thread(target=work, daemon=True).start()
@@ -350,7 +347,7 @@ class ZTMApp:
                          activebackground='#7fd8ff' if primary else '#254966',
                          activeforeground=DARK if primary else WHITE,
                          relief='flat', cursor='hand2',
-                         font=('DejaVu Sans', 11, 'bold'), padx=19, pady=12)
+                         font=('Helvetica', 11, 'bold'), padx=19, pady=12)
 
     def wallet_panel(self, title, subtitle=''):
         page = self.wallet_page
@@ -382,15 +379,15 @@ class ZTMApp:
                 'Copy your PUBLIC receiving address from your Monero wallet. You may also select the existing encrypted wallet file for your reference. ZTM does not open that file.')
             self.label(panel, 'PUBLIC MONERO RECEIVING ADDRESS', 10, CYAN, True).pack(anchor='w')
             tk.Entry(panel, textvariable=self.wallet, bg='#142740', fg=WHITE, insertbackground=WHITE,
-                     font=('DejaVu Sans Mono', 10), relief='flat').pack(fill='x', ipady=9, pady=(7,8))
+                     font=('Menlo', 10), relief='flat').pack(fill='x', ipady=9, pady=(7,8))
             self.wallet_button(panel, 'CHECK ADDRESS FORMAT', self.check_wallet, False).pack(anchor='w', pady=(0, 8))
             tk.Label(panel, textvariable=self.wallet_validated, fg=CYAN, bg=PANEL,
-                     font=('DejaVu Sans', 9, 'bold')).pack(anchor='w')
+                     font=('Helvetica', 9, 'bold')).pack(anchor='w')
             self.label(panel, 'LOCAL WALLET FILE (OPTIONAL — REFERENCE ONLY)', 10, CYAN, True).pack(anchor='w', pady=(20, 7))
             row = tk.Frame(panel, bg=PANEL)
             row.pack(fill='x')
             tk.Entry(row, textvariable=self.local_wallet_path, bg='#142740', fg=WHITE,
-                     insertbackground=WHITE, relief='flat', font=('DejaVu Sans', 10)).pack(side='left', fill='x', expand=True, ipady=9)
+                     insertbackground=WHITE, relief='flat', font=('Helvetica', 10)).pack(side='left', fill='x', expand=True, ipady=9)
             self.wallet_button(row, 'BROWSE', self.choose_wallet_file, False).pack(side='left', padx=(10,0))
             self.label(panel, 'Wallet files remain in their original location. ZTM stores only the public address and an optional file path.',
                        9, MUTED, wraplength=950, justify='left').pack(anchor='w', pady=(7,14))
@@ -533,84 +530,27 @@ class ZTMApp:
             self.process = None
 
     def ensure_authorized_session(self):
-        """Authenticate once per GUI session; never retain the password."""
-        if self.session_process is not None and self.session_process.poll() is None:
-            return
-        from ztm_root_guard import process_identity
-        identity = process_identity(os.getpid())
-        if identity is None:
-            raise RuntimeError('Cannot validate GUI process identity')
-        directory = Path(tempfile.mkdtemp(prefix='ztm-authorized-'))
-        directory.chmod(0o700)
-        socket_path = directory / 'session.sock'
-        proc = subprocess.Popen(
-            ['pkexec', '/usr/bin/python3', str(SESSION_BROKER),
-             '--socket', str(socket_path), '--owner-pid', str(os.getpid()),
-             '--owner-start', str(identity[1])],
-            stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        self.session_process = proc
-        self.session_dir = directory
-        deadline = time.monotonic() + 120
-        try:
-            while time.monotonic() < deadline and not self.cancelled:
-                if proc.poll() is not None:
-                    raise RuntimeError('Ubuntu administrator authorization was cancelled or failed')
-                if socket_path.is_socket():
-                    import socket
-                    try:
-                        with socket.socket(socket.AF_UNIX,socket.SOCK_STREAM) as probe:
-                            probe.settimeout(0.2)
-                            probe.connect(str(socket_path))
-                            probe.sendall(b'{"op":"ping","args":[]}\n')
-                            if b'"code": 0' in probe.recv(128):
-                                os.environ['ZTM_SESSION_SOCKET']=str(socket_path)
-                                self.q.put(('line','[ZTM] Administrator authorization active for this ZTM session.'))
-                                return
-                    except (OSError,ValueError):
-                        pass
-                time.sleep(0.25)
-            raise RuntimeError('Authorization timed out or was cancelled')
-        except BaseException:
-            os.environ.pop('ZTM_SESSION_SOCKET',None)
-            if proc.poll() is None:
-                # The root broker also monitors this GUI PID and self-terminates.
-                try:
-                    from ztm_privilege_client import call
-                    call('shutdown',sock_path=str(socket_path),emit=lambda msg:None)
-                except Exception: pass
-            raise
+        """macOS preview uses an unprivileged, app-owned XMRig process."""
+        return
 
     def close_authorized_session(self):
-        from ztm_privilege_client import call
-        path=os.environ.pop('ZTM_SESSION_SOCKET',None)
-        if path:
-            try: call('shutdown',sock_path=path,emit=lambda msg:None)
-            except (OSError,RuntimeError,ValueError): pass
-        self.session_process=None
-        self.session_dir=None
+        return
 
     def prepare(self):
-        if self.busy or not os_is_supported(): return
+        if self.busy or not os_is_supported():
+            return
         if os.geteuid() == 0:
-            messagebox.showerror('ZTM', 'Launch ZTM as your regular desktop user, not root.')
+            messagebox.showerror('ZTM', 'Launch ZTM as your regular macOS user, not root.')
             return
-        if not shutil.which('pkexec'):
-            messagebox.showerror('ZTM', 'pkexec is not installed. Install polkit/pkexec using Ubuntu software tools, then relaunch.')
+        if not messagebox.askyesno(
+                'Prepare ZTM for macOS',
+                'Download official XMRig 6.26.0 for your Mac CPU architecture '
+                'and verify its published SHA-256 checksum?\\n\\n'
+                'No sudo or system changes. No mining begins during preparation.'):
             return
-        if not messagebox.askyesno('ZTM system preparation', 'ZTM will run apt-get update, install required packages, and download official XMRig 6.26.0 (SHA-256 verified).'+ ('\nSystem packages will also be upgraded.' if self.upgrade_all.get() else '') + '\n\nUbuntu will request administrator authorization. Continue?'):
-            return
-        self.busy_start('1 · Preparing APT and XMRig')
+        self.busy_start('1 · Verifying native XMRig')
         def work():
-            try:
-                self.ensure_authorized_session()
-            except Exception as exc:
-                self.q.put(('line','Authorization error: '+str(exc)))
-                self.q.put(('done-prepare',(False,'Administrator authorization',1)))
-                return
-            steps = prepare_steps()
-            if self.upgrade_all.get():
-                steps.insert(1, ('Upgrade installed packages', [sys.executable,str(SESSION_CLIENT),'apt-upgrade']))
-            for caption, cmd in steps:
+            for caption, cmd in prepare_steps():
                 self.q.put(('status', caption))
                 result = self.run_command(cmd)
                 if result != 0 or self.cancelled:
@@ -639,7 +579,8 @@ class ZTMApp:
         self.busy_start('2 · Online CPU benchmark running')
         self.status.set('Real XMRig online benchmark is running. Press STOP to interrupt.')
         def work():
-            cmd = [sys.executable, '-u', str(ENGINE), '--session-stdin', '--output', str(RESULTS)]
+            from ztm_native import child_command
+            cmd = child_command('engine', '--session-stdin', '--output', str(RESULTS))
             result = self.run_command(cmd, json.dumps(session))
             self.q.put(('done-bench', result))
         threading.Thread(target=work, daemon=True).start()
@@ -693,8 +634,8 @@ class ZTMApp:
 
     def open_results(self):
         RESULTS.mkdir(parents=True, exist_ok=True)
-        if shutil.which('xdg-open'):
-            subprocess.Popen(['xdg-open', str(RESULTS)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        if shutil.which('open'):
+            subprocess.Popen(['open', str(RESULTS)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         else:
             messagebox.showinfo('Results folder', str(RESULTS))
 
