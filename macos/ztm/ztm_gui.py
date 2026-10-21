@@ -315,7 +315,19 @@ class ZTMApp:
                 return
             from ztm_native import child_command
             cmd = child_command('mining', '--session-stdin', '--output', str(RESULTS))
-            result = self.run_command(cmd, json.dumps({'public_address': record['public_address'], 'authorized': True}))
+            from ztm_native import process_identity
+            identity = process_identity(os.getpid())
+            if identity is None:
+                self.q.put(('line', 'Cannot verify ZTM GUI identity. Mining not started.'))
+                self.q.put(('done-mine', 1))
+                return
+            request = {
+                'public_address': record['public_address'],
+                'authorized': True,
+                'gui_owner_pid': identity[0],
+                'gui_owner_start': identity[1],
+            }
+            result = self.run_command(cmd, json.dumps(request))
             self.q.put(('done-mine', result))
         threading.Thread(target=work, daemon=True).start()
 
@@ -564,6 +576,12 @@ class ZTMApp:
             minutes = 1440
             threads = None
             session = benchmark_session(BENCHMARK_POOL, BENCHMARK_PAYOUT, BENCHMARK_TLS, minutes, threads)
+            from ztm_native import process_identity
+            identity = process_identity(os.getpid())
+            if identity is None:
+                raise RuntimeError('Unable to verify the ZTM GUI process.')
+            session['gui_owner_pid'] = identity[0]
+            session['gui_owner_start'] = identity[1]
         except Exception as e:
             messagebox.showerror('Benchmark configuration', str(e))
             return
