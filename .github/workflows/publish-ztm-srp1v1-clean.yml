@@ -1,0 +1,240 @@
+name: Publish ZTM-SRP1V1 Package
+
+on:
+  push:
+    paths:
+      - '.github/workflows/publish-ztm-srp1v1-clean.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build verified stable package
+        shell: bash
+        run: |
+          set -euo pipefail
+          WORK=/tmp/ztm-srp1v1
+          rm -rf "$WORK"
+          mkdir -p "$WORK"
+          cat downloads/ZTM-Zero-to-Monero_0.1.8-alpha9-final_amd64.deb.b64.part* | base64 -d > "$WORK/baseline.deb"
+          echo '6aec29e14d1c33bc17a9350bf5990bf998c5be2ac12c708e3bf5989c4e834c3a  /tmp/ztm-srp1v1/baseline.deb' | sha256sum -c -
+          test "$(dpkg-deb -f "$WORK/baseline.deb" Package)" = 'ztm-zero-to-monero'
+          test "$(dpkg-deb -f "$WORK/baseline.deb" Architecture)" = 'amd64'
+          test "$(dpkg-deb -f "$WORK/baseline.deb" Version)" = '0.1.8~alpha9final1'
+          dpkg-deb -R "$WORK/baseline.deb" "$WORK/pkg"
+
+          find "$WORK/pkg" -type f \
+            ! -path '*/DEBIAN/control' \
+            ! -path '*/usr/lib/ztm/ztm_gui.py' \
+            ! -path '*/usr/lib/ztm/ztm_engine.py' \
+            -print0 | sort -z | xargs -0 sha256sum > "$WORK/untouched-before.sha256"
+
+          python3 release/build_srp1v1.py "$WORK/pkg"
+          python3 -m compileall -q "$WORK/pkg/usr/lib/ztm"
+          find "$WORK/pkg/usr/lib/ztm" -type d -name __pycache__ -prune -exec rm -rf '{}' +
+
+          find "$WORK/pkg" -type f \
+            ! -path '*/DEBIAN/control' \
+            ! -path '*/usr/lib/ztm/ztm_gui.py' \
+            ! -path '*/usr/lib/ztm/ztm_engine.py' \
+            -print0 | sort -z | xargs -0 sha256sum > "$WORK/untouched-after.sha256"
+          cmp "$WORK/untouched-before.sha256" "$WORK/untouched-after.sha256"
+
+          GUI="$WORK/pkg/usr/lib/ztm/ztm_gui.py"
+          ENGINE="$WORK/pkg/usr/lib/ztm/ztm_engine.py"
+          grep -Fq 'Linux x86-64 · Stable Release V1.1' "$GUI"
+          grep -Fq 'CPU Threads: Auto' "$GUI"
+          grep -Fq 'I authorize real CPU work for 24 hours, including electricity use and heat.' "$GUI"
+          grep -Fq 'I understand this online benchmark uses both XMRig and I2PS dev contribution.' "$GUI"
+          ! grep -Fq 'Dev Wallet: initial benchmark rewards support I2PS software development.' "$GUI"
+          ! grep -Fq 'duration_menu' "$GUI"
+          ! grep -Fq "'DURATION'" "$GUI"
+          grep -Fq 'START 24-HOUR RANDOMX BENCHMARK' "$GUI"
+          grep -Fq 'minutes = 1440' "$GUI"
+          grep -Fq 'screen_w = self.root.winfo_screenwidth()' "$GUI"
+          grep -Fq 'ui_scale = max(1.0, min(1.30' "$GUI"
+          test "$(grep -Fo 'ZTM-R-A-10-E-R' "$ENGINE" | wc -l)" -eq 2
+          ! grep -Fq 'ZTM-α9' "$ENGINE"
+          grep -Fq 'a.minutes != 1440' "$ENGINE"
+          grep -Fq 'a.seconds != 86400' "$ENGINE"
+          python3 "$ENGINE" --plan --minutes 1440 > "$WORK/plan-24h.txt"
+          if python3 "$ENGINE" --plan --minutes 60 > "$WORK/plan-60m.txt" 2>&1; then
+            echo 'SECURITY STOP: stable engine accepted 60 minutes' >&2
+            exit 1
+          fi
+
+          OUT="$WORK/ZTM-SRP1V1_amd64.deb"
+          dpkg-deb --build --root-owner-group "$WORK/pkg" "$OUT"
+          test "$(dpkg-deb -f "$OUT" Package)" = 'ztm-zero-to-monero'
+          test "$(dpkg-deb -f "$OUT" Architecture)" = 'amd64'
+          test "$(dpkg-deb -f "$OUT" Version)" = '1.1.0~srp1v1'
+
+          rm -rf "$WORK/verify"
+          mkdir "$WORK/verify"
+          dpkg-deb -x "$OUT" "$WORK/verify"
+          test -x "$WORK/verify/usr/bin/ztm"
+          test -f "$WORK/verify/usr/share/applications/ztm.desktop"
+          test -f "$WORK/verify/usr/share/icons/hicolor/64x64/apps/ztm.png"
+          grep -Fq 'Stable Release V1.1' "$WORK/verify/usr/lib/ztm/ztm_gui.py"
+          grep -Fq 'ZTM-R-A-10-E-R' "$WORK/verify/usr/lib/ztm/ztm_engine.py"
+
+          sha256sum "$OUT" > "$WORK/package.sha256"
+          stat -c '%s' "$OUT" > "$WORK/package.size"
+
+      - name: Prepare release assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          WORK=/tmp/ztm-srp1v1
+          REL=/tmp/ztm-srp1v1-release
+          rm -rf "$REL"
+          mkdir -p "$REL"
+          cp "$WORK/ZTM-SRP1V1_amd64.deb" "$REL/"
+          PKG_SHA="$(cut -d' ' -f1 "$WORK/package.sha256")"
+          PKG_SIZE="$(cat "$WORK/package.size")"
+
+          cat > "$REL/install-ztm-srp1v1.sh" <<'SH'
+          #!/usr/bin/env bash
+          set -Eeuo pipefail
+          export LC_ALL=C
+          umask 077
+          URL='https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/download/ZTM-SRP1V1/ZTM-SRP1V1_amd64.deb'
+          EXPECTED_SHA='__PKG_SHA__'
+          EXPECTED_SIZE='__PKG_SIZE__'
+          EXPECTED_VERSION='1.1.0~srp1v1'
+          fail() { printf 'ZTM-SRP1V1: %s\n' "$*" >&2; exit 1; }
+          [[ "$(uname -s)" == Linux && "$(uname -m)" == x86_64 ]] || fail 'requires Ubuntu Linux x86-64.'
+          [[ "${EUID:-0}" -ne 0 ]] || fail 'run as your normal Ubuntu desktop user, not root.'
+          [[ -r /etc/os-release ]] || fail 'cannot identify Linux distribution.'
+          . /etc/os-release
+          [[ "${ID:-}" == ubuntu ]] || fail 'this release targets Ubuntu Desktop.'
+          for cmd in python3 sha256sum stat dpkg-deb sudo apt-get pgrep; do
+            command -v "$cmd" >/dev/null || fail "missing required command: $cmd"
+          done
+          if pgrep -a -x xmrig >/dev/null 2>&1; then
+            echo 'An XMRig process is already running. Stop it before upgrading ZTM.' >&2
+            pgrep -a -x xmrig >&2 || true
+            exit 1
+          fi
+          work="$(mktemp -d "${TMPDIR:-/tmp}/ztm-srp1v1-install.XXXXXXXX")"
+          trap 'rm -rf "$work"' EXIT
+          pkg="$work/ZTM-SRP1V1_amd64.deb"
+          python3 - "$URL" "$pkg" <<'PY'
+          import pathlib, sys, urllib.request
+          url, target = sys.argv[1:]
+          req = urllib.request.Request(url, headers={'User-Agent':'ZTM-SRP1V1-Installer/1.0'})
+          with urllib.request.urlopen(req, timeout=60) as response:
+              final = response.geturl()
+              if 'github.com/' not in final and 'githubusercontent.com/' not in final:
+                  raise SystemExit('SECURITY STOP: unexpected download host')
+              data = response.read()
+          pathlib.Path(target).write_bytes(data)
+          print(f'Downloaded {len(data)} bytes.')
+          PY
+          [[ "$(stat -c %s "$pkg")" == "$EXPECTED_SIZE" ]] || fail 'package size mismatch.'
+          printf '%s  %s\n' "$EXPECTED_SHA" "$pkg" | sha256sum --status -c - || fail 'package SHA-256 mismatch.'
+          [[ "$(dpkg-deb -f "$pkg" Package)" == 'ztm-zero-to-monero' ]] || fail 'unexpected package name.'
+          [[ "$(dpkg-deb -f "$pkg" Architecture)" == 'amd64' ]] || fail 'wrong architecture.'
+          [[ "$(dpkg-deb -f "$pkg" Version)" == "$EXPECTED_VERSION" ]] || fail 'wrong package version.'
+          sudo apt-get install -y "$pkg"
+          [[ "$(dpkg-query -W -f='${Version}' ztm-zero-to-monero 2>/dev/null)" == "$EXPECTED_VERSION" ]] || fail 'installed version verification failed.'
+          echo 'ZTM-SRP1V1 installed and verified. Launching...'
+          nohup /usr/bin/ztm >/tmp/ztm-launch.log 2>&1 &
+          SH
+          sed -i "s/__PKG_SHA__/$PKG_SHA/;s/__PKG_SIZE__/$PKG_SIZE/" "$REL/install-ztm-srp1v1.sh"
+          chmod +x "$REL/install-ztm-srp1v1.sh"
+          bash -n "$REL/install-ztm-srp1v1.sh"
+          INSTALLER_SHA="$(sha256sum "$REL/install-ztm-srp1v1.sh" | awk '{print $1}')"
+
+          cat > "$REL/COPY_PASTE_COMMAND.txt" <<EOF
+          python3 -c 'import hashlib,subprocess,urllib.request;u="https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/download/ZTM-SRP1V1/install-ztm-srp1v1.sh";b=urllib.request.urlopen(u,timeout=60).read();assert hashlib.sha256(b).hexdigest()=="$INSTALLER_SHA","SECURITY STOP: installer checksum mismatch";subprocess.run(["bash","-s"],input=b,check=True)'
+          EOF
+
+          printf '%s  %s\n%s  %s\n' "$PKG_SHA" 'ZTM-SRP1V1_amd64.deb' "$INSTALLER_SHA" 'install-ztm-srp1v1.sh' > "$REL/SHA256SUMS.txt"
+
+          cat > "$REL/ZTM-SRP1V1-Release-Notes.md" <<EOF
+          # ZTM-SRP1V1 — Stable Release V1.1
+
+          ZTM-SRP1V1 is the first stable-release baseline of Zero to Monero for Ubuntu Desktop x86-64.
+
+          ## Approved stable-release behavior
+
+          - Benchmark duration is locked to exactly **24 hours**.
+          - The normal GUI has **no duration selector**.
+          - CPU threads remain **Auto**.
+          - Header: **Linux x86-64 · Stable Release V1.1**.
+          - **CPU Threads: Auto** appears directly beneath the release label.
+          - First acknowledgement: **I authorize real CPU work for 24 hours, including electricity use and heat.**
+          - Second acknowledgement: **I understand this online benchmark uses both XMRig and I2PS dev contribution.**
+          - The separate Dev Wallet explanatory sentence has been removed.
+          - Benchmark button: **START 24-HOUR RANDOMX BENCHMARK**.
+          - Adaptive GUI sizing is retained.
+          - Official ZTM 0–10K H/s application/desktop icon is retained.
+          - Rig ID: **ZTM-R-A-10-E-R**.
+          - One administrator authorization per open ZTM session is retained.
+          - Optimizer, Wallet, Mining, 24-hour eligibility verification, donation behavior, and clean XMRig shutdown guardian are retained.
+
+          ## Package
+
+          - File: ZTM-SRP1V1_amd64.deb
+          - Debian version: 1.1.0~srp1v1
+          - Architecture: amd64
+          - SHA-256: $PKG_SHA
+          - Bytes: $PKG_SIZE
+
+          ## Verification
+
+          The release build verified the immutable alpha9 final package before modification, applied the stable-release patch with exact-match guards, compiled the Python sources, confirmed the approved GUI text and absence of the duration selector, proved the engine accepts 24 hours and rejects a 60-minute run, verified both pool-identification fields use ZTM-R-A-10-E-R, verified the desktop launcher and icon, checked package metadata, and confirmed every package file outside the approved GUI/engine/control edit scope remained byte-for-byte unchanged.
+
+          The physical 24-hour performance run remains the real-hardware validation of sustained hashrate and pool behavior.
+          EOF
+
+      - name: Commit release files and tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          REL=/tmp/ztm-srp1v1-release
+          mkdir -p releases/ZTM-SRP1V1
+          cp "$REL/ZTM-SRP1V1_amd64.deb" releases/ZTM-SRP1V1/
+          cp "$REL/SHA256SUMS.txt" releases/ZTM-SRP1V1/
+          cp "$REL/install-ztm-srp1v1.sh" install-ztm-srp1v1.sh
+          cp "$REL/COPY_PASTE_COMMAND.txt" COPY_PASTE_COMMAND_SRP1V1.txt
+          cp "$REL/ZTM-SRP1V1-Release-Notes.md" docs/ZTM_SRP1V1_RELEASE_NOTES.md
+          git config user.name 'I2PS Engineering Build'
+          git config user.email 'engineering@i2psolutions.com'
+          git add releases/ZTM-SRP1V1 install-ztm-srp1v1.sh COPY_PASTE_COMMAND_SRP1V1.txt docs/ZTM_SRP1V1_RELEASE_NOTES.md
+          git commit -m 'release: ZTM-SRP1V1 stable package'
+          git push origin HEAD:main
+          git tag -a ZTM-SRP1V1 -m 'ZTM-SRP1V1 — Stable Release V1.1'
+          git push origin ZTM-SRP1V1
+
+      - name: Publish GitHub Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          REL=/tmp/ztm-srp1v1-release
+          gh release create ZTM-SRP1V1 \
+            "$REL/ZTM-SRP1V1_amd64.deb" \
+            "$REL/install-ztm-srp1v1.sh" \
+            "$REL/COPY_PASTE_COMMAND.txt" \
+            "$REL/SHA256SUMS.txt" \
+            --title 'ZTM-SRP1V1 — Stable Release V1.1' \
+            --notes-file "$REL/ZTM-SRP1V1-Release-Notes.md" \
+            --latest
+
+      - name: Verify published release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release view ZTM-SRP1V1 --json tagName,name,isLatest,url,assets
