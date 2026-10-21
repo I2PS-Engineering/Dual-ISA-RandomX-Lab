@@ -25,6 +25,22 @@ This macOS port is independently built and must complete real-hardware validatio
 
 The benchmark reward destination is the configured development wallet until a qualifying test has completed; after qualification, personal mining uses the user's public address.
 
+## Winning Configuration report
+
+After the benchmark finishes, ZTM displays **WINNING CONFIGURATION** and writes both a JSON result and a separate text file in `~/ZTM-Results/`.
+
+The winner report includes:
+- Mac CPU model, architecture, logical CPU count and XMRig version
+- Selected active CPU-thread count and automatic dataset initialization
+- Search-window median, mean, minimum, maximum, optimizer score and stability coefficient
+- Sustained winner measurements for the remainder of the 24-hour benchmark
+- Accepted/rejected shares and elapsed time
+- Ranked tested configurations with their exact measured scores
+- The profile producing the **highest instantaneous hashrate**, clearly distinguished from the strongest sustained configuration
+- Whether the full 24-hour benchmark qualified
+
+If a benchmark is interrupted, any provisional profile remains explicitly **incomplete**, not a qualified result.
+
 ## Process safety
 
 The native macOS guardian runs XMRig as the current logged-in user; it does not elevate privileges.
