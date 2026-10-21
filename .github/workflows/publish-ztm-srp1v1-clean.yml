@@ -201,15 +201,13 @@ jobs:
         run: |
           set -euo pipefail
           REL=/tmp/ztm-srp1v1-release
-          mkdir -p releases/ZTM-SRP1V1
-          cp "$REL/ZTM-SRP1V1_amd64.deb" releases/ZTM-SRP1V1/
-          cp "$REL/SHA256SUMS.txt" releases/ZTM-SRP1V1/
           cp "$REL/install-ztm-srp1v1.sh" install-ztm-srp1v1.sh
           cp "$REL/COPY_PASTE_COMMAND.txt" COPY_PASTE_COMMAND_SRP1V1.txt
           cp "$REL/ZTM-SRP1V1-Release-Notes.md" docs/ZTM_SRP1V1_RELEASE_NOTES.md
+          cp "$REL/SHA256SUMS.txt" docs/ZTM_SRP1V1_SHA256SUMS.txt
           git config user.name 'I2PS Engineering Build'
           git config user.email 'engineering@i2psolutions.com'
-          git add releases/ZTM-SRP1V1 install-ztm-srp1v1.sh COPY_PASTE_COMMAND_SRP1V1.txt docs/ZTM_SRP1V1_RELEASE_NOTES.md
+          git add install-ztm-srp1v1.sh COPY_PASTE_COMMAND_SRP1V1.txt docs/ZTM_SRP1V1_RELEASE_NOTES.md docs/ZTM_SRP1V1_SHA256SUMS.txt
           git commit -m 'release: ZTM-SRP1V1 stable package'
           git push origin HEAD:main
           git tag -a ZTM-SRP1V1 -m 'ZTM-SRP1V1 — Stable Release V1.1'
