@@ -58,7 +58,11 @@ def mining_cycle(current: float, start: float) -> bool:
     return progress >= I2PS_CYCLE_SECONDS - I2PS_SLOT_SECONDS
 
 
-def mine(address: str, result_dir: Path | None = None) -> int:
+def mine(address: str, result_dir: Path | None = None,
+         gui_owner_pid: int = 0, gui_owner_start: str = "") -> int:
+    from ztm_native import process_identity_alive
+    if gui_owner_pid and not process_identity_alive(gui_owner_pid, gui_owner_start):
+        raise SystemExit('ZTM GUI controller identity is invalid; mining not started.')
     qualified = latest_qualified_report(result_dir)
     if qualified is None:
         raise SystemExit('PERSONAL MINING LOCKED: complete a verified uninterrupted 24-hour benchmark first.')
@@ -102,8 +106,15 @@ def mine(address: str, result_dir: Path | None = None) -> int:
         thread = threading.Thread(target=reader, daemon=True)
         thread.start()
         try:
+            last_owner_check = 0.0
             while process.poll() is None:
-                donor = mining_cycle(time.monotonic(), started)
+                now = time.monotonic()
+                if gui_owner_pid and now - last_owner_check >= 3:
+                    if not process_identity_alive(gui_owner_pid, gui_owner_start):
+                        print('[ZTM] GUI process exited; stopping native miner.', flush=True)
+                        break
+                    last_owner_check = now
+                donor = mining_cycle(now, started)
                 if donor != current_donation:
                     write_config(path, mining_config(address, donation=donor, threads=threads))
                     print('[ZTM] I2PS contribution interval' if donor else '[ZTM] Personal mining resumed', flush=True)
@@ -133,7 +144,11 @@ def main(argv=None):
     payload = json.loads(sys.stdin.readline())
     if payload.get('authorized') is not True:
         raise SystemExit('Mining Terms & Conditions acceptance required.')
-    return mine(payload.get('public_address', ''), Path(args.output))
+    pid = int(payload.get('gui_owner_pid', 0))
+    stamp = str(payload.get('gui_owner_start') or '')
+    if pid < 1 or not stamp:
+        raise SystemExit('Missing GUI process identity.')
+    return mine(payload.get('public_address', ''), Path(args.output), pid, stamp)
 
 if __name__ == '__main__':
     sys.exit(main())
