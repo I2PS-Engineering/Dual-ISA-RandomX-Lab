@@ -7,8 +7,6 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
-import hashlib
-import io
 import json
 import os
 import platform
@@ -17,26 +15,17 @@ import signal
 import statistics
 import subprocess
 import sys
-import tarfile
 import tempfile
 import threading
 import time
-import urllib.request
-from urllib.parse import urlparse
 from pathlib import Path
 
 VERSION = "6.26.0"
-ASSET = "xmrig-6.26.0-linux-static-x64.tar.gz"
-ASSET_SHA256 = "fc6f8ae5f64e4f17481f7e3be29a1c56949f216a998414188003eae1db20c9e5"
-URL = f"https://github.com/xmrig/xmrig/releases/download/v{VERSION}/{ASSET}"
 BASE58 = re.compile(r"^[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]+$")
 POOL = re.compile(r"^[A-Za-z0-9.-]+:[0-9]{1,5}$")
 SPEED = re.compile(r"\bspeed\s+10s/60s/15m\s+([0-9]+(?:\.[0-9]+)?|n/a)(?:\s+([kKmM]?)[hH]/s)?", re.I)
 SHARE = re.compile(r"\baccepted\s*\((\d+)\s*/\s*(\d+)\)", re.I)
 REJECTED = re.compile(r"\brejected\s*\((\d+)\s*/\s*(\d+)\)", re.I)
-MACHINE = ("x86_64", "amd64")
-MAX_ARCHIVE = 35 * 1024 * 1024
-MAX_BINARY = 30 * 1024 * 1024
 
 
 class BenchError(Exception):
@@ -60,92 +49,11 @@ def validate_address(value):
     return value
 
 
-def extract_verified_archive(blob: bytes) -> bytes:
-    if hashlib.sha256(blob).hexdigest() != ASSET_SHA256:
-        raise BenchError("Official XMRig archive SHA-256 mismatch; refusing to install.")
-    with tarfile.open(fileobj=io.BytesIO(blob), mode="r:gz") as archive:
-        files = [m for m in archive.getmembers()
-                 if m.isfile() and not m.issym() and m.name.rsplit("/", 1)[-1] == "xmrig"
-                 and 0 < m.size < MAX_BINARY]
-        if len(files) != 1:
-            raise BenchError("Unexpected XMRig archive structure.")
-        fh = archive.extractfile(files[0])
-        if fh is None:
-            raise BenchError("XMRig executable missing from official archive.")
-        result = fh.read(MAX_BINARY + 1)
-        if len(result) > MAX_BINARY:
-            raise BenchError("XMRig binary exceeds size limit.")
-        return result
-
-
-def verified_release_archive(cache: Path) -> bytes:
-    """Retain the SHA-256-verified upstream archive for root-side revalidation.
-
-    The privileged session extracts its OWN root-private copy before launching
-    XMRig, rather than executing a user-writable binary with root privileges.
-    """
-    stored=cache / ASSET
-    if stored.is_file() and not stored.is_symlink():
-        blob=stored.read_bytes()
-        if len(blob)<=MAX_ARCHIVE and hashlib.sha256(blob).hexdigest()==ASSET_SHA256:
-            return blob
-    cache.mkdir(mode=0o700, parents=True, exist_ok=True)
-    print(f"Downloading official XMRig {VERSION} ({ASSET}) ...",flush=True)
-    req=urllib.request.Request(URL,headers={"User-Agent":"ZTM-Linux-Online-CPU/0.1"})
-    with urllib.request.urlopen(req,timeout=45) as response:
-        finalhost=urlparse(response.geturl()).hostname or ''
-        if finalhost not in ('github.com','release-assets.githubusercontent.com','objects.githubusercontent.com'):
-            raise BenchError('Official release download redirected to an unrecognized host.')
-        blob=response.read(MAX_ARCHIVE+1)
-    if len(blob)>MAX_ARCHIVE or hashlib.sha256(blob).hexdigest()!=ASSET_SHA256:
-        raise BenchError('Official XMRig archive validation failed.')
-    with tempfile.NamedTemporaryFile(dir=cache,prefix='.ztm-archive-',delete=False) as fh:
-        temporary=Path(fh.name)
-        fh.write(blob)
-    try:
-        temporary.chmod(0o600)
-        os.replace(temporary,stored)
-    finally:
-        temporary.unlink(missing_ok=True)
-    return blob
-
-
 def local_binary(cache: Path, binary_override: str | None = None) -> Path:
     from ztm_native import verified_binary
     if binary_override:
         raise BenchError("ZTM macOS only accepts its SHA-256-verified native XMRig binary.")
     return verified_binary()
-
-def _linux_legacy_binary(cache: Path, binary_override: str | None = None) -> Path:
-    if binary_override:
-        p = Path(binary_override).expanduser().resolve()
-        if not p.is_file() or not os.access(p, os.X_OK):
-            raise BenchError("The supplied --xmrig path is not an executable file.")
-        return p
-    if platform.system() != "Linux" or platform.machine().lower() not in MACHINE:
-        raise BenchError("This quick installer currently supports Linux x86-64 only. No OS modifications made.")
-    target = cache / "xmrig"
-    receipt = cache / "xmrig_sha256.txt"
-    blob=verified_release_archive(cache)
-    exe=extract_verified_archive(blob)
-    expected_hash=hashlib.sha256(exe).hexdigest()
-    if target.is_file() and receipt.is_file():
-        if target.is_symlink() or hashlib.sha256(target.read_bytes()).hexdigest()!=expected_hash:
-            raise BenchError('Cached XMRig differs from the official verified executable.')
-        return target
-    cache.mkdir(mode=0o700, parents=True, exist_ok=True)
-    with tempfile.NamedTemporaryFile(dir=cache,prefix='.xmrig-',delete=False) as fh:
-        temporary=Path(fh.name)
-        fh.write(exe)
-    try:
-        temporary.chmod(0o700)
-        os.replace(temporary,target)
-        receipt.write_text(expected_hash+'\n',encoding='ascii')
-        receipt.chmod(0o600)
-    finally:
-        temporary.unlink(missing_ok=True)
-    return target
-
 
 def speed_hs(line):
     match = SPEED.search(line)
@@ -168,17 +76,6 @@ def prompt_if_missing(value, prompt):
 def current_cpu_info():
     from ztm_native import cpu_model
     return cpu_model()
-
-def _legacy_linux_cpu_info():
-    model = "Unknown"
-    try:
-        for line in Path("/proc/cpuinfo").read_text(encoding="utf-8", errors="replace").splitlines():
-            if line.startswith("model name"):
-                model = line.split(":", 1)[1].strip()
-                break
-    except OSError:
-        pass
-    return model
 
 
 THREAD_PROFILE = re.compile(r"use profile\s+rx\s+\((\d+)\s+threads", re.I)
