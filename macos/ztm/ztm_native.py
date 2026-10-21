@@ -71,6 +71,27 @@ def cpu_model() -> str:
     return platform.processor() or platform.machine()
 
 
+def process_identity(pid: int) -> tuple[int, str] | None:
+    """Identify one macOS PID and its start time, guarding against PID reuse."""
+    if not isinstance(pid, int) or pid < 1:
+        return None
+    try:
+        result = subprocess.run(
+            ["/bin/ps", "-p", str(pid), "-o", "lstart="],
+            capture_output=True, text=True, timeout=4, check=False
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    if result.returncode != 0 or not result.stdout.strip():
+        return None
+    return pid, result.stdout.strip()
+
+
+def process_identity_alive(pid: int, start: str) -> bool:
+    identity = process_identity(pid)
+    return bool(identity and start and identity[1] == start)
+
+
 def child_command(component: str, *args: str) -> list[str]:
     """Start a subcommand using the same signed app executable or the dev launcher."""
     if component not in ("prepare", "engine", "mining", "guardian"):
