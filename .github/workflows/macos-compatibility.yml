@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/macos-compatibility.yml'
       - 'macos/README.md'
+      - 'macos/prepare-native-xmrig.sh'
 
 permissions:
   contents: read
@@ -47,3 +48,11 @@ jobs:
           test -n "$XMRIG"
           file "$XMRIG"
           lipo -archs "$XMRIG"
+      - name: Validate ZTM native preparation script
+        shell: bash
+        run: |
+          bash -n macos/prepare-native-xmrig.sh
+          chmod +x macos/prepare-native-xmrig.sh
+          bash macos/prepare-native-xmrig.sh
+          test -x "$HOME/Library/Application Support/ZTM/Tools/xmrig"
+          file "$HOME/Library/Application Support/ZTM/Tools/xmrig"
