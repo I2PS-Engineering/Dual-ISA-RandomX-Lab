@@ -21,7 +21,7 @@ jobs:
       - name: Compile and exercise identity module
         run: |
           python -m compileall -q intelligence
-          PYTHONPATH=intelligence python -m unittest discover -s tests -p 'test_ztm_identity.py' -v
+          PYTHONPATH=intelligence python -m unittest discover -s tests -p 'test_ztm_*.py' -v
       - name: Verify reporting import and SQLite schema
         run: |
           PYTHONPATH=intelligence python - <<'PY'
