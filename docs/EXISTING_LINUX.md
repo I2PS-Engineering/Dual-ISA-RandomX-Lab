@@ -1,22 +1,19 @@
-# Existing Linux users - direct installation from GitHub
+# Existing Ubuntu users — ZTM-SRP1V1
 
-**Keep your current operating system.** No reinstall, reformatting or miner reconfiguration.
+You do not need to reinstall Ubuntu to install ZTM-SRP1V1.
 
-The user-friendly public distribution route uses the official GitHub bootstrap, rather than downloading an old development ZIP. On supported Ubuntu/Debian, open Terminal:
+## Install
+
+Close any active ZTM/XMRig session.
+
+Then run the verified stable installer as your normal Ubuntu desktop user:
 
 ```bash
-curl -fL --proto '=https' --tlsv1.2 -o install_from_github.sh https://raw.githubusercontent.com/I2PS-Engineering/Dual-ISA-RandomX-Lab/main/install_from_github.sh
-bash install_from_github.sh --plan
-# When an approved stable app release is available:
-bash install_from_github.sh
+python3 -c 'import hashlib,subprocess,urllib.request;u="https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/download/ZTM-SRP1V1/install-ztm-srp1v1.sh";b=urllib.request.urlopen(u,timeout=60).read();assert hashlib.sha256(b).hexdigest()=="ec069736a9e683b3e6294a4af066963a0c21ae2d5e835157a483c4c2b31b85ff","SECURITY STOP: installer checksum mismatch";subprocess.run(["bash","-s"],input=b,check=True)'
 ```
 
-The tool checks release availability and platform compatibility, verifies SHA-256, preserves local data and the previous installation, and asks before opening the app. It will not mine or silently install a random GitHub commit.
+ZTM verifies the stable package before installation.
 
-To check for releases without installing: `bash install_from_github.sh --check`.
+The current stable release targets Ubuntu Desktop x86-64.
 
-**Current status:** The installer/checker is published and the app's local update-check UI has been tested. No approved stable binary I2PS application Release has been published. The intended v0.4 online-only 24-hour benchmark and first-launch automatic dependency wizard are not implemented yet.
-
-The older `install_i2ps_linux.sh` script belongs to the privately tested v0.3.x development package; once a stable package ships, it can be run from the downloaded app to prepare separately licensed and verified XMRig, after consent.
-
-See [complete GitHub installation/updates guide](GITHUB_INSTALLATION.md), [Windows-to-Ubuntu instructions](WINDOWS_TO_UBUNTU.md), and [release status](STATUS.md).
+Installation does not automatically begin the benchmark. CPU work starts only after preparation, both acknowledgements and explicit Start.
