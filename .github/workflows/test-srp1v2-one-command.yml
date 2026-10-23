@@ -26,7 +26,7 @@ jobs:
       - name: Execute exact command copied from public README
         run: |
           set -euo pipefail
-          python3 -c 'import hashlib,subprocess,urllib.request;u="https://raw.githubusercontent.com/I2PS-Engineering/ZTM_Benchmark/main/install-ztm-srp1v2.sh";b=urllib.request.urlopen(u,timeout=60).read();assert hashlib.sha256(b).hexdigest()=="10e308155184646a6dd51ec3001e46bead4947139ed79e77378604e7156cb8ec","SECURITY STOP: installer checksum mismatch";subprocess.run(["bash","-s"],input=b,check=True)'
+          curl -fLsS https://raw.githubusercontent.com/I2PS-Engineering/ZTM_Benchmark/main/install-ztm-srp1v2.sh -o /tmp/ztm-srp1v2-installer.sh && echo '10e308155184646a6dd51ec3001e46bead4947139ed79e77378604e7156cb8ec  /tmp/ztm-srp1v2-installer.sh' | sha256sum -c - && bash /tmp/ztm-srp1v2-installer.sh
       - name: Verify package installed through apt with matching identity
         run: |
           set -euo pipefail
