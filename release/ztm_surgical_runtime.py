@@ -5,7 +5,6 @@ No hostname, wallet or other private data is exported. Zero shell=True usage.
 from __future__ import annotations
 
 import os
-import random
 import signal
 import subprocess
 import time
@@ -50,7 +49,7 @@ def cpu_inventory():
             if 'processor' in d: physical += 1
     except OSError:
         pass
-    physical = min(logical, len(pairs) or physical or logical)
+    physical = min(logical, _physical_core_groups() or len(pairs) or physical or logical)
     cache3 = 0
     base=Path('/sys/devices/system/cpu/cpu0/cache')
     for index in base.glob('index*'):
@@ -61,8 +60,12 @@ def cpu_inventory():
                 elif value.endswith('K'): cache3=max(cache3,int(value[:-1])*1024)
         except (OSError,ValueError): pass
     mem=_memory_kb()
+    topology = _cache_topology()
     return {'cpu_model':model,'logical_cpus':logical,'physical_cores':physical,
-            'l3_cache_bytes':cache3,'memory_total_kb':mem.get('MemTotal',0),
+            'cache_topology':topology,'numa_nodes':_numa_nodes(),
+            'l3_cache_bytes':cache3,'l2_cache_bytes':max((c['size_bytes'] for c in topology if c['level']==2), default=0),
+            'l1_cache_bytes':max((c['size_bytes'] for c in topology if c['level']==1), default=0),
+            'memory_type':'unknown','memory_total_kb':mem.get('MemTotal',0),
             'memory_available_kb':mem.get('MemAvailable',0),
             'hugepages_total':mem.get('HugePages_Total',0),
             'hugepages_free':mem.get('HugePages_Free',0),
@@ -70,32 +73,84 @@ def cpu_inventory():
             'msr_device_present':Path('/dev/cpu/0/msr').exists()}
 
 
-def candidate_profiles(inventory, auto_threads, max_profiles, seed=None):
-    """Return randomizable, bounded candidates. Initializer is set ONCE at miner start.
+def _cache_topology():
+    """Read Linux cache sharing groups; unknown data remains unknown."""
+    root = Path('/sys/devices/system/cpu')
+    result = []
+    seen = set()
+    for cpu in sorted(root.glob('cpu[0-9]*'), key=lambda p: int(p.name[3:])):
+        for entry in (cpu / 'cache').glob('index*'):
+            try:
+                level = int((entry / 'level').read_text().strip())
+                kind = (entry / 'type').read_text().strip()
+                shared = (entry / 'shared_cpu_list').read_text().strip()
+                size = (entry / 'size').read_text().strip().upper()
+                multiplier = 1024 * 1024 if size.endswith('M') else 1024 if size.endswith('K') else 1
+                size_bytes = int(size[:-1] if size.endswith(('M', 'K')) else size) * multiplier
+                if kind not in ('Data', 'Unified') or level not in (1, 2, 3):
+                    continue
+                key = (level, shared, kind)
+                if key not in seen:
+                    seen.add(key)
+                    result.append({'level': level, 'shared_cpu_list': shared, 'size_bytes': size_bytes})
+            except (OSError, ValueError):
+                continue
+    return result
 
-    Watched XMRig configuration changes active workers, not RandomX dataset
-    initialization on every profile reload. Never claim separate per-profile init tests.
+
+def _physical_core_groups():
+    root = Path('/sys/devices/system/cpu')
+    groups = set()
+    for cpu in root.glob('cpu[0-9]*'):
+        try:
+            siblings = (cpu / 'topology/thread_siblings_list').read_text().strip()
+            if siblings:
+                groups.add(siblings)
+        except OSError:
+            pass
+    return len(groups)
+
+
+def _numa_nodes():
+    root = Path('/sys/devices/system/node')
+    return len(list(root.glob('node[0-9]*')))
+
+
+def _ranked_counts(inventory, auto_threads):
+    logical = max(1, int(inventory['logical_cpus']))
+    physical = max(1, min(logical, int(inventory['physical_cores'])))
+    l3 = max(0, int(inventory.get('l3_cache_bytes', 0)))
+    cache_cap = max(1, l3 // (2 * 1024 * 1024)) if l3 else physical
+    auto = max(1, min(logical, int(auto_threads or min(physical, cache_cap))))
+    # Prefer physically independent workers, then cache fit, then SMT
+    # expansion. These are PRIOR scores, not measured RandomX performance.
+    def score(n):
+        smt_penalty = max(0, n - physical) / physical
+        cache_penalty = max(0, n - cache_cap) / cache_cap
+        distance = abs(n - auto) / logical
+        # NUMA/cache topology is recorded for diagnosis; count-only XMRig
+        # config cannot guarantee NUMA locality or independent core placement.
+        return (2.0 * cache_penalty + 1.4 * smt_penalty
+                + 0.25 * distance - 0.10 * min(n, physical) / physical)
+    return auto, sorted((n for n in range(1, logical + 1) if n != auto),
+                        key=lambda n: (score(n), abs(n - auto), n))
+
+
+def candidate_profiles(inventory, auto_threads, max_profiles, seed=None):
+    """Deterministic hardware-ranked ACTIVE thread counts; baseline excluded.
+
+    init threads are a separate startup setting. Never claim that active
+    profile changes test different dataset initialization configurations.
     """
-    logical=inventory['logical_cpus']
-    phys=inventory['physical_cores']
-    l3=inventory['l3_cache_bytes']
-    cache_cap=max(1,l3//(2*1024*1024)) if l3 else max(1,phys)
-    auto=max(1,min(logical,int(auto_threads or min(phys,cache_cap))))
-    rng=random.Random(seed if seed is not None else random.SystemRandom().getrandbits(64))
-    candidates=[auto, max(1,min(logical,phys)), max(1,min(logical,cache_cap)), logical]
-    candidates+=list(range(1, min(logical,12)+1))
-    candidates=list(dict.fromkeys(x for x in candidates if 1 <= x <= logical and x != auto))
-    # Keep coverage broad but randomized; auto candidate runs first separately.
-    rng.shuffle(candidates)
-    return candidates[:max(0,max_profiles-1)]
+    _, ranked = _ranked_counts(inventory, auto_threads)
+    return ranked[:max(0, int(max_profiles) - 1)]
 
 
 def choose_init_threads(inventory, auto_threads, seed=None):
-    logical=inventory['logical_cpus']
-    phys=inventory['physical_cores']
-    cache_limited = max(1, inventory.get('l3_cache_bytes', 0)//(2*1024*1024))
-    choices=list(dict.fromkeys((max(1,min(logical,x)) for x in (int(auto_threads or phys),phys,logical,max(1,logical//2),cache_limited))))
-    return random.Random(seed if seed is not None else random.SystemRandom().getrandbits(64)).choice(choices)
+    """Choose dataset initialization parallelism conservatively and repeatably."""
+    logical = max(1, int(inventory['logical_cpus']))
+    physical = max(1, min(logical, int(inventory['physical_cores'])))
+    return physical
 
 
 def recognized_miners(uid=None, exclude=()):
