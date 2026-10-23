@@ -51,7 +51,7 @@ The installer downloads the stable Debian package, verifies its exact size, SHA-
 - Debian version: `1.2.0~srp1v2`
 - Architecture: `amd64`
 - SHA-256: `ed9237993aac90d6bcf982e7b4955bdfe7abc4f1c6d5cc3cf5957c8b85a7758d`
-- Size: `47,094` bytes
+- Size: `47,086` bytes
 
 ## Readable GUI and winning configuration
 
