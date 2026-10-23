@@ -56,14 +56,17 @@ jobs:
           root.destroy()
           PY
           done
-      - name: Verify RC4 installer and install signed-off package
+      - name: Verify pinned RC4 installer on clean Ubuntu runner
         run: |
           set -euo pipefail
           echo 'd009b90e8642e85496618282503d1c27cebf26c255537fc15592d049a7316d60  install-ztm-srp1v2-rc4.sh' | sha256sum -c -
           bash -n install-ztm-srp1v2-rc4.sh
           echo 'abd42a5ded115966dc20d761560581f2c6009575f73f433869400183404aa879  /tmp/ZTM-SRP1V2-RC4_amd64.deb' | sha256sum -c -
           bash install-ztm-srp1v2-rc4.sh
-          dpkg -s ztm-zero-to-monero | grep -q '^Version: 1.2.4~srp1v2rc4
+          dpkg -s ztm-zero-to-monero | grep -q '^Version: 1.2.4~srp1v2rc4$'
+          test -f /usr/lib/ztm/ztm_startup_preflight.py
+          echo 'RC4 EXACT README INSTALLER PASS'
+      - uses: actions/upload-artifact@v4
         with:
           name: ZTM-SRP1V2-RC4-UNRELEASED-CANDIDATE
           path: /tmp/ZTM-SRP1V2-RC4_amd64.deb
@@ -78,16 +81,8 @@ jobs:
           sha256sum --check SHA256SUMS_RC4.txt
           cd -
           if gh release view ZTM-SRP1V2-RC4 --repo I2PS-Engineering/ZTM_Benchmark >/dev/null 2>&1; then
-            gh release upload ZTM-SRP1V2-RC4 --repo I2PS-Engineering/ZTM_Benchmark \
-              --clobber install-ztm-srp1v2-rc4.sh
-            gh release edit ZTM-SRP1V2-RC4 --repo I2PS-Engineering/ZTM_Benchmark \
-              --notes-file release/RC4_STATUS.md
+            gh release upload ZTM-SRP1V2-RC4 --repo I2PS-Engineering/ZTM_Benchmark --clobber install-ztm-srp1v2-rc4.sh
+            gh release edit ZTM-SRP1V2-RC4 --repo I2PS-Engineering/ZTM_Benchmark --notes-file release/RC4_STATUS.md
           else
-            gh release create ZTM-SRP1V2-RC4 \
-              --repo I2PS-Engineering/ZTM_Benchmark \
-              --target "$GITHUB_SHA" --prerelease \
-              --title "ZTM-SRP1V2-RC4 — V2 development prerelease (hardware testing pending)" \
-              --notes-file release/RC4_STATUS.md \
-              /tmp/ZTM-SRP1V2-RC4_amd64.deb /tmp/SHA256SUMS_RC4.txt \
-              install-ztm-srp1v2-rc4.sh
+            gh release create ZTM-SRP1V2-RC4 --repo I2PS-Engineering/ZTM_Benchmark --target "$GITHUB_SHA" --prerelease --title "ZTM-SRP1V2-RC4 - V2 development prerelease" --notes-file release/RC4_STATUS.md /tmp/ZTM-SRP1V2-RC4_amd64.deb /tmp/SHA256SUMS_RC4.txt install-ztm-srp1v2-rc4.sh
           fi
