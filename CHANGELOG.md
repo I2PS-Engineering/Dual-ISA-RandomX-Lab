@@ -1,5 +1,22 @@
 # Changelog
 
+## ZTM-SRP1V2-RC4 — Ubuntu V2 development prerelease — 23 October 2026
+
+- **Current latest controlled V2 test build:** `ZTM-SRP1V2-RC4` (prerelease; not a new stable version).
+- Verified Ubuntu x86-64 package version `1.2.4~srp1v2rc4`.
+- Original XMRig automatic baseline plus up to six unique, hardware-ranked active-thread alternatives (**maximum seven profiles**).
+- **15 minutes per measured profile**, replacing RC3's five-minute window.
+- Existing supervised XMRig stop/restart process and five-second verified transitions preserved from RC3.
+- CPU inventory collects physical/logical core information, SMT sibling groups, detected L1/L2/L3 cache capacities and sharing domains, NUMA-node count and memory availability; deterministic hardware-informed thread-count ranking.
+- Live GUI displays current profile, active and dataset-initialization threads, and elapsed/target time `15:00`.
+- Existing 24-hour benchmark requirement, authorization, contribution and wallet workflow unchanged.
+- **Limitations:** RC4 does not yet enforce per-thread CPU affinity or NUMA placement; on processors with fewer than six distinct alternatives it tests fewer than seven profiles. Full physical 24-hour HashVault testing pending.
+- RC4 package SHA-256: `abd42a5ded115966dc20d761560581f2c6009575f73f433869400183404aa879`; package size: 121,844 bytes.
+- Exact Ubuntu installer SHA-256: `d009b90e8642e85496618282503d1c27cebf26c255537fc15592d049a7316d60`; verified on [Ubuntu CI](https://github.com/I2PS-Engineering/ZTM_Benchmark/actions/runs/39930914536).
+- [RC4 installation](README.md#install) · [RC4 prerelease](https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/tag/ZTM-SRP1V2-RC4).
+- The V2 stable release and V3 remain unchanged.
+
+
 ## ZTM-SRP1V2 — Linux GUI Readability Update V1.2 — 21 October 2026
 
 - Default font zoom increased to **165%** across terminal, navigation, consent labels, buttons and wallet interface.
