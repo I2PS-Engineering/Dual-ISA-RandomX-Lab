@@ -51,11 +51,11 @@ The installer downloads the stable Debian package, verifies its exact size, SHA-
 - Debian version: `1.2.0~srp1v2`
 - Architecture: `amd64`
 - SHA-256: `46d15b92b0abaced099a111041774fe4aa57aabed572058e05a0fce99f34c5b3`
-- Size: `47,086` bytes
+- Size: `47,234` bytes
 
 ## Readable GUI and winning configuration
 
-The Linux GUI starts at **screen-adaptive text zoom**, with live **A− / A+** zoom controls (125–200%). Text, buttons, checkboxes and terminal output now scale as interface elements instead of only enlarging the window.
+The Linux GUI starts at **screen-adaptive text zoom**, with live **A− / A+** zoom controls (85–200%). Text, buttons, checkboxes and terminal output now scale as interface elements instead of only enlarging the window.
 
 After a qualifying 24-hour run, **Winning Configuration** reports the selected active threads, winning tested profile, optimization score, sustained mean/median, highest recorded hashrate, profile peak, share counts, elapsed time, and saved JSON results. An instantaneous peak is distinguished from sustained performance.
 
@@ -84,7 +84,7 @@ The SRP1V2 package was built with guarded stable-release changes and checked for
 - fixed CPU Threads: Auto workflow;
 - approved authorization wording;
 - removal of the old duration selector and extra Dev Wallet explanatory line;
-- adaptive GUI sizing and live font zoom at 165% default;
+- screen-detected initial zoom and adjustable font scaling;
 - desktop launcher and official ZTM icon;
 - rig identification `ZTM-SRP1V2`;
 - preserved optimizer, Wallet, Mining, eligibility, donation and shutdown behavior;
