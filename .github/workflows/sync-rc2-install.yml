@@ -1,0 +1,31 @@
+name: Sync corrected verified RC2 installer assets
+on:
+  push:
+    branches: [release/ztm-srp1v2-rc2]
+    paths: ['.github/workflows/sync-rc2-install.yml']
+permissions:
+  contents: write
+jobs:
+  update-verified-release-assets:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check corrected installer is checksum-pinned, syntax-valid, and package intact
+        run: |
+          set -euo pipefail
+          bash -n install-ztm-srp1v2-rc2.sh
+          sha256sum -c SHA256SUMS_RC2.txt
+          sed -n '/^python3 -c /p' INSTALL_RC2.txt >/tmp/installer-command.sh
+          test "$(wc -l </tmp/installer-command.sh)" = 1
+          bash -n /tmp/installer-command.sh
+          grep -q "Missing pkexec after package install" install-ztm-srp1v2-rc2.sh
+          ! grep -q 'sudo apt-get pkexec;' install-ztm-srp1v2-rc2.sh
+          test "$(dpkg-deb -f dist/ZTM-SRP1V2-RC2_amd64.deb Version)" = 1.2.2~srp1v2rc2
+      - name: Update existing RC2 assets in place
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release upload ZTM-SRP1V2-RC2 -R I2PS-Engineering/ZTM_Benchmark \
+            install-ztm-srp1v2-rc2.sh INSTALL_RC2.txt SHA256SUMS_RC2.txt --clobber
+          gh release view ZTM-SRP1V2-RC2 -R I2PS-Engineering/ZTM_Benchmark --json tagName,assets
