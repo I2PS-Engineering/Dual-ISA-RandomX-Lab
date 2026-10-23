@@ -101,7 +101,7 @@ jobs:
           set -euo pipefail
           mkdir -p /tmp/ztm-v2/old-release /tmp/ztm-v2/new-release
           gh release download ZTM-SRP1V2 -R I2PS-Engineering/ZTM_Benchmark -p ZTM-SRP1V2_amd64.deb -D /tmp/ztm-v2/old-release
-          echo 'ed9237993aac90d6bcf982e7b4955bdfe7abc4f1c6d5cc3cf5957c8b85a7758d  /tmp/ztm-v2/old-release/ZTM-SRP1V2_amd64.deb' | sha256sum -c -
+          echo '46d15b92b0abaced099a111041774fe4aa57aabed572058e05a0fce99f34c5b3  /tmp/ztm-v2/old-release/ZTM-SRP1V2_amd64.deb' | sha256sum -c -
           dpkg-deb -R /tmp/ztm-v2/old-release/ZTM-SRP1V2_amd64.deb /tmp/ztm-v2/old-release/root
           dpkg-deb -R /tmp/ztm-v2/ZTM-SRP1V2_amd64.deb /tmp/ztm-v2/new-release/root
           python3 - <<'PY'
