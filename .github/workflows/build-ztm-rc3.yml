@@ -53,8 +53,8 @@ jobs:
           set -euo pipefail
           export PYTHONPATH=/tmp/ztmrc3/root/usr/lib/ztm
           for screen in 1024x768 1280x720 1366x768 1920x1080; do
-            xvfb-run -a -s "-screen 0 \${screen}x24" python3 release/test_rc3.py "$PYTHONPATH" 2>&1 | tee "/tmp/ztmrc3/test-\${screen}.log"
-            grep -q '^OK$' "/tmp/ztmrc3/test-\${screen}.log"
+            xvfb-run -a -w 2 -s "-screen 0 ${screen}x24" python3 release/test_rc3.py "$PYTHONPATH" 2>&1 | tee "/tmp/ztmrc3/test-${screen}.log"
+            grep -q '^OK$' "/tmp/ztmrc3/test-${screen}.log"
           done
           python3 /tmp/ztmrc3/root/usr/lib/ztm/ztm_engine.py --plan --minutes 1440 >/dev/null
           if python3 /tmp/ztmrc3/root/usr/lib/ztm/ztm_engine.py --plan --minutes 60 >/dev/null 2>&1; then
