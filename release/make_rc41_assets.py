@@ -15,7 +15,7 @@ folder=pathlib.Path(sys.argv[2])
 folder.mkdir(parents=True,exist_ok=True)
 assert package.name=='ZTM-SRP1V2-RC4.1_amd64.deb'
 blob=package.read_bytes()
-assert len(blob)>100_000 and blob[:8]==b'!<arch>\\n', 'Not a valid Debian ar package'
+assert len(blob)>100_000 and blob[:8]==b'!<arch>\n', 'Not a valid Debian ar package'
 digest=hashlib.sha256(blob).hexdigest()
 size=len(blob)
 url='https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/download/ZTM-SRP1V2-RC4.1/ZTM-SRP1V2-RC4.1_amd64.deb'
@@ -64,13 +64,13 @@ command=(
     "subprocess.run([\"bash\",\"-s\"],input=b,check=True)'"
 )
 (folder/'INSTALL_RC41.txt').write_text(
-    'ZTM RC4.1 controlled Ubuntu Desktop prerelease — original XMRig auto + six CPU-affinity profiles.\\n'
-    'Run as ordinary user after stopping any active benchmark and rebooting.\\n\\n'
-    +command+'\\n'
+    'ZTM RC4.1 controlled Ubuntu Desktop prerelease — original XMRig auto + six CPU-affinity profiles.\n'
+    'Run as ordinary user after stopping any active benchmark and rebooting.\n\n'
+    +command+'\n'
 )
 (folder/'SHA256SUMS_RC41.txt').write_text(
-    f'{digest}  {package.name}\\n'
-    f'{installer_digest}  {installer.name}\\n'
+    f'{digest}  {package.name}\n'
+    f'{installer_digest}  {installer.name}\n'
 )
 (folder/'RELEASE_RC41_NOTES.md').write_text(
     '''# ZTM-SRP1V2-RC4.1 — Corrective seven-profile V2 prerelease
