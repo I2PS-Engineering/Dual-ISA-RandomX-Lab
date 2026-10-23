@@ -1,0 +1,215 @@
+name: Build and publish ZTM-SRP1V2-RC1 controlled pre-release
+on:
+  push:
+    branches: [release/ztm-srp1v2-rc1]
+    paths:
+      - '.github/workflows/ztm-srp1v2-rc1.yml'
+      - 'release/rc1_patch.py.zlib.b64'
+      - 'release/rc1_runtime.py.zlib.b64'
+permissions:
+  contents: write
+jobs:
+  verified-rc1:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get exact published SRP1V2 package with pinned SHA256
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/ztmrc1
+          curl -fLSs --retry 3 --output /tmp/ztmrc1/stable.deb https://raw.githubusercontent.com/I2PS-Engineering/ZTM_Benchmark/main/dist/ZTM-SRP1V2_amd64.deb
+          echo "3b7f64101ea1f4b5239e85cb4b2b584ee7a19cf78ae82b112e9f4a19d53e3a1a  /tmp/ztmrc1/stable.deb" | sha256sum -c -
+          test "$(stat -c%s /tmp/ztmrc1/stable.deb)" = 47222
+          test "$(dpkg-deb -f /tmp/ztmrc1/stable.deb Version)" = '1.2.0~srp1v2'
+          dpkg-deb -R /tmp/ztmrc1/stable.deb /tmp/ztmrc1/root
+      - name: Expand auditable source patches and apply only five authorized changes
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/ztmrc1/scripts
+          python3 - <<'PY'
+          import base64, pathlib, zlib
+          base=pathlib.Path('release')
+          for src,dest in [('rc1_runtime.py.zlib.b64','ztm_surgical_runtime.py'),('rc1_patch.py.zlib.b64','patch_srp1v2_surgical.py')]:
+              data=zlib.decompress(base64.b64decode((base/src).read_text().strip()))
+              assert data.startswith(b'#!/usr/bin/env python3') or dest == 'ztm_surgical_runtime.py'
+              (pathlib.Path('/tmp/ztmrc1/scripts')/dest).write_bytes(data)
+              print('expanded source',dest,len(data))
+          patch=pathlib.Path('/tmp/ztmrc1/scripts/patch_srp1v2_surgical.py')
+          s=patch.read_text()
+          assert "'Version: 1.2.0~srp1v2surgical1'" in s
+          patch.write_text(s.replace("'Version: 1.2.0~srp1v2surgical1'","'Version: 1.2.1~srp1v2rc1'"))
+          PY
+          python3 -m py_compile /tmp/ztmrc1/scripts/*.py
+          python3 /tmp/ztmrc1/scripts/patch_srp1v2_surgical.py /tmp/ztmrc1/root
+          python3 -m compileall -q /tmp/ztmrc1/root/usr/lib/ztm
+          find /tmp/ztmrc1/root/usr/lib/ztm -type d -name __pycache__ -prune -exec rm -rf '{}' +
+          test "$(dpkg-deb --build --root-owner-group /tmp/ztmrc1/root /tmp/ztmrc1/preflight.deb >/dev/null; dpkg-deb -f /tmp/ztmrc1/preflight.deb Version)" = '1.2.1~srp1v2rc1'
+      - name: Enforce source and consent invariants
+        run: |
+          set -euo pipefail
+          export PYTHONPATH=/tmp/ztmrc1/root/usr/lib/ztm
+          python3 - <<'PY'
+          from pathlib import Path
+          lib=Path('/tmp/ztmrc1/root/usr/lib/ztm')
+          gui=(lib/'ztm_gui.py').read_text()
+          broker=(lib/'ztm_privileged_session.py').read_text()
+          engine=(lib/'ztm_engine.py').read_text()
+          mining=(lib/'ztm_mining.py').read_text()
+          assert 'self.upgrade_all' not in gui
+          assert "I authorize real CPU work for 24 hours" in gui
+          assert "I understand this online benchmark uses both XMRig" in gui
+          assert gui.count("'cleanup-miners'") >= 3
+          assert "recognized_miners(self.uid" in broker
+          assert "stop_recognized_miners" in broker
+          assert "prepare_hugepages" in broker
+          assert "candidate_profiles(inventory" in engine
+          assert "randomx_initialization_threads" in engine
+          assert "minutes = 1440" in gui
+          assert "ZTM-SRP1V2" in engine and "ZTM-SRP1V2" in mining
+          print('PASS candidate core invariants')
+          PY
+          python3 /tmp/ztmrc1/root/usr/lib/ztm/ztm_engine.py --plan --minutes 1440 >/dev/null
+          if python3 /tmp/ztmrc1/root/usr/lib/ztm/ztm_engine.py --plan --minutes 60 >/dev/null 2>&1; then
+            echo 'SECURITY STOP: short benchmark accepted'; exit 1
+          fi
+      - name: Test candidate CPU profiling, miner selectivity and failure on restart
+        run: |
+          set -euo pipefail
+          export PYTHONPATH=/tmp/ztmrc1/root/usr/lib/ztm
+          python3 - <<'PY'
+          import os,sys,subprocess,tempfile
+          from pathlib import Path
+          from unittest import mock
+          from ztm_surgical_runtime import cpu_inventory, candidate_profiles, choose_init_threads, recognized_miners, stop_recognized_miners, prepare_hugepages
+          inv=cpu_inventory()
+          assert inv['logical_cpus']>=1
+          sim={'logical_cpus':4,'physical_cores':4,'l3_cache_bytes':6*1024*1024}
+          assert candidate_profiles(sim,2,5,seed=10)==candidate_profiles(sim,2,5,seed=10)
+          assert all(1 <= n <= 4 for n in candidate_profiles(sim,2,5,seed=11))
+          assert 1 <= choose_init_threads(sim,2,seed=11) <= 4
+          with mock.patch('ztm_surgical_runtime.os.geteuid',return_value=1000):
+              try: stop_recognized_miners(1000)
+              except PermissionError:pass
+              else: raise AssertionError('non-root miner stop allowed')
+          with tempfile.TemporaryDirectory() as directory:
+              exe=Path(directory)/'xmrig'
+              subprocess.run(['/bin/cp','/bin/sleep',str(exe)],check=True)
+              miner=subprocess.Popen([str(exe),'30'])
+              other=subprocess.Popen(['/bin/sleep','30'])
+              try:
+                  with mock.patch('ztm_surgical_runtime.os.geteuid',return_value=0):
+                      assert stop_recognized_miners(os.getuid(),timeout=1)
+                  miner.wait(timeout=3)
+                  assert other.poll() is None
+              finally:
+                  for p in (miner,other):
+                      if p.poll() is None:p.terminate();p.wait()
+          with mock.patch('ztm_surgical_runtime.os.geteuid',return_value=0),mock.patch('ztm_surgical_runtime.recognized_miners',return_value=[(111,'123',1000,'xmrig')]),mock.patch('ztm_surgical_runtime.os.kill',return_value=None):
+              assert not stop_recognized_miners(1000,timeout=0.01)
+          with mock.patch('ztm_surgical_runtime._memory_kb',return_value={'Hugepagesize':2048,'HugePages_Total':0,'MemAvailable':100}),mock.patch('ztm_surgical_runtime.subprocess.run') as command:
+              assert prepare_hugepages(emit=lambda *_:None)
+              command.assert_not_called()
+          print('PASS process isolation, CPU candidates, hugepage low-memory safety')
+          PY
+      - name: Install Debian candidate on fresh Ubuntu and test four displays
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq python3-tk xvfb
+          sudo apt-get install -y /tmp/ztmrc1/preflight.deb
+          test "$(dpkg-query -W -f='\${Version}' ztm-zero-to-monero)" = '1.2.1~srp1v2rc1'
+          for screen in 1024x768 1280x720 1366x768 1920x1080; do
+            xvfb-run -a -s "-screen 0 ${screen}x24" python3 - <<'PY'
+          import tkinter as tk
+          from ztm_gui import ZTMApp
+          root=tk.Tk();app=ZTMApp(root);root.update_idletasks()
+          for w in (app.prepare_btn,app.benchmark_btn,app.terminal):
+              assert w.winfo_ismapped()
+              assert w.winfo_rootx()+w.winfo_width()<=root.winfo_rootx()+root.winfo_width()
+              assert w.winfo_rooty()+w.winfo_height()<=root.winfo_rooty()+root.winfo_height()
+          assert not app.confirm_power.get() and not app.confirm_reward.get()
+          root.destroy()
+          print('GUI PASS')
+          PY
+          done
+      - name: Build pinned one-command installer and release artifacts
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          cp /tmp/ztmrc1/preflight.deb dist/ZTM-SRP1V2-RC1_amd64.deb
+          cp /tmp/ztmrc1/scripts/*.py release/
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+          p=Path('dist/ZTM-SRP1V2-RC1_amd64.deb')
+          sha=hashlib.sha256(p.read_bytes()).hexdigest()
+          size=p.stat().st_size
+          installer='''#!/usr/bin/env bash
+          set -Eeuo pipefail
+          umask 077
+          [[ "$(uname -s)" == Linux && "$(uname -m)" == x86_64 ]] || { echo "Ubuntu x86-64 required"; exit 1; }
+          [[ "${EUID}" -ne 0 ]] || { echo "Launch as your ordinary Ubuntu user"; exit 1; }
+          . /etc/os-release
+          [[ "${ID}" == ubuntu ]] || { echo "Ubuntu required"; exit 1; }
+          for cmd in python3 sha256sum stat dpkg-deb sudo apt-get; do command -v "$cmd" >/dev/null || { echo "Missing: $cmd"; exit 1; }; done
+          if pgrep -a -f '(^|/)(xmrig|xmrig-amd|xmrig-nvidia)([[:space:]]|$)' >/dev/null 2>&1; then
+            echo "A miner is running. STOP its old run before updating; this installer will not terminate a benchmark."
+            exit 1
+          fi
+          work="$(mktemp -d)"
+          trap 'rm -rf "$work"' EXIT
+          pkg="$work/ZTM-SRP1V2-RC1_amd64.deb"
+          python3 - "$pkg" <<'PYDOWNLOAD'
+          import pathlib,sys,urllib.request
+          u='https://raw.githubusercontent.com/I2PS-Engineering/ZTM_Benchmark/release/ztm-srp1v2-rc1/dist/ZTM-SRP1V2-RC1_amd64.deb'
+          pathlib.Path(sys.argv[1]).write_bytes(urllib.request.urlopen(u,timeout=60).read())
+          PYDOWNLOAD
+          echo "PKG_SHA  $pkg" | sha256sum -c -
+          [[ "$(stat -c%s "$pkg")" == PKG_BYTES ]] || exit 1
+          [[ "$(dpkg-deb -f "$pkg" Version)" == 1.2.1~srp1v2rc1 ]] || exit 1
+          sudo apt-get install -y "$pkg"
+          [[ "$(dpkg-query -W -f='${Version}' ztm-zero-to-monero)" == 1.2.1~srp1v2rc1 ]] || exit 1
+          echo 'ZTM-SRP1V2-RC1 installed; launching...'
+          nohup /usr/bin/ztm >/tmp/ztm-rc1-launch.log 2>&1 &
+          '''.replace('PKG_SHA',sha).replace('PKG_BYTES',str(size))
+          installer='\n'.join(x[10:] if x.startswith('          ') else x for x in installer.splitlines())+'\n'
+          Path('install-ztm-srp1v2-rc1.sh').write_text(installer)
+          ish=hashlib.sha256(installer.encode()).hexdigest()
+          cmd=("python3 -c 'import hashlib,subprocess,urllib.request;"+
+          'u="https://raw.githubusercontent.com/I2PS-Engineering/ZTM_Benchmark/release/ztm-srp1v2-rc1/install-ztm-srp1v2-rc1.sh";'+
+          'b=urllib.request.urlopen(u,timeout=60).read();'+
+          f'assert hashlib.sha256(b).hexdigest()=="{ish}","SECURITY STOP: installer checksum mismatch";'+
+          'subprocess.run(["bash","-s"],input=b,check=True)' +"\n")
+          Path('INSTALL_RC1.txt').write_text('ZTM-SRP1V2-RC1 test build\nCopy the entire following command after reboot, before launching ZTM:\n\n'+cmd)
+          Path('SHA256SUMS_RC1.txt').write_text(f'{sha}  dist/ZTM-SRP1V2-RC1_amd64.deb\n{ish}  install-ztm-srp1v2-rc1.sh\n')
+          Path('RELEASE_RC1_NOTES.md').write_text('''# ZTM-SRP1V2-RC1 — controlled Ubuntu pre-release
+          Based on SHA-256-pinned publicly distributed SRP1V2, not the older attached package.
+          Surgically removes the upper Ubuntu upgrade toggle while preserving both lower consent checkboxes; adds CPU/cache inventory, randomized active-thread candidates and per-run dataset initialization, authorized recognized-XMRig cleanup at preparation, Start Benchmark, Start Mining and privileged miner launch, and safe huge-page verification.
+          No wallet economics, 24-hour requirement or public stable installer changes.
+          **RC / NOT STABLE:** local tests and Ubuntu virtual GUI checks passed; the complete 24-hour HashVault run, physical root/polkit broker, thermal improvement and real competing-miner service restart test are not yet certified.
+          Existing SRP1V2 public stable remains unchanged. Do not install during a running miner benchmark.
+          See INSTALL_RC1.txt. This candidate cannot guarantee detection of renamed/unknown miners.
+          ''')
+          print('RC package SHA256:',sha,'bytes:',size,'installer SHA256:',ish)
+          PY
+          bash -n install-ztm-srp1v2-rc1.sh
+          sha256sum -c SHA256SUMS_RC1.txt
+      - name: Stage RC files on isolated release branch only
+        run: |
+          set -euo pipefail
+          git config user.name "I2PS Engineering CI"
+          git config user.email "engineering@i2psolutions.com"
+          git add dist/ZTM-SRP1V2-RC1_amd64.deb release/patch_srp1v2_surgical.py release/ztm_surgical_runtime.py install-ztm-srp1v2-rc1.sh INSTALL_RC1.txt SHA256SUMS_RC1.txt RELEASE_RC1_NOTES.md
+          git commit -m "build(rc1): verified separate pre-release package and checked installer"
+          git push origin HEAD:release/ztm-srp1v2-rc1
+      - name: Publish distinct GitHub pre-release only after all checks pass
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release create ZTM-SRP1V2-RC1 \
+            --repo I2PS-Engineering/ZTM_Benchmark \
+            --target release/ztm-srp1v2-rc1 \
+            --title 'ZTM-SRP1V2-RC1 — miner isolation and CPU tuning test build' \
+            --notes-file RELEASE_RC1_NOTES.md --prerelease \
+            dist/ZTM-SRP1V2-RC1_amd64.deb install-ztm-srp1v2-rc1.sh INSTALL_RC1.txt SHA256SUMS_RC1.txt
