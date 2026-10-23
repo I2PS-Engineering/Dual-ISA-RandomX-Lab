@@ -22,6 +22,14 @@ The build reconstructs the verified RC3 Debian package, applies `release/patch_r
 - **Explicit XMRig per-thread CPU affinity** and topology-aware cache-domain or NUMA placement: inventory is collected but not enforced in the current engine.
 - Separate empirical dataset initialization latency optimization; `randomx.init` is not a steady-state hashrate control.
 - Live 24-hour Ubuntu hardware validation and HashVault VarDiff / accepted-share comparisons.
-- Public RC4 release assets and installation command.
+- 24-hour physical-hardware acceptance and measured HashVault results (the RC4 prerelease and checksum-verified installer are public).
 
-**Release gate:** Do not promote this candidate to a public RC4 installer or claim full hardware-aware optimization until the missing capabilities are implemented and tested. Do not modify V3.
+**Release status:** RC4 is published as a development **prerelease**, not the production stable version. A pinned-SHA installer is published for controlled Ubuntu testing. Do not claim full hardware-aware CPU affinity or verified live HashVault gains. Do not modify V3.
+
+## Published RC4 test installation
+
+- [RC4 prerelease](https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/tag/ZTM-SRP1V2-RC4)
+- [RC4 verified installer script](https://github.com/I2PS-Engineering/ZTM_Benchmark/blob/release/ztm-srp1v2-rc4/install-ztm-srp1v2-rc4.sh)
+- Package SHA-256: `abd42a5ded115966dc20d761560581f2c6009575f73f433869400183404aa879` (121,844 bytes, `1.2.4~srp1v2rc4`)
+- Installer SHA-256: `d009b90e8642e85496618282503d1c27cebf26c255537fc15592d049a7316d60`
+
