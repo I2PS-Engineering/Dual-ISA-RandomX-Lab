@@ -112,12 +112,9 @@ jobs:
           old={str(p.relative_to(a)):p.read_bytes() for p in a.rglob('*') if p.is_file()}
           new={str(p.relative_to(b)):p.read_bytes() for p in b.rglob('*') if p.is_file()}
           assert old.keys()==new.keys(), 'stable package inventory changed'
-          gui='usr/lib/ztm/ztm_gui.py'
-          assert all(old[k]==new[k] for k in old if k!=gui), 'unapproved non-GUI modification'
-          subprocess.run([sys.executable,'release/autoscale_srp1v2.py',str(a/gui)],check=True)
-          assert (a/gui).read_bytes()==new[gui], 'GUI changed beyond authorized auto-scaling'
-          assert new[gui]!=old[gui], 'no scaling update found'
-          print('PASS: exactly one GUI file changed, exclusively through audited display patch')
+          assert old==new, 'unapproved stable application file change'
+          print('PASS: stable application files byte-for-byte identical')
+
           PY
       - name: Mirror verified stable installer and binary in repository
         run: |
