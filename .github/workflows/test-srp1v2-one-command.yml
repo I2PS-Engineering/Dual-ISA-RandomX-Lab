@@ -1,0 +1,56 @@
+name: SRP1V2 - exact public one-command install acceptance
+
+on:
+  push:
+    paths:
+      - '.github/workflows/test-srp1v2-one-command.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-command-install:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check clean Ubuntu environment
+        run: |
+          set -euo pipefail
+          cat /etc/os-release
+          test "$(uname -m)" = x86_64
+          if dpkg-query -W ztm-zero-to-monero >/dev/null 2>&1; then
+            echo 'FAIL: stable ZTM already installed before test'
+            exit 1
+          fi
+      - name: Execute exact command copied from public README
+        run: |
+          set -euo pipefail
+          python3 -c 'import hashlib,subprocess,urllib.request;u="https://raw.githubusercontent.com/I2PS-Engineering/ZTM_Benchmark/main/install-ztm-srp1v2.sh";b=urllib.request.urlopen(u,timeout=60).read();assert hashlib.sha256(b).hexdigest()=="10e308155184646a6dd51ec3001e46bead4947139ed79e77378604e7156cb8ec","SECURITY STOP: installer checksum mismatch";subprocess.run(["bash","-s"],input=b,check=True)'
+      - name: Verify package installed through apt with matching identity
+        run: |
+          set -euo pipefail
+          test "$(dpkg-query -W -f='${Version}' ztm-zero-to-monero)" = '1.2.0~srp1v2'
+          test -x /usr/bin/ztm
+          dpkg -V ztm-zero-to-monero
+          python3 -m compileall -q /usr/lib/ztm
+          grep -Fq 'ZTM-SRP1V2' /usr/lib/ztm/ztm_engine.py
+          printf 'PASS: exact published command downloaded installer and apt-installed SRP1V2\n'
+      - name: Verify installed graphical interface starts on 1024 by 768 virtual display
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb xauth python3-tk
+          xvfb-run -a -s '-screen 0 1024x768x24' /usr/bin/python3 - <<'PY'
+          import sys, tkinter as tk
+          sys.path.insert(0, '/usr/lib/ztm')
+          import ztm_gui
+          root=tk.Tk()
+          app=ztm_gui.ZTMApp(root)
+          root.update_idletasks()
+          assert root.winfo_width() <= 1024
+          assert root.winfo_height() <= 768
+          assert app._font_zoom == 0.95
+          print('PASS: installed GUI launches and auto-scales to', root.winfo_geometry())
+          root.destroy()
+          PY
