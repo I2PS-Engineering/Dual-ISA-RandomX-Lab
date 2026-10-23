@@ -7,9 +7,10 @@ on:
       - 'release/ztm_surgical_runtime.py'
       - 'release/test_v2_topology_ranking.py'
       - '.github/workflows/validate-rc4.yml'
+      - 'release/RC4_STATUS.md'
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
 jobs:
   candidate:
     runs-on: ubuntu-24.04
@@ -58,3 +59,22 @@ jobs:
         with:
           name: ZTM-SRP1V2-RC4-UNRELEASED-CANDIDATE
           path: /tmp/ZTM-SRP1V2-RC4_amd64.deb
+      - name: Verify and publish RC4 candidate prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$(dpkg-deb -f /tmp/ZTM-SRP1V2-RC4_amd64.deb Version)" = '1.2.4~srp1v2rc4'
+          cd /tmp
+          sha256sum ZTM-SRP1V2-RC4_amd64.deb > SHA256SUMS_RC4.txt
+          sha256sum --check SHA256SUMS_RC4.txt
+          cd -
+          test ! -z "${GITHUB_SHA:-}"
+          gh release create ZTM-SRP1V2-RC4 \
+            --repo I2PS-Engineering/ZTM_Benchmark \
+            --target "$GITHUB_SHA" \
+            --prerelease \
+            --title "ZTM-SRP1V2-RC4 — V2 development prerelease (hardware testing pending)" \
+            --notes-file release/RC4_STATUS.md \
+            /tmp/ZTM-SRP1V2-RC4_amd64.deb \
+            /tmp/SHA256SUMS_RC4.txt
