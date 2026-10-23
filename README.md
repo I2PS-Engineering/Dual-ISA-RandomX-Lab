@@ -40,7 +40,7 @@ Official release:
 Run the verified one-command installer as your normal Ubuntu desktop user:
 
 ```bash
-python3 -c 'import hashlib,subprocess,urllib.request;u="https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/download/ZTM-SRP1V2/install-ztm-srp1v2.sh";b=urllib.request.urlopen(u,timeout=60).read();assert hashlib.sha256(b).hexdigest()=="428cd6c872f81325c3b18de8c04a88d3f085daec5795f7cf4723a881734020dd","SECURITY STOP: installer checksum mismatch";subprocess.run(["bash","-s"],input=b,check=True)'
+python3 -c 'import hashlib,subprocess,urllib.request;u="https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/download/ZTM-SRP1V2/install-ztm-srp1v2.sh";b=urllib.request.urlopen(u,timeout=60).read();assert hashlib.sha256(b).hexdigest()=="06d3d7aa4a1553cd8649ddb0e4cef0888ed511ba18f6adf9e012a0f53356e891","SECURITY STOP: installer checksum mismatch";subprocess.run(["bash","-s"],input=b,check=True)'
 ```
 
 The installer downloads the stable Debian package, verifies its exact size, SHA-256, package name, architecture and Debian version before installation.
@@ -50,7 +50,7 @@ The installer downloads the stable Debian package, verifies its exact size, SHA-
 - Package: `ZTM-SRP1V2_amd64.deb`
 - Debian version: `1.2.0~srp1v2`
 - Architecture: `amd64`
-- SHA-256: `ab4e8339a100957df62b2dc83849d9efe6dee3b1fc51fca41a18f7a7b5f18077`
+- SHA-256: `ed9237993aac90d6bcf982e7b4955bdfe7abc4f1c6d5cc3cf5957c8b85a7758d`
 - Size: `47,094` bytes
 
 ## Readable GUI and winning configuration
@@ -59,7 +59,7 @@ The Linux GUI starts at **165% text zoom**, with live **A− / A+** zoom control
 
 After a qualifying 24-hour run, **Winning Configuration** reports the selected active threads, winning tested profile, optimization score, sustained mean/median, highest recorded hashrate, profile peak, share counts, elapsed time, and saved JSON results. An instantaneous peak is distinguished from sustained performance.
 
-Worker ID: **`ZTM-RX1V2-L`**.
+Worker ID: **`ZTM-SRP1V2`**.
 
 ## What happens during the benchmark
 
@@ -86,7 +86,7 @@ The SRP1V2 package was built with guarded stable-release changes and checked for
 - removal of the old duration selector and extra Dev Wallet explanatory line;
 - adaptive GUI sizing and live font zoom at 165% default;
 - desktop launcher and official ZTM icon;
-- rig identification `ZTM-RX1V2-L`;
+- rig identification `ZTM-SRP1V2`;
 - preserved optimizer, Wallet, Mining, eligibility, donation and shutdown behavior;
 - winning-configuration JSON and completion UI;
 - package identity and SHA-256 integrity.

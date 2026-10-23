@@ -17,7 +17,7 @@ Run the installer as your **normal Ubuntu desktop user**, not as root.
 ## Recommended one-command installation
 
 ```bash
-python3 -c 'import hashlib,subprocess,urllib.request;u="https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/download/ZTM-SRP1V2/install-ztm-srp1v2.sh";b=urllib.request.urlopen(u,timeout=60).read();assert hashlib.sha256(b).hexdigest()=="428cd6c872f81325c3b18de8c04a88d3f085daec5795f7cf4723a881734020dd","SECURITY STOP: installer checksum mismatch";subprocess.run(["bash","-s"],input=b,check=True)'
+python3 -c 'import hashlib,subprocess,urllib.request;u="https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/download/ZTM-SRP1V2/install-ztm-srp1v2.sh";b=urllib.request.urlopen(u,timeout=60).read();assert hashlib.sha256(b).hexdigest()=="06d3d7aa4a1553cd8649ddb0e4cef0888ed511ba18f6adf9e012a0f53356e891","SECURITY STOP: installer checksum mismatch";subprocess.run(["bash","-s"],input=b,check=True)'
 ```
 
 This verifies the installer before executing it.
@@ -41,7 +41,7 @@ Download:
 
 Expected package SHA-256:
 
-`ab4e8339a100957df62b2dc83849d9efe6dee3b1fc51fca41a18f7a7b5f18077`
+`ed9237993aac90d6bcf982e7b4955bdfe7abc4f1c6d5cc3cf5957c8b85a7758d`
 
 Install the verified package:
 
