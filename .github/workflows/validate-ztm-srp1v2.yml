@@ -51,29 +51,29 @@ jobs:
           sudo apt-get install -qq -y xvfb python3-tk
           for resolution in 1024x768 1280x720 1366x768 1920x1080; do
             RES="$resolution" xvfb-run -a -s "-screen 0 ${resolution}x24" /usr/bin/python3 - <<'PY'
-import os, sys, tkinter as tk
-sys.path.insert(0, '/tmp/ztm-v2/pkg/usr/lib/ztm')
-import ztm_gui
-root=tk.Tk()
-app=ztm_gui.ZTMApp(root)
-root.update_idletasks()
-sw,sh=root.winfo_screenwidth(),root.winfo_screenheight()
-assert root.winfo_width() <= sw and root.winfo_height() <= sh
-expected=0.95 if sh<=800 else (1.10 if sh<=950 else (1.30 if sh<=1100 else 1.65))
-assert app._font_zoom == expected, (sw,sh,app._font_zoom)
-for control in (app.prepare_btn,app.benchmark_btn,app.terminal):
-    assert control.winfo_ismapped(), (sw,sh,control)
-    assert control.winfo_rootx()+control.winfo_width() <= root.winfo_rootx()+root.winfo_width()
-    assert control.winfo_rooty()+control.winfo_height() <= root.winfo_rooty()+root.winfo_height()
-assert app.ui_zoom_status.get() == f"UI {round(expected*100)}%"
-app.change_zoom(0.15)
-assert app._font_zoom > expected
-app.change_zoom(-0.15)
-assert app._font_zoom == expected
-assert root.title().startswith("ZTM-SRP1V2")
-root.destroy()
-print("AUTO-SCALING PASS",sw,sh)
-PY
+          import os, sys, tkinter as tk
+          sys.path.insert(0, '/tmp/ztm-v2/pkg/usr/lib/ztm')
+          import ztm_gui
+          root=tk.Tk()
+          app=ztm_gui.ZTMApp(root)
+          root.update_idletasks()
+          sw,sh=root.winfo_screenwidth(),root.winfo_screenheight()
+          assert root.winfo_width() <= sw and root.winfo_height() <= sh
+          expected=0.95 if sh<=800 else (1.10 if sh<=950 else (1.30 if sh<=1100 else 1.65))
+          assert app._font_zoom == expected, (sw,sh,app._font_zoom)
+          for control in (app.prepare_btn,app.benchmark_btn,app.terminal):
+              assert control.winfo_ismapped(), (sw,sh,control)
+              assert control.winfo_rootx()+control.winfo_width() <= root.winfo_rootx()+root.winfo_width()
+              assert control.winfo_rooty()+control.winfo_height() <= root.winfo_rooty()+root.winfo_height()
+          assert app.ui_zoom_status.get() == f"UI {round(expected*100)}%"
+          app.change_zoom(0.15)
+          assert app._font_zoom > expected
+          app.change_zoom(-0.15)
+          assert app._font_zoom == expected
+          assert root.title().startswith("ZTM-SRP1V2")
+          root.destroy()
+          print("AUTO-SCALING PASS",sw,sh)
+          PY
           done
       - uses: actions/upload-artifact@v4
         with:
