@@ -1,6 +1,6 @@
 # ZTM — Zero to Monero | RandomX CPU Benchmark
 
-**Latest V2 development prerelease: ZTM-SRP1V2-RC4** · [RC4 download](https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/tag/ZTM-SRP1V2-RC4)
+**Latest V2 development prerelease: ZTM-SRP1V2-RC4.1 — fixed seven-profile CPU-affinity optimizer** · [RC4.1 download](https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/tag/ZTM-SRP1V2-RC4.1)
 
 **Current stable release: ZTM-SRP1V2 — Stable Release V1.2**
 
@@ -12,36 +12,37 @@ ZTM does not simulate mining.
 
 ## Install
 
-### Latest V2 test release — ZTM-SRP1V2-RC4
+### Latest V2 corrected test release — ZTM-SRP1V2-RC4.1
 
-**RC4 is the latest published V2 development prerelease** for Ubuntu Desktop x86-64. It is available for controlled testing; **ZTM-SRP1V2 remains the stable release**. No V3 files or releases are changed.
+**RC4.1 fixes the four-profile limit observed with RC4 on a four-logical-CPU worker.** It is the latest **development prerelease**, not the production stable release. V3 is unchanged.
 
-**Step 1 — Stop and reboot:** Stop any running benchmark, reboot Ubuntu, and open Terminal with **Ctrl+Alt+T**. Do not replace the app during a benchmark.
+**Step 1 — Stop, then reboot:** Stop the current mining or benchmarking operation normally, reboot Ubuntu, and open Terminal (**Ctrl+Alt+T**). Do not replace ZTM while a benchmark is still running.
 
-**Step 2 — Install RC4:** As your ordinary Ubuntu desktop user (not root), copy and paste this complete command:
+**Step 2 — Install RC4.1:** As an ordinary Ubuntu Desktop x86-64 user (not root), copy and paste the complete command below:
 
 ```bash
-python3 -c 'import hashlib,subprocess,urllib.request;u="https://raw.githubusercontent.com/I2PS-Engineering/ZTM_Benchmark/release/ztm-srp1v2-rc4/install-ztm-srp1v2-rc4.sh";b=urllib.request.urlopen(u,timeout=60).read();assert hashlib.sha256(b).hexdigest()=="d009b90e8642e85496618282503d1c27cebf26c255537fc15592d049a7316d60","SECURITY STOP: RC4 installer checksum mismatch";subprocess.run(["bash","-s"],input=b,check=True)'
+python3 -c 'import hashlib,subprocess,urllib.request;u="https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/download/ZTM-SRP1V2-RC4.1/install-ztm-srp1v2-rc41.sh";b=urllib.request.urlopen(u,timeout=60).read();assert hashlib.sha256(b).hexdigest()=="6c3685ed78ed2802394702baa7a470528fd5aa5958a18a36c3faab4809372266","SECURITY STOP: RC4.1 installer checksum mismatch";subprocess.run(["bash","-s"],input=b,check=True)'
 ```
 
-The one-command launcher verifies the RC4 installer SHA-256 **before executing it**. The installer checks the released Debian package's SHA-256, exact byte size, package identity, architecture and version before installing it. It then starts ZTM through the existing pre-GUI XMRig cleanup and authorization workflow.
+The command verifies the published RC4.1 installer's SHA-256 before execution. The installer verifies the **exact released package** SHA-256, byte size, Debian package name, architecture and version, then installs the application and launches it with the previously approved pre-GUI XMRig process cleanup.
 
-**RC4 benchmark behavior:**
+**What's changed in RC4.1**
 
-- **One original XMRig automatic baseline**, followed by **up to six distinct hardware-ranked active-thread alternatives** (seven profiles maximum).
-- **15 full measured minutes per candidate**, allowing more time to observe HashVault VarDiff and accepted-share behavior; pool stabilization is not guaranteed.
-- **Five-second verified stop/check/recheck** between profile transitions.
-- CPU hardware inventory includes physical-core and SMT grouping, L1/L2/L3 cache size and sharing information, memory availability and NUMA-node count where readable. RC4 uses hardware-informed **thread-count ranking**; explicit per-thread CPU affinity and NUMA placement are **not yet enforced**.
-- Live GUI profile indicator, active threads, dataset-init threads and elapsed/target time displayed alongside hashrate.
-- The full **24-hour benchmark requirement**, dual consent, initial development contribution, wallet safety and personal-mining eligibility rules remain unchanged.
+- **Exactly seven benchmark profiles** on systems with at least three permitted logical CPU IDs: **Profile 1/7 is original XMRig automatic**; Profiles **2/7–7/7** are **six distinct**, hardware-ranked XMRig `cpu.rx` **per-thread CPU-affinity layouts**.
+- Profile selection uses Linux allowed CPU IDs, physical-core/SMT grouping, L2/L3 cache-sharing domains and detectable NUMA information. Two profiles may have the same active thread count but differ meaningfully in the logical CPU IDs on which XMRig runs.
+- Each profile gets **15 full measured minutes** after readiness and warm-up. Six five-second verified transitions remain, with supervisor shutdown verification and miner-process rechecks.
+- After measuring all seven, the optimizer chooses a winner using **measured sustained performance and available share statistics**, and **preserves the winning affinity map** during the sustained remainder of the **24-hour** benchmark.
+- Existing dual consent checkboxes, Dev Wallet policy, huge-page preparation, authorized startup cleanup and wallet eligibility rules remain unchanged.
 
-On CPUs with too few distinct active-thread counts, **fewer than seven profiles will be tested**; RC4 does not invent duplicate configurations. The ranking is a candidate-selection heuristic, **not a proven universally optimal CPU configuration**. Real 24-hour physical-worker and pool-side validation remains pending.
+**Limitations:** Seven genuinely distinct affinity profiles are impossible with fewer than three permitted CPU IDs; on those systems the optimizer stops with a clear error instead of inventing duplicates. Fifteen-minute HashVault VarDiff behavior and 24-hour real hardware performance still require worker-side verification. CPU-affinity configuration is generated and checked by automated tests; gains are **not guaranteed**.
 
-**RC4 release links:** [Published RC4 prerelease](https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/tag/ZTM-SRP1V2-RC4) · [RC4 installer source](https://github.com/I2PS-Engineering/ZTM_Benchmark/blob/release/ztm-srp1v2-rc4/install-ztm-srp1v2-rc4.sh) · [Package download](https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/download/ZTM-SRP1V2-RC4/ZTM-SRP1V2-RC4_amd64.deb) · [RC4 validation and limitations](https://github.com/I2PS-Engineering/ZTM_Benchmark/blob/release/ztm-srp1v2-rc4/release/RC4_STATUS.md) · [Automated RC4 candidate tests](https://github.com/I2PS-Engineering/ZTM_Benchmark/actions/runs/39929938485).
+**Verified on Ubuntu CI:** fixed-seven tests on three- and four-logical-CPU arrangements, cache/SMT topology checks, sparse CPU masks, XMRig JSON affinity mapping, four GUI resolutions, Debian installation, and the **exact public copy/paste installer**.
 
-**RC4 package verification:** Debian version `1.2.4~srp1v2rc4`, size **121,844 bytes**, SHA-256 `abd42a5ded115966dc20d761560581f2c6009575f73f433869400183404aa879`. The test release is **not** the stable version.
+**RC4.1 assets:** [Published corrective prerelease](https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/tag/ZTM-SRP1V2-RC4.1) · [Installation instructions](https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/download/ZTM-SRP1V2-RC4.1/INSTALL_RC41.txt) · [Installer script](https://github.com/I2PS-Engineering/ZTM_Benchmark/blob/main/install-ztm-srp1v2-rc41.sh) · [Passed GitHub Actions run](https://github.com/I2PS-Engineering/ZTM_Benchmark/actions/runs/39933285557) · [RC4.1 source branch](https://github.com/I2PS-Engineering/ZTM_Benchmark/tree/release/ztm-srp1v2-rc4-1).
 
-**Previous RC3 test build:** [RC3 release archive](https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/tag/ZTM-SRP1V2-RC3).
+**Release integrity:** Version `1.2.5~srp1v2rc41`, Debian package size **133,066 bytes**, package SHA-256 `b1649334daf85d504b0423297dcf4fe6d34bace125fece642c120f6cc7cdd7fa`, installer SHA-256 `6c3685ed78ed2802394702baa7a470528fd5aa5958a18a36c3faab4809372266`.
+
+**Older builds:** [RC4](https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/tag/ZTM-SRP1V2-RC4) (four-profile limitation on four-thread machines) · [RC3](https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/tag/ZTM-SRP1V2-RC3). These remain available but are superseded for controlled V2 testing by RC4.1.
 
 ### Existing public stable release — SRP1V2
 
