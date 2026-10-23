@@ -40,7 +40,7 @@ Official release:
 Run the verified one-command installer as your normal Ubuntu desktop user:
 
 ```bash
-python3 -c 'import hashlib,subprocess,urllib.request;u="https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/download/ZTM-SRP1V2/install-ztm-srp1v2.sh";b=urllib.request.urlopen(u,timeout=60).read();assert hashlib.sha256(b).hexdigest()=="06d3d7aa4a1553cd8649ddb0e4cef0888ed511ba18f6adf9e012a0f53356e891","SECURITY STOP: installer checksum mismatch";subprocess.run(["bash","-s"],input=b,check=True)'
+python3 -c 'import hashlib,subprocess,urllib.request;u="https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/download/ZTM-SRP1V2/install-ztm-srp1v2.sh";b=urllib.request.urlopen(u,timeout=60).read();assert hashlib.sha256(b).hexdigest()=="693f851b482b2727a1cfb1f608c4eff00604a492784c6b6c4308dcc537b15cca","SECURITY STOP: installer checksum mismatch";subprocess.run(["bash","-s"],input=b,check=True)'
 ```
 
 The installer downloads the stable Debian package, verifies its exact size, SHA-256, package name, architecture and Debian version before installation.
@@ -50,12 +50,12 @@ The installer downloads the stable Debian package, verifies its exact size, SHA-
 - Package: `ZTM-SRP1V2_amd64.deb`
 - Debian version: `1.2.0~srp1v2`
 - Architecture: `amd64`
-- SHA-256: `ed9237993aac90d6bcf982e7b4955bdfe7abc4f1c6d5cc3cf5957c8b85a7758d`
+- SHA-256: `46d15b92b0abaced099a111041774fe4aa57aabed572058e05a0fce99f34c5b3`
 - Size: `47,086` bytes
 
 ## Readable GUI and winning configuration
 
-The Linux GUI starts at **165% text zoom**, with live **A− / A+** zoom controls (125–200%). Text, buttons, checkboxes and terminal output now scale as interface elements instead of only enlarging the window.
+The Linux GUI starts at **screen-adaptive text zoom**, with live **A− / A+** zoom controls (125–200%). Text, buttons, checkboxes and terminal output now scale as interface elements instead of only enlarging the window.
 
 After a qualifying 24-hour run, **Winning Configuration** reports the selected active threads, winning tested profile, optimization score, sustained mean/median, highest recorded hashrate, profile peak, share counts, elapsed time, and saved JSON results. An instantaneous peak is distinguished from sustained performance.
 
