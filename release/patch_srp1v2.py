@@ -3,6 +3,7 @@
 from pathlib import Path
 import re
 import sys
+import subprocess
 
 if len(sys.argv) != 2:
     raise SystemExit("usage: patch_srp1v2.py <dpkg-deb-extracted-root>")
@@ -184,6 +185,9 @@ g = one(g,
         "finished benchmark UI call")
 
 gui_file.write_text(g, encoding="utf-8")
+# This separate exact-match patch changes only screen geometry and font scaling.
+subprocess.run([sys.executable, str(Path(__file__).with_name("autoscale_srp1v2.py")), str(gui_file)], check=True)
+g = gui_file.read_text(encoding="utf-8")
 
 e = engine_file.read_text(encoding="utf-8")
 if e.count("ZTM-R-A-10-E-R") != 2:
@@ -275,7 +279,7 @@ control_file.write_text(c, encoding="utf-8")
 
 # Blocking invariants for the new package.
 assert "Linux x86-64 · Stable Release V1.2" in g
-assert "UI 165%" in g and "def change_zoom(self, delta):" in g
+assert "self._font_zoom = 0.95" in g and "def change_zoom(self, delta):" in g
 assert "from tkinter import font as tkfont" in g
 assert "I authorize real CPU work for 24 hours, including electricity use and heat." in g
 assert "I understand this online benchmark uses both XMRig and I2PS dev contribution." in g

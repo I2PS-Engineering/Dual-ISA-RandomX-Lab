@@ -68,7 +68,7 @@ readme = (
     "3. Copy the following ENTIRE command into Terminal and press Enter:\n\n"
     + command +
     "\nThe installer verifies both installer and Debian package checksums.\n"
-    "New default interface zoom: 165%. Adjust using A− and A+ in the GUI header.\n"
+    "Initial interface zoom adapts to the screen. Adjust using A− and A+ in the GUI header.\n"
     "New rig ID: ZTM-SRP1V2.\n"
     "After a qualifying 24-hour benchmark, the app displays Winning Configuration\n"
     "with measured peak and sustained performance and selected threads.\n"
@@ -84,7 +84,7 @@ Built from the SHA-256-verified ZTM-SRP1V1 Debian baseline.
 
 ## Improvements
 
-- Default **165%** real GUI font scaling, including terminal, navigation, consent labels and buttons.
+- Automatic display-aware real GUI font scaling for compact and large screens, including terminal, navigation, consent labels and buttons.
 - Instant **A− / A+** controls to adjust text from 125% to 200%, independently of window dimensions.
 - Increased button padding and long text wrapping.
 - Benchmark pool `pass` and `rig-id` updated to `ZTM-SRP1V2`.

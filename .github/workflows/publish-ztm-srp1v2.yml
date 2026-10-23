@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/publish-ztm-srp1v2.yml'
       - 'release/patch_srp1v2.py'
+      - 'release/autoscale_srp1v2.py'
       - 'release/make_srp1v2_assets.py'
 
 permissions:
@@ -44,31 +45,37 @@ jobs:
           dpkg-deb --build --root-owner-group "$ROOT" /tmp/ztm-v2/ZTM-SRP1V2_amd64.deb
           test "$(dpkg-deb -f /tmp/ztm-v2/ZTM-SRP1V2_amd64.deb Version)" = '1.2.0~srp1v2'
           sha256sum /tmp/ztm-v2/ZTM-SRP1V2_amd64.deb
-      - name: GUI render and zoom smoke test at 1366x768
+      - name: GUI auto-scaling smoke tests
         run: |
           set -euo pipefail
           sudo apt-get update -qq
           sudo apt-get install -qq -y xvfb python3-tk
-          xvfb-run -a -s '-screen 0 1366x768x24' /usr/bin/python3 - <<'PY'
-          import sys, tkinter as tk
-          sys.path.insert(0,'/tmp/ztm-v2/pkg/usr/lib/ztm')
-          import ztm_gui
-          root=tk.Tk()
-          app=ztm_gui.ZTMApp(root)
-          root.update_idletasks()
-          assert app._font_zoom==1.65
-          assert len(app._font_registry)>=8
-          assert all(f.actual('size')>=round(key[1]*1.65) for key,f in app._font_registry.items())
-          first=next(iter(app._font_registry.values()))
-          before=first.actual('size')
-          app.change_zoom(0.15)
-          assert first.actual('size')>before
-          app.change_zoom(-0.15)
-          assert app.ui_zoom_status.get()=='UI 165%'
-          print('GUI smoke pass',root.winfo_geometry(),'fonts',len(app._font_registry))
-          assert root.winfo_width()<=1366 and root.winfo_height()<=768
-          root.destroy()
-          PY
+          for resolution in 1024x768 1280x720 1366x768 1920x1080; do
+            RES="$resolution" xvfb-run -a -s "-screen 0 \${resolution}x24" /usr/bin/python3 - <<'PY'
+import os, sys, tkinter as tk
+sys.path.insert(0, '/tmp/ztm-v2/pkg/usr/lib/ztm')
+import ztm_gui
+root=tk.Tk()
+app=ztm_gui.ZTMApp(root)
+root.update_idletasks()
+sw,sh=root.winfo_screenwidth(),root.winfo_screenheight()
+assert root.winfo_width() <= sw and root.winfo_height() <= sh
+expected=0.95 if sh<=800 else (1.10 if sh<=950 else (1.30 if sh<=1100 else 1.65))
+assert app._font_zoom == expected, (sw,sh,app._font_zoom)
+for control in (app.prepare_btn,app.benchmark_btn,app.terminal):
+    assert control.winfo_ismapped(), (sw,sh,control)
+    assert control.winfo_rootx()+control.winfo_width() <= root.winfo_rootx()+root.winfo_width()
+    assert control.winfo_rooty()+control.winfo_height() <= root.winfo_rooty()+root.winfo_height()
+assert app.ui_zoom_status.get() == f"UI {round(expected*100)}%"
+app.change_zoom(0.15)
+assert app._font_zoom > expected
+app.change_zoom(-0.15)
+assert app._font_zoom == expected
+assert root.title().startswith("ZTM-SRP1V2")
+root.destroy()
+print("AUTO-SCALING PASS",sw,sh)
+PY
+          done
       - name: Prepare signed-by-hash installer and one-README ZIP
         run: |
           set -euo pipefail
@@ -83,37 +90,36 @@ jobs:
           s=z.read('README.txt').decode('utf-8')
           assert 'ZTM-SRP1V2' in s
           assert 'python3 -c ' in s
-          assert '165%' in s
+          assert 'adapts to the screen' in s
           assert 'Winning Configuration' in s
           print('single README ZIP verified:',len(s),'characters')
           PY
       - name: Guard stable release against unrelated changes
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: \${{ github.token }}
         run: |
           set -euo pipefail
           mkdir -p /tmp/ztm-v2/old-release /tmp/ztm-v2/new-release
           gh release download ZTM-SRP1V2 -R I2PS-Engineering/ZTM_Benchmark -p ZTM-SRP1V2_amd64.deb -D /tmp/ztm-v2/old-release
-          echo 'ab4e8339a100957df62b2dc83849d9efe6dee3b1fc51fca41a18f7a7b5f18077  /tmp/ztm-v2/old-release/ZTM-SRP1V2_amd64.deb' | sha256sum -c -
+          echo 'ed9237993aac90d6bcf982e7b4955bdfe7abc4f1c6d5cc3cf5957c8b85a7758d  /tmp/ztm-v2/old-release/ZTM-SRP1V2_amd64.deb' | sha256sum -c -
           dpkg-deb -R /tmp/ztm-v2/old-release/ZTM-SRP1V2_amd64.deb /tmp/ztm-v2/old-release/root
           dpkg-deb -R /tmp/ztm-v2/ZTM-SRP1V2_amd64.deb /tmp/ztm-v2/new-release/root
           python3 - <<'PY'
-          from pathlib import Path
-          a=Path('/tmp/ztm-v2/old-release/root')
-          b=Path('/tmp/ztm-v2/new-release/root')
-          original={str(p.relative_to(a)):p.read_bytes() for p in a.rglob('*') if p.is_file()}
-          updated={str(p.relative_to(b)):p.read_bytes() for p in b.rglob('*') if p.is_file()}
-          assert original.keys()==updated.keys(), 'package file inventory changed'
-          allowed={'usr/lib/ztm/ztm_engine.py','usr/lib/ztm/ztm_gui.py','usr/lib/ztm/ztm_mining.py'}
-          actual=set()
-          for path,data in original.items():
-              wanted=data.replace(b'ZTM-RX1V2-L',b'ZTM-SRP1V2') if path in allowed else data
-              assert updated[path]==wanted, 'unexpected modification: '+path
-              if data!=updated[path]:actual.add(path)
-          assert actual==allowed, 'unexpected changed files '+repr(actual)
-          print('Rig-ID-only content audit PASSED')
-          PY
-      - name: Publish rig-ID-corrected SRP1V2 release assets
+from pathlib import Path
+import subprocess,sys
+a=Path('/tmp/ztm-v2/old-release/root')
+b=Path('/tmp/ztm-v2/new-release/root')
+old={str(p.relative_to(a)):p.read_bytes() for p in a.rglob('*') if p.is_file()}
+new={str(p.relative_to(b)):p.read_bytes() for p in b.rglob('*') if p.is_file()}
+assert old.keys()==new.keys(), 'stable package inventory changed'
+gui='usr/lib/ztm/ztm_gui.py'
+assert all(old[k]==new[k] for k in old if k!=gui), 'unapproved non-GUI modification'
+subprocess.run([sys.executable,'release/autoscale_srp1v2.py',str(a/gui)],check=True)
+assert (a/gui).read_bytes()==new[gui], 'GUI changed beyond authorized auto-scaling'
+assert new[gui]!=old[gui], 'no scaling update found'
+print('PASS: exactly one GUI file changed, exclusively through audited display patch')
+PY
+      - name: Publish auto-scaled SRP1V2 stable release assets
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -125,7 +131,7 @@ jobs:
           gh release upload ZTM-SRP1V2 "$R/ZTM-SRP1V2_amd64.deb" "$R/install-ztm-srp1v2.sh" "$R/COPY_PASTE_COMMAND.txt" "$R/SHA256SUMS.txt" "$R/ZTM-SRP1V2_Linux_One_Command_README.zip" -R I2PS-Engineering/ZTM_Benchmark --clobber
           gh release edit ZTM-SRP1V2 -R I2PS-Engineering/ZTM_Benchmark --notes-file "$R/RELEASE_NOTES.md"
           gh release view ZTM-SRP1V2 -R I2PS-Engineering/ZTM_Benchmark --json tagName,assets
-      - name: Update published rig ID and verified installation checksums
+      - name: Update verified installer and package checksums
         run: |
           set -euo pipefail
           git config user.name 'I2PS Engineering Build'
@@ -141,8 +147,8 @@ jobs:
               p=Path(name)
               if not p.exists():continue
               before=p.read_text()
-              after=before.replace('ZTM-RX1V2-L','ZTM-SRP1V2').replace('428cd6c872f81325c3b18de8c04a88d3f085daec5795f7cf4723a881734020dd',installer_sha).replace('ab4e8339a100957df62b2dc83849d9efe6dee3b1fc51fca41a18f7a7b5f18077',pkg_sha)
-              if name=='README.md':after=after.replace('47,094 bytes',f'{pkg.stat().st_size:,} bytes')
+              after=before.replace('06d3d7aa4a1553cd8649ddb0e4cef0888ed511ba18f6adf9e012a0f53356e891',installer_sha).replace('ed9237993aac90d6bcf982e7b4955bdfe7abc4f1c6d5cc3cf5957c8b85a7758d',pkg_sha).replace('165% text zoom', 'screen-adaptive text zoom')
+              if name=='README.md':after=after.replace('47,086 bytes',f'{pkg.stat().st_size:,} bytes')
               if before!=after:p.write_text(after)
           PY
           git add README.md docs/INSTALLATION.md
