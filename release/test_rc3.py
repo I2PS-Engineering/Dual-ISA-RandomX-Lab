@@ -9,19 +9,19 @@ class RC3Acceptance(unittest.TestCase):
     def setUp(self):
         self.old4={'logical_cpus':4,'physical_cores':4,'l3_cache_bytes':6291456,'l2_cache_bytes':262144,'memory_available_kb':8192000,'memory_type':'DDR3'}
     def test_limits(self):
-        self.assertEqual(e._profile_limits(86400),(11,300))
-        self.assertEqual(e.PROFILE_SECONDS,300)
+        self.assertEqual(e._profile_limits(86400),(7,900))
+        self.assertEqual(e.PROFILE_SECONDS,900)
         self.assertEqual(e.TRANSITION_SECONDS,5)
     def test_4core(self):
-        x=candidate_profiles(self.old4,3,11)
+        x=candidate_profiles(self.old4,3,7)
         self.assertEqual(len(x),3)
         self.assertEqual(len(set(x)),3)
         self.assertNotIn(3,x)
         self.assertEqual(x,candidate_profiles(self.old4,3,11))
     def test_large_host_cap(self):
         host={'logical_cpus':32,'physical_cores':16,'l3_cache_bytes':64*1024*1024,'l2_cache_bytes':8*1024*1024,'memory_available_kb':64*1024*1024,'memory_type':'unknown'}
-        x=candidate_profiles(host,16,11)
-        self.assertEqual(len(x),10)
+        x=candidate_profiles(host,16,7)
+        self.assertEqual(len(x),6)
         self.assertEqual(len(set(x)),10)
         self.assertNotIn(16,x)
         self.assertEqual(x,candidate_profiles(host,16,11))
@@ -63,11 +63,11 @@ class RC3Acceptance(unittest.TestCase):
             self.assertTrue(app.benchmark_btn.winfo_ismapped())
             self.assertFalse(app.confirm_power.get())
             self.assertFalse(app.confirm_reward.get())
-            sample='[ZTM_PROFILE] {"phase":"threads-3","index":2,"total":4,"active":3,"init":4,"elapsed":65,"target":300}'
+            sample='[ZTM_PROFILE] {"phase":"threads-3","index":2,"total":4,"active":3,"init":4,"elapsed":65,"target":900}'
             app.append(sample)
             self.assertIn('Profile 2/4',app.profile_live.get())
             self.assertIn('Active 3',app.profile_live.get())
-            self.assertIn('01:05 / 05:00',app.profile_live.get())
+            self.assertIn('01:05 / 15:00',app.profile_live.get())
             self.assertLessEqual(root.winfo_height(),root.winfo_screenheight())
             self.assertLessEqual(root.winfo_width(),root.winfo_screenwidth())
         finally:root.destroy()
