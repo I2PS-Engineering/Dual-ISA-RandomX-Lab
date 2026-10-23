@@ -1,0 +1,169 @@
+name: ZTM V2 RC2 startup crash and XMRig pre-GUI gate
+on:
+  push:
+    branches: [release/ztm-srp1v2-rc2]
+    paths: ['release/patch_rc1_to_rc2.py','.github/workflows/ztm-srp1v2-rc2.yml']
+permissions:
+  contents: write
+jobs:
+  verified-release:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch exact published RC1 Debian package by checksum
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/ztmrc2
+          curl -fLSs --retry 4 -o /tmp/ztmrc2/old.deb https://raw.githubusercontent.com/I2PS-Engineering/ZTM_Benchmark/release/ztm-srp1v2-rc1/dist/ZTM-SRP1V2-RC1_amd64.deb
+          echo 'cc010eca0cd1616a15a82c4748f8ee3c9a4b03b5664a8a94c873271b2651cbf3  /tmp/ztmrc2/old.deb' | sha256sum -c -
+          test "$(dpkg-deb -f /tmp/ztmrc2/old.deb Version)" = 1.2.1~srp1v2rc1
+          dpkg-deb -R /tmp/ztmrc2/old.deb /tmp/ztmrc2/root
+      - name: Repair real startup crash and add pre-GUI guard
+        run: |
+          set -euo pipefail
+          python3 release/patch_rc1_to_rc2.py /tmp/ztmrc2/root
+          bash -n /tmp/ztmrc2/root/usr/bin/ztm
+          python3 -m compileall -q /tmp/ztmrc2/root/usr/lib/ztm
+          PYTHONPATH=/tmp/ztmrc2/root/usr/lib/ztm python3 - <<'PY'
+          from pathlib import Path
+          import ztm_engine
+          assert callable(ztm_engine.candidate_profiles)
+          assert 'candidate_profiles' not in ztm_engine.run_benchmark.__code__.co_varnames
+          fake={'logical_cpus':4,'physical_cores':4,'l3_cache_bytes':6291456}
+          assert all(1<=n<=4 for n in ztm_engine.candidate_profiles(fake,2,5,seed=1))
+          gui=Path('/tmp/ztmrc2/root/usr/lib/ztm/ztm_gui.py').read_text()
+          assert gui.count("'cleanup-miners'") >= 3
+          assert 'self.upgrade_all' not in gui
+          assert 'I authorize real CPU work for 24 hours' in gui
+          assert 'I understand this online benchmark uses both XMRig' in gui
+          print('PASS crash regression and existing mining gates')
+          PY
+          python3 /tmp/ztmrc2/root/usr/lib/ztm/ztm_engine.py --plan --minutes 1440 >/dev/null
+          if python3 /tmp/ztmrc2/root/usr/lib/ztm/ztm_engine.py --plan --minutes 60 >/dev/null 2>&1; then exit 1; fi
+          find /tmp/ztmrc2/root/usr/lib/ztm -name __pycache__ -type d -prune -exec rm -rf '{}' +
+      - name: Exercise real XMRig-named process termination and restart-denial
+        run: |
+          set -euo pipefail
+          export PYTHONPATH=/tmp/ztmrc2/root/usr/lib/ztm
+          if sudo env -u PKEXEC_UID PYTHONPATH="$PYTHONPATH" /usr/bin/python3 /tmp/ztmrc2/root/usr/lib/ztm/ztm_startup_preflight.py; then
+            echo 'FAIL: bare root ran startup cleanup'; exit 1
+          fi
+          mkdir -p /tmp/ztmrc2/fake
+          cp /bin/sleep /tmp/ztmrc2/fake/xmrig
+          /tmp/ztmrc2/fake/xmrig 40 &
+          victim=$!
+          sleep 0.3
+          sudo env PKEXEC_UID="$(id -u)" PYTHONPATH="$PYTHONPATH" /usr/bin/python3 /tmp/ztmrc2/root/usr/lib/ztm/ztm_startup_preflight.py
+          wait "$victim" || true
+          if kill -0 "$victim" 2>/dev/null; then echo 'FAIL: recognized process survived'; exit 1; fi
+          python3 - <<'PY'
+          import sys
+          from unittest.mock import patch
+          sys.path.insert(0,'/tmp/ztmrc2/root/usr/lib/ztm')
+          import ztm_startup_preflight as p
+          with patch.dict(p.os.environ,{'PKEXEC_UID':'1001'}),patch.object(p.os,'geteuid',return_value=0),patch.object(p,'stop_recognized_miners',return_value=False):
+              assert p.main()==5
+          with patch.dict(p.os.environ,{'PKEXEC_UID':'1001'}),patch.object(p.os,'geteuid',return_value=0),patch.object(p,'stop_recognized_miners',return_value=True),patch.object(p,'recognized_miners',return_value=[(99,'0',0,'xmrig')]),patch.object(p.time,'sleep',return_value=None):
+              assert p.main()==6
+          print('PASS active miner, persistent miner and restart rejection')
+          PY
+      - name: Build package and smoke test installed Ubuntu GUI
+        run: |
+          set -euo pipefail
+          dpkg-deb --build --root-owner-group /tmp/ztmrc2/root /tmp/ztmrc2/candidate.deb
+          test "$(dpkg-deb -f /tmp/ztmrc2/candidate.deb Version)" = 1.2.2~srp1v2rc2
+          sudo apt-get update -qq
+          sudo apt-get install -qq -y python3-tk xvfb
+          sudo apt-get install -y /tmp/ztmrc2/candidate.deb
+          dpkg -s ztm-zero-to-monero | grep -q '^Version: 1.2.2~srp1v2rc2$'
+          for screen in 1024x768 1280x720 1366x768 1920x1080; do
+            PYTHONPATH=/usr/lib/ztm xvfb-run -a -s "-screen 0 $screen"x24 python3 - <<'PY'
+          import tkinter as tk
+          from ztm_gui import ZTMApp
+          root=tk.Tk();app=ZTMApp(root);root.update_idletasks()
+          for w in (app.prepare_btn,app.benchmark_btn,app.terminal):
+              assert w.winfo_ismapped()
+              assert w.winfo_rootx()+w.winfo_width()<=root.winfo_rootx()+root.winfo_width()
+              assert w.winfo_rooty()+w.winfo_height()<=root.winfo_rooty()+root.winfo_height()
+          assert not app.confirm_power.get() and not app.confirm_reward.get()
+          root.destroy()
+          PY
+          done
+          mkdir -p /tmp/ztmrc2/deny
+          printf '#!/bin/sh\nexit 42\n' > /tmp/ztmrc2/deny/pkexec
+          chmod +x /tmp/ztmrc2/deny/pkexec
+          if PATH="/tmp/ztmrc2/deny:$PATH" /usr/bin/ztm >/tmp/ztmrc2/deny.log 2>&1; then
+            echo 'FAIL: GUI opened despite rejected polkit'; exit 1
+          fi
+          grep -qi 'startup blocked' /tmp/ztmrc2/deny.log
+          echo 'PASS: real GUI launcher refuses startup when preflight denied'
+      - name: Generate pinned Debian installer and copy-paste instructions
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          cp /tmp/ztmrc2/candidate.deb dist/ZTM-SRP1V2-RC2_amd64.deb
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+          pkg=Path('dist/ZTM-SRP1V2-RC2_amd64.deb')
+          sha=hashlib.sha256(pkg.read_bytes()).hexdigest()
+          size=pkg.stat().st_size
+          url='https://raw.githubusercontent.com/I2PS-Engineering/ZTM_Benchmark/release/ztm-srp1v2-rc2/dist/ZTM-SRP1V2-RC2_amd64.deb'
+          shell=[
+          '#!/usr/bin/env bash','set -Eeuo pipefail','umask 077',
+          '[[ "$(uname -s)" == Linux && "$(uname -m)" == x86_64 ]] || exit 1',
+          '[[ "$(id -u)" -ne 0 ]] || { echo "Run as ordinary Ubuntu user"; exit 1; }',
+          '. /etc/os-release',
+          '[[ "$ID" == ubuntu ]] || { echo "Ubuntu Desktop required"; exit 1; }',
+          'for cmd in python3 sha256sum stat dpkg-deb sudo apt-get pkexec; do command -v "$cmd" >/dev/null || { echo "Missing $cmd"; exit 1; }; done',
+          'work="$(mktemp -d)"','trap \'rm -rf "$work"\' EXIT',
+          'pkg="$work/ZTM-SRP1V2-RC2_amd64.deb"',
+          "python3 - \"$pkg\" <<'PYDOWNLOAD'",
+          'import pathlib,sys,urllib.request',
+          'u='+repr(url),
+          'pathlib.Path(sys.argv[1]).write_bytes(urllib.request.urlopen(u,timeout=60).read())',
+          'PYDOWNLOAD',
+          'echo "'+sha+'  $pkg" | sha256sum -c -',
+          '[[ "$(stat -c%s "$pkg")" == '+str(size)+' ]] || exit 1',
+          '[[ "$(dpkg-deb -f "$pkg" Version)" == 1.2.2~srp1v2rc2 ]] || exit 1',
+          'sudo apt-get install -y "$pkg"',
+          "dpkg -s ztm-zero-to-monero | grep -q '^Version: 1.2.2~srp1v2rc2$'",
+          "echo 'RC2 installed; pre-GUI authorization and XMRig cleanup required'",
+          'nohup /usr/bin/ztm >/tmp/ztm-rc2-launch.log 2>&1 &'
+          ]
+          installer='\n'.join(shell)+'\n'
+          Path('install-ztm-srp1v2-rc2.sh').write_text(installer)
+          ish=hashlib.sha256(installer.encode()).hexdigest()
+          command=("python3 -c 'import hashlib,subprocess,urllib.request;"+
+               'u="https://raw.githubusercontent.com/I2PS-Engineering/ZTM_Benchmark/release/ztm-srp1v2-rc2/install-ztm-srp1v2-rc2.sh";'+
+               'b=urllib.request.urlopen(u,timeout=60).read();'+
+               f'assert hashlib.sha256(b).hexdigest()=="{ish}","SECURITY STOP: installer checksum mismatch";'+
+               'subprocess.run(["bash","-s"],input=b,check=True)' + "'")
+          Path('INSTALL_RC2.txt').write_text('ZTM-SRP1V2-RC2 — corrected V2 pre-release\nStep 1: Stop any ongoing benchmark and reboot Ubuntu.\nStep 2: Open Terminal, copy the full command, press Enter:\n\n'+command+'\n')
+          Path('SHA256SUMS_RC2.txt').write_text(sha+'  dist/ZTM-SRP1V2-RC2_amd64.deb\n'+ish+'  install-ztm-srp1v2-rc2.sh\n')
+          Path('RELEASE_RC2_NOTES.md').write_text('# ZTM-SRP1V2-RC2 — verified benchmark crash fix and pre-GUI miner cleanup\n\nRC2 replaces the broken RC1 **test release**, not the existing public stable V2.\n- Fix local candidate_profiles name shadowing which crashed the 24-hour optimizer.\n- Always use authorized all-owner recognized XMRig cleanup before GUI appears, including installer auto-launch and Desktop shortcut.\n- Re-check for immediate miner service restarts; refuse GUI if privilege denied or competing XMRig persists.\n- Preserve previous V2 24-hour consent, wallet rules, huge-page preparation, optimizer candidate testing, and subsequent miner checks.\n- No arbitrary renamed process detection or system service disabling.\n- CI tests are not real 24-hour HashVault or physical Worker 14 validation.\n')
+          print('RC2 SHA256',sha,'bytes',size,'installer SHA256',ish)
+          PY
+          bash -n install-ztm-srp1v2-rc2.sh
+          sha256sum -c SHA256SUMS_RC2.txt
+          sed -n '/^python3 -c /p' INSTALL_RC2.txt >/tmp/ztmrc2/user-command.sh
+          bash -n /tmp/ztmrc2/user-command.sh
+          test "$(wc -l </tmp/ztmrc2/user-command.sh)" = 1
+      - name: Commit RC2 artifacts to isolated release branch
+        run: |
+          set -euo pipefail
+          git config user.name 'I2PS Engineering CI'
+          git config user.email 'engineering@i2psolutions.com'
+          git add dist/ZTM-SRP1V2-RC2_amd64.deb install-ztm-srp1v2-rc2.sh INSTALL_RC2.txt SHA256SUMS_RC2.txt RELEASE_RC2_NOTES.md
+          git commit -m 'release(rc2): package verified benchmark crash and startup gate correction'
+          git push origin HEAD:release/ztm-srp1v2-rc2
+      - name: Publish separate RC2 release only after checks pass
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release create ZTM-SRP1V2-RC2 -R I2PS-Engineering/ZTM_Benchmark \
+            --target release/ztm-srp1v2-rc2 --prerelease \
+            --title 'ZTM-SRP1V2-RC2 — benchmark startup fix and miner preflight' \
+            --notes-file RELEASE_RC2_NOTES.md \
+            dist/ZTM-SRP1V2-RC2_amd64.deb install-ztm-srp1v2-rc2.sh INSTALL_RC2.txt SHA256SUMS_RC2.txt
