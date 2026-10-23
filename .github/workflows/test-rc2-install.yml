@@ -1,0 +1,39 @@
+name: Verify published RC2 exact public installer
+on:
+  push:
+    branches: [release/ztm-srp1v2-rc2]
+    paths: ['.github/workflows/test-rc2-install.yml']
+permissions:
+  contents: read
+jobs:
+  copy-paste-install:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download exact GitHub release instructions and replay command
+        run: |
+          set -euo pipefail
+          curl -fLSs --retry 5 -o /tmp/rc2-install.txt https://raw.githubusercontent.com/I2PS-Engineering/ZTM_Benchmark/release/ztm-srp1v2-rc2/INSTALL_RC2.txt
+          sed -n '/^python3 -c /p' /tmp/rc2-install.txt >/tmp/rc2-copy-paste.sh
+          test "$(wc -l </tmp/rc2-copy-paste.sh)" = 1
+          bash -n /tmp/rc2-copy-paste.sh
+          bash /tmp/rc2-copy-paste.sh
+          dpkg -s ztm-zero-to-monero | grep -q '^Version: 1.2.2~srp1v2rc2$'
+          test -f /usr/lib/ztm/ztm_startup_preflight.py
+          /usr/bin/python3 /usr/lib/ztm/ztm_engine.py --plan --minutes 1440 >/dev/null
+          if /usr/bin/python3 /usr/lib/ztm/ztm_engine.py --plan --minutes 60 >/dev/null 2>&1;then exit 1;fi
+          echo 'PASS full public SHA-pinned command and installed RC2 package'
+      - name: Real startup preflight after package installation
+        run: |
+          set -euo pipefail
+          sudo env PKEXEC_UID="$(id -u)" /usr/bin/python3 /usr/lib/ztm/ztm_startup_preflight.py
+          sudo apt-get install -y -qq xvfb
+          PYTHONPATH=/usr/lib/ztm xvfb-run -a -s '-screen 0 1024x768x24' python3 - <<'PY'
+          import tkinter as tk
+          from ztm_gui import ZTMApp
+          root=tk.Tk();app=ZTMApp(root);root.update_idletasks()
+          assert not app.confirm_power.get() and not app.confirm_reward.get()
+          assert app.prepare_btn.winfo_ismapped() and app.benchmark_btn.winfo_ismapped()
+          root.destroy()
+          print('PASS published RC2 GUI startup smoke')
+          PY
