@@ -2,9 +2,9 @@ name: Verify public RC1 one-command install on clean Ubuntu
 on:
   push:
     branches: [release/ztm-srp1v2-rc1]
-    paths: [.github/workflows/test-srp1v2-rc1-install.yml]
+    paths: [.github/workflows/test-srp1v2-rc1-install.yml, INSTALL_RC1.txt]
 permissions:
-  contents: read
+  contents: write
 jobs:
   install-from-public:
     runs-on: ubuntu-24.04
@@ -41,3 +41,10 @@ jobs:
           root.destroy()
           print('PASS: exact public RC1 command and 1024x768 GUI')
           PY
+      - name: Replace GitHub Release copy-paste instructions after verified install
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release upload ZTM-SRP1V2-RC1 INSTALL_RC1.txt -R I2PS-Engineering/ZTM_Benchmark --clobber
+          gh release view ZTM-SRP1V2-RC1 -R I2PS-Engineering/ZTM_Benchmark --json tagName,assets >/dev/null
