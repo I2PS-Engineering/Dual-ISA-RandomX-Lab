@@ -1,5 +1,22 @@
 # Changelog
 
+## ZTM-SRP1V2-RC4.1 — Fixed Seven CPU-Affinity Profiles — 23 October 2026
+
+- **Current latest V2 controlled development prerelease; stable V2 unchanged, V3 untouched.**
+- Corrected RC4's `Profile 1/4` behavior on a four-logical-CPU system by replacing count-only candidate generation with **six distinct hardware-ranked XMRig `cpu.rx` affinity mappings**, plus the original XMRig automatic baseline.
+- Uses permitted Linux CPU IDs, SMT/physical-core siblings, L2/L3 cache sharing and detectable NUMA domains. No random profile ordering.
+- Exactly seven profiles on processors with at least three permitted logical CPUs. Fails with a clear unsupported-topology error on smaller processors rather than fabricating six duplicates.
+- Preserves 15-minute measured profile windows, 5-second verified miner transitions and 24-hour total benchmark duration.
+- **Winner retains the tested CPU-affinity layout** through sustained mining; not only the active-thread count.
+- Kept existing consent, startup miner cleanup, huge-page preparations, Dev Wallet disclosure and personal-wallet eligibility unchanged.
+- Ubuntu CI passed eight specific affinity tests, GUI checks at four resolutions, Debian installation and **public checksum-verified RC4.1 one-command installer**; see [run 39933285557](https://github.com/I2PS-Engineering/ZTM_Benchmark/actions/runs/39933285557).
+- Debian version `1.2.5~srp1v2rc41` · package size `133066` bytes.
+- Debian SHA-256: `b1649334daf85d504b0423297dcf4fe6d34bace125fece642c120f6cc7cdd7fa`.
+- Installer SHA-256: `6c3685ed78ed2802394702baa7a470528fd5aa5958a18a36c3faab4809372266`.
+- **Physical 24-hour HashVault performance validation remains pending.** CPU affinity selection and configuration are tested; no universal hashrate gain is guaranteed.
+- [RC4.1 release](https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/tag/ZTM-SRP1V2-RC4.1) · [installation](README.md#install).
+
+
 ## ZTM-SRP1V2-RC4 — Ubuntu V2 development prerelease — 23 October 2026
 
 - **Current latest controlled V2 test build:** `ZTM-SRP1V2-RC4` (prerelease; not a new stable version).
