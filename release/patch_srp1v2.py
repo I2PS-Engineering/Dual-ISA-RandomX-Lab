@@ -156,7 +156,7 @@ winner_method = """    def show_winning_configuration(self):
             detail = (
                 'WINNING CONFIGURATION — ZTM-SRP1V2\\n'
                 f"CPU: {report.get('cpu_model', 'Unknown')}\\n"
-                f"Rig ID: ZTM-RX1V2-L\\n"
+                f"Rig ID: ZTM-SRP1V2\\n"
                 f"Selected active CPU threads: {winner.get('threads', 'unknown')}\\n"
                 f"Winning profile: {winner.get('profile', 'unknown')}\\n"
                 f"Winning profile sustained median: {winner.get('sustained_median_hs', 'N/A')} H/s\\n"
@@ -188,7 +188,7 @@ gui_file.write_text(g, encoding="utf-8")
 e = engine_file.read_text(encoding="utf-8")
 if e.count("ZTM-R-A-10-E-R") != 2:
     raise SystemExit("STOP: benchmark worker ID expected exactly twice")
-e = e.replace("ZTM-R-A-10-E-R", "ZTM-RX1V2-L")
+e = e.replace("ZTM-R-A-10-E-R", "ZTM-SRP1V2")
 # Preserve the selected winner and its full measured profile in the JSON
 # report and terminal. A peak is never misrepresented as a sustained score.
 winner_logic = """    candidate_profiles = [
@@ -210,7 +210,7 @@ winner_logic = """    candidate_profiles = [
         default=None
     )
     winning_configuration = {
-        'rig_id': 'ZTM-RX1V2-L',
+        'rig_id': 'ZTM-SRP1V2',
         'threads': selected_threads,
         'profile': winner_profile.get('label') if winner_profile else 'xmrig-auto',
         'optimization_score': winner_profile.get('score') if winner_profile else None,
@@ -240,7 +240,7 @@ e = one(
 win_print = """    if report['actual_24_hour_benchmark']:
         wc = report['winning_configuration']
         print('\\\\n' + '=' * 63, flush=True)
-        print(' WINNING CONFIGURATION — ZTM-RX1V2-L', flush=True)
+        print(' WINNING CONFIGURATION — ZTM-SRP1V2', flush=True)
         print('=' * 63, flush=True)
         print(f" CPU:                    {report['cpu_model']}", flush=True)
         print(f" Active threads:         {wc['threads']}", flush=True)
@@ -266,7 +266,7 @@ engine_file.write_text(e, encoding="utf-8")
 m = mining_file.read_text(encoding="utf-8")
 for key in ("'pass'", "'rig-id'"):
     original = f"{key}: 'ZTM-I2PS-Donate' if donation else 'ZTM-Personal-Mining',"
-    m = one(m, original, f"{key}: 'ZTM-RX1V2-L',", f"personal mining {key}")
+    m = one(m, original, f"{key}: 'ZTM-SRP1V2',", f"personal mining {key}")
 mining_file.write_text(m, encoding="utf-8")
 
 c = control_file.read_text(encoding="utf-8")
@@ -282,12 +282,12 @@ assert "I understand this online benchmark uses both XMRig and I2PS dev contribu
 assert "START 24-HOUR RANDOMX BENCHMARK" in g
 assert "minutes = 1440" in g and "duration_menu" not in g
 assert "a.minutes != 1440" in e and "a.seconds != 86400" in e
-assert e.count("ZTM-RX1V2-L") >= 4
-assert m.count("ZTM-RX1V2-L") == 2
+assert e.count("ZTM-SRP1V2") >= 4
+assert m.count("ZTM-SRP1V2") == 2
 assert "ZTM-R-A-10-E-R" not in e
 assert "winning_configuration" in e and "show_winning_configuration" in g
 print(
     f"ZTM-SRP1V2 patched: {len(matched)} explicit font declarations and "
     f"{count} checkboxes now respond to 165% default zoom. "
-    "Benchmark and personal-mining worker ID = ZTM-RX1V2-L."
+    "Benchmark and personal-mining worker ID = ZTM-SRP1V2."
 )

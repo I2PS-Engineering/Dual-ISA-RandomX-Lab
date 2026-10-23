@@ -41,6 +41,8 @@ installer = (
 )
 if "ZTM-SRP1V1" in installer or "ztm-srp1v1" in installer:
     raise SystemExit("STOP: prior installer references remain")
+# Same-version rig-ID hotfix must reinstall the existing package.
+installer = installer.replace('sudo apt-get install -y "$pkg"', 'sudo apt-get install --reinstall -y "$pkg"')
 installer_file = out / "install-ztm-srp1v2.sh"
 installer_file.write_text(installer, encoding="utf-8")
 installer_file.chmod(0o755)
@@ -67,7 +69,7 @@ readme = (
     + command +
     "\nThe installer verifies both installer and Debian package checksums.\n"
     "New default interface zoom: 165%. Adjust using A− and A+ in the GUI header.\n"
-    "New rig ID: ZTM-RX1V2-L.\n"
+    "New rig ID: ZTM-SRP1V2.\n"
     "After a qualifying 24-hour benchmark, the app displays Winning Configuration\n"
     "with measured peak and sustained performance and selected threads.\n"
     "The 24-hour benchmark rule and automatic optimizer remain in force.\n"
@@ -76,7 +78,7 @@ with zipfile.ZipFile(out / "ZTM-SRP1V2_Linux_One_Command_README.zip", "w", zipfi
     z.writestr("README.txt", readme)
 notes = f"""# ZTM-SRP1V2 — Linux Readability Update V1.2
 
-**Current Linux release; worker identification: `ZTM-RX1V2-L`.**
+**Current Linux release; worker identification: `ZTM-SRP1V2`.**
 
 Built from the SHA-256-verified ZTM-SRP1V1 Debian baseline.
 
@@ -85,8 +87,8 @@ Built from the SHA-256-verified ZTM-SRP1V1 Debian baseline.
 - Default **165%** real GUI font scaling, including terminal, navigation, consent labels and buttons.
 - Instant **A− / A+** controls to adjust text from 125% to 200%, independently of window dimensions.
 - Increased button padding and long text wrapping.
-- Benchmark pool `pass` and `rig-id` updated to `ZTM-RX1V2-L`.
-- Personal mining pool identification updated to `ZTM-RX1V2-L`.
+- Benchmark pool `pass` and `rig-id` updated to `ZTM-SRP1V2`.
+- Personal mining pool identification updated to `ZTM-SRP1V2`.
 - **Winning Configuration** automatically displayed upon successful completion of a qualifying 24-hour run, and written to the result JSON. Includes winning active threads, optimization score, peak and sustained hashrates, measured accepted/rejected shares, and tested profile details. Peak and sustained measurements are clearly separated.
 
 ## Unchanged behavior

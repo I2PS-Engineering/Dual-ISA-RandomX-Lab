@@ -4,6 +4,8 @@ on:
   push:
     paths:
       - '.github/workflows/publish-ztm-srp1v2.yml'
+      - 'release/patch_srp1v2.py'
+      - 'release/make_srp1v2_assets.py'
 
 permissions:
   contents: write
@@ -35,8 +37,8 @@ jobs:
           ENGINE="$ROOT/usr/lib/ztm/ztm_engine.py"
           python3 "$ENGINE" --plan --minutes 1440 >/tmp/ztm-v2/plan24
           if python3 "$ENGINE" --plan --minutes 60 >/tmp/ztm-v2/plan60 2>&1; then echo 'FAIL: 60-minute plan accepted'; exit 1; fi
-          test "$(grep -Fo ZTM-RX1V2-L "$ENGINE" | wc -l)" -ge 4
-          test "$(grep -Fo ZTM-RX1V2-L "$ROOT/usr/lib/ztm/ztm_mining.py" | wc -l)" -eq 2
+          test "$(grep -Fo ZTM-SRP1V2 "$ENGINE" | wc -l)" -ge 4
+          test "$(grep -Fo ZTM-SRP1V2 "$ROOT/usr/lib/ztm/ztm_mining.py" | wc -l)" -eq 2
           grep -Fq "WINNING CONFIGURATION" "$ENGINE"
           grep -Fq "show_winning_configuration" "$ROOT/usr/lib/ztm/ztm_gui.py"
           dpkg-deb --build --root-owner-group "$ROOT" /tmp/ztm-v2/ZTM-SRP1V2_amd64.deb
@@ -79,29 +81,72 @@ jobs:
           z=zipfile.ZipFile('ZTM-SRP1V2_Linux_One_Command_README.zip')
           assert z.namelist()==['README.txt']
           s=z.read('README.txt').decode('utf-8')
-          assert 'ZTM-RX1V2-L' in s
+          assert 'ZTM-SRP1V2' in s
           assert 'python3 -c ' in s
           assert '165%' in s
           assert 'Winning Configuration' in s
           print('single README ZIP verified:',len(s),'characters')
           PY
-      - name: Publish stable GUI update
+      - name: Guard stable release against unrelated changes
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
+          mkdir -p /tmp/ztm-v2/old-release /tmp/ztm-v2/new-release
+          gh release download ZTM-SRP1V2 -R I2PS-Engineering/ZTM_Benchmark -p ZTM-SRP1V2_amd64.deb -D /tmp/ztm-v2/old-release
+          echo 'ab4e8339a100957df62b2dc83849d9efe6dee3b1fc51fca41a18f7a7b5f18077  /tmp/ztm-v2/old-release/ZTM-SRP1V2_amd64.deb' | sha256sum -c -
+          dpkg-deb -R /tmp/ztm-v2/old-release/ZTM-SRP1V2_amd64.deb /tmp/ztm-v2/old-release/root
+          dpkg-deb -R /tmp/ztm-v2/ZTM-SRP1V2_amd64.deb /tmp/ztm-v2/new-release/root
+          python3 - <<'PY'
+          from pathlib import Path
+          a=Path('/tmp/ztm-v2/old-release/root')
+          b=Path('/tmp/ztm-v2/new-release/root')
+          original={str(p.relative_to(a)):p.read_bytes() for p in a.rglob('*') if p.is_file()}
+          updated={str(p.relative_to(b)):p.read_bytes() for p in b.rglob('*') if p.is_file()}
+          assert original.keys()==updated.keys(), 'package file inventory changed'
+          allowed={'usr/lib/ztm/ztm_engine.py','usr/lib/ztm/ztm_gui.py','usr/lib/ztm/ztm_mining.py'}
+          actual=set()
+          for path,data in original.items():
+              wanted=data.replace(b'ZTM-RX1V2-L',b'ZTM-SRP1V2') if path in allowed else data
+              assert updated[path]==wanted, 'unexpected modification: '+path
+              if data!=updated[path]:actual.add(path)
+          assert actual==allowed, 'unexpected changed files '+repr(actual)
+          print('Rig-ID-only content audit PASSED')
+          PY
+      - name: Publish rig-ID-corrected SRP1V2 release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          R=/tmp/ztm-v2/release
+          cd "$R"
+          sha256sum -c SHA256SUMS.txt
+          gh release view ZTM-SRP1V2 -R I2PS-Engineering/ZTM_Benchmark --json tagName >/dev/null
+          gh release upload ZTM-SRP1V2 "$R/ZTM-SRP1V2_amd64.deb" "$R/install-ztm-srp1v2.sh" "$R/COPY_PASTE_COMMAND.txt" "$R/SHA256SUMS.txt" "$R/ZTM-SRP1V2_Linux_One_Command_README.zip" -R I2PS-Engineering/ZTM_Benchmark --clobber
+          gh release edit ZTM-SRP1V2 -R I2PS-Engineering/ZTM_Benchmark --notes-file "$R/RELEASE_NOTES.md"
+          gh release view ZTM-SRP1V2 -R I2PS-Engineering/ZTM_Benchmark --json tagName,assets
+      - name: Update published rig ID and verified installation checksums
+        run: |
+          set -euo pipefail
           git config user.name 'I2PS Engineering Build'
           git config user.email 'engineering@i2psolutions.com'
-          git tag -a ZTM-SRP1V2 -m 'ZTM-SRP1V2 — Linux GUI Readability V1.2' HEAD
-          git push origin ZTM-SRP1V2
-          R=/tmp/ztm-v2/release
-          gh release create ZTM-SRP1V2 \
-            "$R/ZTM-SRP1V2_amd64.deb" \
-            "$R/install-ztm-srp1v2.sh" \
-            "$R/COPY_PASTE_COMMAND.txt" \
-            "$R/SHA256SUMS.txt" \
-            "$R/ZTM-SRP1V2_Linux_One_Command_README.zip" \
-            --title 'ZTM-SRP1V2 — Linux GUI Readability Update V1.2' \
-            --notes-file "$R/RELEASE_NOTES.md" \
-            --latest
-          gh release view ZTM-SRP1V2 --json tagName,name,url,isLatest,assets
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+          R=Path('/tmp/ztm-v2/release')
+          installer_sha=hashlib.sha256((R/'install-ztm-srp1v2.sh').read_bytes()).hexdigest()
+          pkg=R/'ZTM-SRP1V2_amd64.deb'
+          pkg_sha=hashlib.sha256(pkg.read_bytes()).hexdigest()
+          for name in ('README.md','docs/INSTALLATION.md'):
+              p=Path(name)
+              if not p.exists():continue
+              before=p.read_text()
+              after=before.replace('ZTM-RX1V2-L','ZTM-SRP1V2').replace('428cd6c872f81325c3b18de8c04a88d3f085daec5795f7cf4723a881734020dd',installer_sha).replace('ab4e8339a100957df62b2dc83849d9efe6dee3b1fc51fca41a18f7a7b5f18077',pkg_sha)
+              if name=='README.md':after=after.replace('47,094 bytes',f'{pkg.stat().st_size:,} bytes')
+              if before!=after:p.write_text(after)
+          PY
+          git add README.md docs/INSTALLATION.md
+          if ! git diff --cached --quiet; then
+            git commit -m "docs(SRP1V2): update rig ID and installer checksums"
+            git push origin HEAD:main
+          fi
