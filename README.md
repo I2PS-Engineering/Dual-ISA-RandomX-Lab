@@ -1,4 +1,6 @@
-# ZTM — Zero to Monero
+# ZTM — Zero to Monero | RandomX CPU Benchmark
+
+**Latest V2 development prerelease: ZTM-SRP1V2-RC4** · [RC4 download](https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/tag/ZTM-SRP1V2-RC4)
 
 **Current stable release: ZTM-SRP1V2 — Stable Release V1.2**
 
@@ -31,28 +33,36 @@ The benchmark authorization contains the two approved acknowledgements:
 
 ## Install
 
-### New V2 improvements — RC3 deterministic optimizer test release
+### Latest V2 test release — ZTM-SRP1V2-RC4
 
-**ZTM-SRP1V2-RC3 is the latest controlled V2 test build.** It replaces the older RC2 test instructions above the existing public stable release; **V3 is unchanged**.
+**RC4 is the latest published V2 development prerelease** for Ubuntu Desktop x86-64. It is available for controlled testing; **ZTM-SRP1V2 remains the stable release**. No V3 files or releases are changed.
 
-**Step 1 — Reboot:** Stop the current benchmark normally, reboot Ubuntu, and open Terminal with **Ctrl+Alt+T**.
+**Step 1 — Stop and reboot:** Stop any running benchmark, reboot Ubuntu, and open Terminal with **Ctrl+Alt+T**. Do not replace the app during a benchmark.
 
-**Step 2 — Install RC3:** Copy the entire command from this block and paste it into Terminal:
+**Step 2 — Install RC4:** As your ordinary Ubuntu desktop user (not root), copy and paste this complete command:
 
 ```bash
-python3 -c 'import hashlib,subprocess,urllib.request;u="https://raw.githubusercontent.com/I2PS-Engineering/ZTM_Benchmark/release/ztm-srp1v2-rc3/install-ztm-srp1v2-rc3.sh";b=urllib.request.urlopen(u,timeout=60).read();assert hashlib.sha256(b).hexdigest()=="5508b8976206fa90e883d270efd42ab6c64b33d52a0a4cab14c89ef575c0c1c2","SECURITY STOP: installer checksum mismatch";subprocess.run(["bash","-s"],input=b,check=True)'
+python3 -c 'import hashlib,subprocess,urllib.request;u="https://raw.githubusercontent.com/I2PS-Engineering/ZTM_Benchmark/release/ztm-srp1v2-rc4/install-ztm-srp1v2-rc4.sh";b=urllib.request.urlopen(u,timeout=60).read();assert hashlib.sha256(b).hexdigest()=="d009b90e8642e85496618282503d1c27cebf26c255537fc15592d049a7316d60","SECURITY STOP: RC4 installer checksum mismatch";subprocess.run(["bash","-s"],input=b,check=True)'
 ```
 
-The command verifies the installer SHA-256, and the installer verifies the RC3 Debian package SHA-256, size and package version. Installation then launches the existing ZTM application shortcut with mandatory authorized XMRig cleanup **before the GUI appears**. It refuses startup if recognized miners persist or restart.
+The one-command launcher verifies the RC4 installer SHA-256 **before executing it**. The installer checks the released Debian package's SHA-256, exact byte size, package identity, architecture and version before installing it. It then starts ZTM through the existing pre-GUI XMRig cleanup and authorization workflow.
 
-**RC3 V2-only improvements:** one automatic reference plus at most ten distinct CPU/cache/RAM-ranked alternatives (11 total); **five full measured minutes per configuration**; **five seconds between profile transitions**, with stop verification and two mining-process checks; and a live GUI readout showing active threads, dataset initialization threads, profile number and elapsed/target measurement time beside the hashrate. The two 24-hour authorization checkboxes, initial development contribution, wallet rules and 24-hour-only benchmark requirement remain in place.
+**RC4 benchmark behavior:**
 
-- [ZTM-SRP1V2-RC3 GitHub pre-release](https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/tag/ZTM-SRP1V2-RC3)
-- [Standalone RC3 install instructions](https://github.com/I2PS-Engineering/ZTM_Benchmark/blob/release/ztm-srp1v2-rc3/INSTALL_RC3.txt)
-- [Passing build and 44 GUI/unit acceptance tests](https://github.com/I2PS-Engineering/ZTM_Benchmark/actions/runs/39909678446)
-- [Passing clean-Ubuntu exact copy/paste installation test](https://github.com/I2PS-Engineering/ZTM_Benchmark/actions/runs/39909815681)
+- **One original XMRig automatic baseline**, followed by **up to six distinct hardware-ranked active-thread alternatives** (seven profiles maximum).
+- **15 full measured minutes per candidate**, allowing more time to observe HashVault VarDiff and accepted-share behavior; pool stabilization is not guaranteed.
+- **Five-second verified stop/check/recheck** between profile transitions.
+- CPU hardware inventory includes physical-core and SMT grouping, L1/L2/L3 cache size and sharing information, memory availability and NUMA-node count where readable. RC4 uses hardware-informed **thread-count ranking**; explicit per-thread CPU affinity and NUMA placement are **not yet enforced**.
+- Live GUI profile indicator, active threads, dataset-init threads and elapsed/target time displayed alongside hashrate.
+- The full **24-hour benchmark requirement**, dual consent, initial development contribution, wallet safety and personal-mining eligibility rules remain unchanged.
 
-**Validation scope:** RC3 is an Ubuntu-tested pre-release; the complete 24-hour Worker 14 RandomX run, real hashrate and all physical privileged lifecycle transitions remain to be verified. Unknown or renamed miners are not guaranteed to be recognized.
+On CPUs with too few distinct active-thread counts, **fewer than seven profiles will be tested**; RC4 does not invent duplicate configurations. The ranking is a candidate-selection heuristic, **not a proven universally optimal CPU configuration**. Real 24-hour physical-worker and pool-side validation remains pending.
+
+**RC4 release links:** [Published RC4 prerelease](https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/tag/ZTM-SRP1V2-RC4) · [RC4 installer source](https://github.com/I2PS-Engineering/ZTM_Benchmark/blob/release/ztm-srp1v2-rc4/install-ztm-srp1v2-rc4.sh) · [Package download](https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/download/ZTM-SRP1V2-RC4/ZTM-SRP1V2-RC4_amd64.deb) · [RC4 validation and limitations](https://github.com/I2PS-Engineering/ZTM_Benchmark/blob/release/ztm-srp1v2-rc4/release/RC4_STATUS.md) · [Automated RC4 candidate tests](https://github.com/I2PS-Engineering/ZTM_Benchmark/actions/runs/39929938485).
+
+**RC4 package verification:** Debian version `1.2.4~srp1v2rc4`, size **121,844 bytes**, SHA-256 `abd42a5ded115966dc20d761560581f2c6009575f73f433869400183404aa879`. The test release is **not** the stable version.
+
+**Previous RC3 test build:** [RC3 release archive](https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/tag/ZTM-SRP1V2-RC3).
 
 ### Existing public stable release — SRP1V2
 
