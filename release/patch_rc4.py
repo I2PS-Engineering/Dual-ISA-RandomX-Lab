@@ -11,7 +11,9 @@ def replace_once(path,old,new):
     path.write_text(data.replace(old,new))
 replace_once(engine,'PROFILE_SECONDS = 300','PROFILE_SECONDS = 900')
 replace_once(engine,'MAX_PROFILE_COUNT = 11','MAX_PROFILE_COUNT = 7')
-replace_once(gui,'05:00','15:00')
+gui_text=gui.read_text()
+if gui_text.count('05:00')!=2: raise SystemExit('RC4 STOP: expected exactly two GUI timing anchors')
+gui.write_text(gui_text.replace('05:00','15:00'))
 # Existing GUI code derives live targets from engine structured progress.
 # The topology runtime is copied from the isolated V2 source branch.
 source=Path(__file__).with_name('ztm_surgical_runtime.py')
