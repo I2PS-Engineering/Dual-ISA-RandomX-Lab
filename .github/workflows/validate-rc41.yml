@@ -6,10 +6,11 @@ on:
       - 'release/patch_rc41.py'
       - 'release/ztm_affinity_profiles.py'
       - 'release/test_rc41_fixed_seven.py'
+      - 'release/make_rc41_assets.py'
       - '.github/workflows/validate-rc41.yml'
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
 jobs:
   fixed-seven:
     runs-on: ubuntu-24.04
@@ -94,3 +95,43 @@ jobs:
         with:
           name: ZTM-SRP1V2-RC4.1-VALIDATED-CANDIDATE
           path: /tmp/ZTM-SRP1V2-RC4.1_amd64.deb
+      - name: Generate checksum-pinned installer from exactly tested RC4.1 package
+        run: |
+          set -euo pipefail
+          python3 release/make_rc41_assets.py /tmp/ZTM-SRP1V2-RC4.1_amd64.deb /tmp/rc41-assets
+          bash -n /tmp/rc41-assets/install-ztm-srp1v2-rc41.sh
+          (cd /tmp/rc41-assets && cp /tmp/ZTM-SRP1V2-RC4.1_amd64.deb . && sha256sum -c SHA256SUMS_RC41.txt)
+          sed -n '/^python3 -c /p' /tmp/rc41-assets/INSTALL_RC41.txt >/tmp/rc41-paste.sh
+          test "$(wc -l </tmp/rc41-paste.sh)" -eq 1
+          bash -n /tmp/rc41-paste.sh
+      - name: Publish separate RC4.1 prerelease without modifying RC4 or V3
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if gh release view ZTM-SRP1V2-RC4.1 -R I2PS-Engineering/ZTM_Benchmark >/dev/null 2>&1; then
+            echo 'SECURITY STOP: RC4.1 release already exists; refusing to replace an immutable release'
+            exit 1
+          fi
+          gh release create ZTM-SRP1V2-RC4.1 -R I2PS-Engineering/ZTM_Benchmark \
+            --target "$GITHUB_SHA" --prerelease \
+            --title 'ZTM-SRP1V2-RC4.1 — fixed seven-profile RandomX affinity hotfix' \
+            --notes-file /tmp/rc41-assets/RELEASE_RC41_NOTES.md \
+            /tmp/ZTM-SRP1V2-RC4.1_amd64.deb \
+            /tmp/rc41-assets/install-ztm-srp1v2-rc41.sh \
+            /tmp/rc41-assets/INSTALL_RC41.txt \
+            /tmp/rc41-assets/SHA256SUMS_RC41.txt
+      - name: Verify exact newly published public installation command
+        run: |
+          set -euo pipefail
+          sudo apt-get remove -y ztm-zero-to-monero
+          for retry in 1 2 3 4; do
+            if bash /tmp/rc41-paste.sh; then
+              break
+            fi
+            test "$retry" -lt 4
+            sleep 5
+          done
+          dpkg -s ztm-zero-to-monero | grep -q '^Version: 1.2.5~srp1v2rc41$'
+          test -f /usr/lib/ztm/ztm_affinity_profiles.py
+          echo 'RC4.1 VERIFIED RELEASE INSTALLER PASS'
