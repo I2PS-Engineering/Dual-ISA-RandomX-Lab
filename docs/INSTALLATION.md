@@ -41,7 +41,7 @@ Download:
 
 Expected package SHA-256:
 
-`46d15b92b0abaced099a111041774fe4aa57aabed572058e05a0fce99f34c5b3`
+`3b7f64101ea1f4b5239e85cb4b2b584ee7a19cf78ae82b112e9f4a19d53e3a1a`
 
 Install the verified package:
 
