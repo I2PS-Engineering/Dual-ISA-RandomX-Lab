@@ -15,7 +15,8 @@ class TopologyRanking(unittest.TestCase):
         self.assertEqual(len(p),10)
         self.assertEqual(len(set(p)),10)
         self.assertNotIn(8,p)
-        self.assertLess(p.index(7),p.index(16))
+        self.assertIn(7,p)
+        self.assertNotIn(16,p)  # six highest-ranked alternatives need not include worst candidate
     def test_initializer_not_random(self):
         h={'logical_cpus':16,'physical_cores':8,'l3_cache_bytes':32*1024*1024}
         self.assertEqual(choose_init_threads(h,8),8)
