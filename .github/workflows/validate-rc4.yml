@@ -1,0 +1,60 @@
+name: Validate ZTM V2 RC4 candidate
+on:
+  push:
+    branches: [release/ztm-srp1v2-rc4]
+    paths:
+      - 'release/patch_rc4.py'
+      - 'release/ztm_surgical_runtime.py'
+      - 'release/test_v2_topology_ranking.py'
+      - '.github/workflows/validate-rc4.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  candidate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install GUI test dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb python3-tk
+      - name: Download exact verified RC3 binary
+        run: |
+          curl -fLsS --retry 3 -o /tmp/rc3.deb https://raw.githubusercontent.com/I2PS-Engineering/ZTM_Benchmark/release/ztm-srp1v2-rc3/dist/ZTM-SRP1V2-RC3_amd64.deb
+          sha256sum /tmp/rc3.deb
+          test "$(dpkg-deb -f /tmp/rc3.deb Version)" = '1.2.3~srp1v2rc3'
+      - name: Build RC4 candidate
+        run: |
+          dpkg-deb -R /tmp/rc3.deb /tmp/rc4-root
+          python3 release/patch_rc4.py /tmp/rc4-root
+          python3 -m compileall -q /tmp/rc4-root/usr/lib/ztm
+          dpkg-deb --build --root-owner-group /tmp/rc4-root /tmp/ZTM-SRP1V2-RC4_amd64.deb
+          test "$(dpkg-deb -f /tmp/ZTM-SRP1V2-RC4_amd64.deb Version)" = '1.2.4~srp1v2rc4'
+      - name: Validate timing, topology and consent
+        run: |
+          export PYTHONPATH=/tmp/rc4-root/usr/lib/ztm
+          python3 -m unittest discover -s release -p 'test_v2_topology_ranking.py' -v
+          python3 - <<'PY'
+          import ztm_engine as e
+          assert e._profile_limits(86400)==(7,900)
+          assert e.TRANSITION_SECONDS==5
+          PY
+          for screen in 1024x768 1280x720 1366x768 1920x1080; do
+            xvfb-run -a -s "-screen 0 ${screen}x24" python3 - <<'PY'
+          import tkinter as tk
+          from ztm_gui import ZTMApp
+          root=tk.Tk()
+          app=ZTMApp(root)
+          root.update_idletasks()
+          assert not app.confirm_power.get() and not app.confirm_reward.get()
+          app.append('[ZTM_PROFILE] {"index":2,"total":7,"active":3,"init":4,"elapsed":65,"target":900}')
+          assert 'Profile 2/7' in app.profile_live.get()
+          assert '01:05 / 15:00' in app.profile_live.get()
+          root.destroy()
+          PY
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ZTM-SRP1V2-RC4-UNRELEASED-CANDIDATE
+          path: /tmp/ZTM-SRP1V2-RC4_amd64.deb
