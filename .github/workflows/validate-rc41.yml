@@ -85,7 +85,7 @@ jobs:
           set -euo pipefail
           sudo apt-get install -y /tmp/ZTM-SRP1V2-RC4.1_amd64.deb
           dpkg -s ztm-zero-to-monero | grep -q '^Version: 1.2.5~srp1v2rc41$'
-          python3 -m py_compile /usr/lib/ztm/ztm_affinity_profiles.py
+          sudo python3 -m py_compile /usr/lib/ztm/ztm_affinity_profiles.py
           test -f /usr/lib/ztm/ztm_startup_preflight.py
           echo 'RC4.1 INSTALL AND FIXED SEVEN ACCEPTANCE PASS'
           sha256sum /tmp/ZTM-SRP1V2-RC4.1_amd64.deb
