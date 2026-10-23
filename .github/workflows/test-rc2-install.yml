@@ -1,4 +1,5 @@
 name: Verify published RC2 exact public installer
+# This run tests the corrected installer after package-provided pkexec is available.
 on:
   push:
     branches: [release/ztm-srp1v2-rc2]
