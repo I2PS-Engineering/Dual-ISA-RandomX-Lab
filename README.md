@@ -10,27 +10,6 @@ ZTM is an Ubuntu Desktop application that benchmarks real Monero RandomX perform
 
 ZTM does not simulate mining.
 
-## Stable release
-
-ZTM-SRP1V2 is the current supported release for **Ubuntu Desktop x86-64**.
-
-The stable benchmark is intentionally fixed:
-
-- **24 hours only** — there is no duration selector.
-- **CPU Threads: Auto** — ZTM evaluates the supported thread profiles automatically.
-- Real RandomX work is executed through a separately licensed, verified XMRig installation.
-- The benchmark uses a real mining-pool connection.
-- Accepted/rejected shares, hashrate and tested profiles are recorded.
-- Wallet and Mining remain gated until a qualifying uninterrupted 24-hour pool-verified benchmark completes.
-- Only a **public Monero receiving address** is required for personal mining. ZTM never asks for a seed phrase, wallet password, private spend key or private view key.
-- Ubuntu administrator authorization is requested once per open ZTM session for the privileged preparation operations. ZTM does not store the administrator password.
-- A visible **Stop** control remains available during CPU work.
-
-The benchmark authorization contains the two approved acknowledgements:
-
-1. **I authorize real CPU work for 24 hours, including electricity use and heat.**
-2. **I understand this online benchmark uses both XMRig and I2PS dev contribution.**
-
 ## Install
 
 ### Latest V2 test release — ZTM-SRP1V2-RC4
@@ -87,6 +66,27 @@ The installer downloads the stable Debian package, verifies its exact size, SHA-
 - Architecture: `amd64`
 - SHA-256: `3b7f64101ea1f4b5239e85cb4b2b584ee7a19cf78ae82b112e9f4a19d53e3a1a`
 - Size: `47,222` bytes
+
+## Stable release
+
+ZTM-SRP1V2 is the current supported release for **Ubuntu Desktop x86-64**.
+
+The stable benchmark is intentionally fixed:
+
+- **24 hours only** — there is no duration selector.
+- **CPU Threads: Auto** — ZTM evaluates the supported thread profiles automatically.
+- Real RandomX work is executed through a separately licensed, verified XMRig installation.
+- The benchmark uses a real mining-pool connection.
+- Accepted/rejected shares, hashrate and tested profiles are recorded.
+- Wallet and Mining remain gated until a qualifying uninterrupted 24-hour pool-verified benchmark completes.
+- Only a **public Monero receiving address** is required for personal mining. ZTM never asks for a seed phrase, wallet password, private spend key or private view key.
+- Ubuntu administrator authorization is requested once per open ZTM session for the privileged preparation operations. ZTM does not store the administrator password.
+- A visible **Stop** control remains available during CPU work.
+
+The benchmark authorization contains the two approved acknowledgements:
+
+1. **I authorize real CPU work for 24 hours, including electricity use and heat.**
+2. **I understand this online benchmark uses both XMRig and I2PS dev contribution.**
 
 ## Readable GUI and winning configuration
 
