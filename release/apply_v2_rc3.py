@@ -108,13 +108,13 @@ if '    candidate_profiles = [\n        p for p in profiles' in engine.read_text
 assert '    tested_candidate_profiles = [' in engine.read_text()
 
 start=engine.read_text();i=start.index('def _profile_limits(');j=start.index('def _profile_stats(',i)
-start=start[:i]+'''PROFILE_SECONDS = 300
-MAX_PROFILE_COUNT = 11  # baseline + at most ten hardware-ranked alternatives
+start=start[:i]+'''PROFILE_SECONDS = 900
+MAX_PROFILE_COUNT = 7  # baseline plus up to six distinct hardware-ranked alternatives
 TRANSITION_SECONDS = 5.0
 
 
 def _profile_limits(duration_s: int) -> tuple[int,int]:
-    """Five measured minutes per candidate, no shortened search."""
+    """Fifteen measured minutes per candidate, no shortened search."""
     if duration_s < PROFILE_SECONDS:
         return 1, duration_s
     # Leave enough time for a baseline + future winner and transitions.
@@ -139,7 +139,7 @@ engine.write_text(start)
 
 # GUI: add compact live profile readout beside existing hashrate.
 one(gui,"        self.rate = tk.StringVar(value='— H/s')\n",
-"        self.rate = tk.StringVar(value='— H/s')\n        self.profile_live = tk.StringVar(value='Profile — | Active — | Init — | — / 05:00')\n",'GUI live model')
+"        self.rate = tk.StringVar(value='— H/s')\n        self.profile_live = tk.StringVar(value='Profile — | Active — | Init — | — / 15:00')\n",'GUI live model')
 one(gui,"        tk.Label(setup, textvariable=self.shares, bg=PANEL, fg=MUTED, font=self.scaled_font('DejaVu Sans', 9)).pack(anchor='e')",
 "        tk.Label(setup, textvariable=self.profile_live, bg=PANEL, fg=CYAN, font=self.scaled_font('DejaVu Sans', 9, 'bold')).pack(anchor='e')\n        tk.Label(setup, textvariable=self.shares, bg=PANEL, fg=MUTED, font=self.scaled_font('DejaVu Sans', 9)).pack(anchor='e')", 'live readout position')
 one(gui,'        if self.current_wallet:\n            line = line.replace(self.current_wallet, \'[PUBLIC_WALLET]\')\n',
@@ -147,7 +147,7 @@ one(gui,'        if self.current_wallet:\n            line = line.replace(self.c
             try:
                 info=json.loads(line[len('[ZTM_PROFILE] '):])
                 elapsed=max(0,int(info.get('elapsed',0)))
-                target=max(1,int(info.get('target',300)))
+                target=max(1,int(info.get('target',900)))
                 fmt=lambda n:f'{n//60:02d}:{n%60:02d}'
                 self.profile_live.set(
                     f"Profile {info.get('index','—')}/{info.get('total','—')} | "
