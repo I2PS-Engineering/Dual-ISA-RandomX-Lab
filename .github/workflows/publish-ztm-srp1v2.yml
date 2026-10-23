@@ -119,6 +119,31 @@ jobs:
           assert new[gui]!=old[gui], 'no scaling update found'
           print('PASS: exactly one GUI file changed, exclusively through audited display patch')
           PY
+      - name: Mirror verified stable installer and binary in repository
+        run: |
+          set -euo pipefail
+          R=/tmp/ztm-v2/release
+          mkdir -p dist
+          cp "$R/ZTM-SRP1V2_amd64.deb" dist/ZTM-SRP1V2_amd64.deb
+          cp "$R/install-ztm-srp1v2.sh" install-ztm-srp1v2.sh
+          bash -n install-ztm-srp1v2.sh
+          cmp -s "$R/ZTM-SRP1V2_amd64.deb" dist/ZTM-SRP1V2_amd64.deb
+          cmp -s "$R/install-ztm-srp1v2.sh" install-ztm-srp1v2.sh
+          git config user.name 'I2PS Engineering Build'
+          git config user.email 'engineering@i2psolutions.com'
+          git add dist/ZTM-SRP1V2_amd64.deb install-ztm-srp1v2.sh
+          if ! git diff --cached --quiet; then
+            git commit -m "release(SRP1V2): mirror verified package and installer in GitHub repository"
+            git push origin HEAD:main
+          fi
+          # Verify both actual public raw downloads, rather than trusting metadata alone.
+          curl -fLsS --retry 5 --retry-all-errors --retry-delay 2 -o /tmp/ztm-retrieved-installer.sh 'https://raw.githubusercontent.com/I2PS-Engineering/ZTM_Benchmark/main/install-ztm-srp1v2.sh'
+          curl -fLsS --retry 5 --retry-all-errors --retry-delay 2 -o /tmp/ztm-retrieved-package.deb 'https://raw.githubusercontent.com/I2PS-Engineering/ZTM_Benchmark/main/dist/ZTM-SRP1V2_amd64.deb'
+          cmp -s /tmp/ztm-retrieved-installer.sh "$R/install-ztm-srp1v2.sh"
+          cmp -s /tmp/ztm-retrieved-package.deb "$R/ZTM-SRP1V2_amd64.deb"
+          bash -n /tmp/ztm-retrieved-installer.sh
+          dpkg-deb -f /tmp/ztm-retrieved-package.deb Version | grep -Fx '1.2.0~srp1v2'
+          echo 'PASS: both install assets available over raw.githubusercontent.com and byte-identical'
       - name: Publish auto-scaled SRP1V2 stable release assets
         env:
           GH_TOKEN: ${{ github.token }}
@@ -147,7 +172,7 @@ jobs:
               p=Path(name)
               if not p.exists():continue
               before=p.read_text()
-              after=before.replace('06d3d7aa4a1553cd8649ddb0e4cef0888ed511ba18f6adf9e012a0f53356e891',installer_sha).replace('ed9237993aac90d6bcf982e7b4955bdfe7abc4f1c6d5cc3cf5957c8b85a7758d',pkg_sha).replace('165% text zoom', 'screen-adaptive text zoom')
+              after=before.replace('06d3d7aa4a1553cd8649ddb0e4cef0888ed511ba18f6adf9e012a0f53356e891',installer_sha).replace('693f851b482b2727a1cfb1f608c4eff00604a492784c6b6c4308dcc537b15cca',installer_sha).replace('ed9237993aac90d6bcf982e7b4955bdfe7abc4f1c6d5cc3cf5957c8b85a7758d',pkg_sha).replace('https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/download/ZTM-SRP1V2/install-ztm-srp1v2.sh','https://raw.githubusercontent.com/I2PS-Engineering/ZTM_Benchmark/main/install-ztm-srp1v2.sh').replace('165% text zoom','screen-adaptive text zoom')
               if name=='README.md':after=after.replace('47,086 bytes',f'{pkg.stat().st_size:,} bytes')
               if before!=after:p.write_text(after)
           PY

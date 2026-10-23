@@ -41,6 +41,12 @@ installer = (
 )
 if "ZTM-SRP1V1" in installer or "ztm-srp1v1" in installer:
     raise SystemExit("STOP: prior installer references remain")
+# Mirror is committed from the verified release build so both downloads use
+# GitHub's repository raw-file endpoints rather than release asset redirects.
+release_binary_url = 'https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/download/ZTM-SRP1V2/ZTM-SRP1V2_amd64.deb'
+repo_binary_url = 'https://raw.githubusercontent.com/I2PS-Engineering/ZTM_Benchmark/main/dist/ZTM-SRP1V2_amd64.deb'
+assert installer.count(release_binary_url) == 1, "unexpected package URL"
+installer = installer.replace(release_binary_url, repo_binary_url)
 # Same-version rig-ID hotfix must reinstall the existing package.
 installer = installer.replace('sudo apt-get install -y "$pkg"', 'sudo apt-get install --reinstall -y "$pkg"')
 installer_file = out / "install-ztm-srp1v2.sh"
@@ -49,7 +55,7 @@ installer_file.chmod(0o755)
 installer_sha = hashlib.sha256(installer_file.read_bytes()).hexdigest()
 command = (
     "python3 -c 'import hashlib,subprocess,urllib.request;"
-    'u="https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/download/ZTM-SRP1V2/install-ztm-srp1v2.sh";'
+    'u="https://raw.githubusercontent.com/I2PS-Engineering/ZTM_Benchmark/main/install-ztm-srp1v2.sh";'
     "b=urllib.request.urlopen(u,timeout=60).read();"
     f'assert hashlib.sha256(b).hexdigest()=="{installer_sha}","SECURITY STOP: installer checksum mismatch";'
     'subprocess.run(["bash","-s"],input=b,check=True)' + "\n"
@@ -85,7 +91,7 @@ Built from the SHA-256-verified ZTM-SRP1V1 Debian baseline.
 ## Improvements
 
 - Automatic display-aware real GUI font scaling for compact and large screens, including terminal, navigation, consent labels and buttons.
-- Instant **A− / A+** controls to adjust text from 125% to 200%, independently of window dimensions.
+- Instant **A− / A+** controls to adjust text from 85% to 200%, independently of window dimensions.
 - Increased button padding and long text wrapping.
 - Benchmark pool `pass` and `rig-id` updated to `ZTM-SRP1V2`.
 - Personal mining pool identification updated to `ZTM-SRP1V2`.
