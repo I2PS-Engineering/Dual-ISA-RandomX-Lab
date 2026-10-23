@@ -36,6 +36,15 @@ jobs:
           PYTHONPYCACHEPREFIX="$(mktemp -d)" python3 -m compileall -q /usr/lib/ztm
           grep -Fq 'ZTM-SRP1V2' /usr/lib/ztm/ztm_engine.py
           printf 'PASS: exact published command downloaded installer and apt-installed SRP1V2\n'
+      - name: Preserve exact published stable deb for private regression comparison
+        run: |
+          set -euo pipefail
+          curl -fLsS --retry 3 -o /tmp/SRP1V2_EXACT_PUBLISHED_BASELINE.deb 'https://raw.githubusercontent.com/I2PS-Engineering/ZTM_Benchmark/main/dist/ZTM-SRP1V2_amd64.deb'
+          echo '3b7f64101ea1f4b5239e85cb4b2b584ee7a19cf78ae82b112e9f4a19d53e3a1a  /tmp/SRP1V2_EXACT_PUBLISHED_BASELINE.deb' | sha256sum -c -
+      - uses: actions/upload-artifact@v4
+        with:
+          name: srp1v2-exact-stable-baseline
+          path: /tmp/SRP1V2_EXACT_PUBLISHED_BASELINE.deb
       - name: Verify installed graphical interface starts on 1024 by 768 virtual display
         run: |
           set -euo pipefail
