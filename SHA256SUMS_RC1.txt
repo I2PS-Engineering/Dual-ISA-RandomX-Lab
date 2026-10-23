@@ -1,0 +1,2 @@
+cc010eca0cd1616a15a82c4748f8ee3c9a4b03b5664a8a94c873271b2651cbf3  dist/ZTM-SRP1V2-RC1_amd64.deb
+5cff3d3747a8d60ac8c20a83bb4a0ae4ed99112dbd3cb58d8a9a9c684a7fdba6  install-ztm-srp1v2-rc1.sh

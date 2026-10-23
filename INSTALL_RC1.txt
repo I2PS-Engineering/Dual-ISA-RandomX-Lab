@@ -1,0 +1,4 @@
+ZTM-SRP1V2-RC1 test build
+Copy the entire following command after reboot, before launching ZTM:
+
+python3 -c 'import hashlib,subprocess,urllib.request;u="https://raw.githubusercontent.com/I2PS-Engineering/ZTM_Benchmark/release/ztm-srp1v2-rc1/install-ztm-srp1v2-rc1.sh";b=urllib.request.urlopen(u,timeout=60).read();assert hashlib.sha256(b).hexdigest()=="5cff3d3747a8d60ac8c20a83bb4a0ae4ed99112dbd3cb58d8a9a9c684a7fdba6","SECURITY STOP: installer checksum mismatch";subprocess.run(["bash","-s"],input=b,check=True)
