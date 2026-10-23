@@ -1,0 +1,114 @@
+name: Verify and publish ZTM V2 RC3
+on:
+  push:
+    branches: [release/ztm-srp1v2-rc3]
+    paths: ['.github/workflows/build-ztm-rc3.yml','release/rc3-payload/**','release/make_rc3_assets.py']
+permissions:
+  contents: write
+jobs:
+  rc3:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up virtual-GUI and source decompression dependencies
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -qq -y python3-brotli python3-tk xvfb
+      - name: Recover all three original RC3 source files and verify checksums
+        run: |
+          set -euo pipefail
+          cat release/rc3-payload/part-{00,01,02,03}.txt >/tmp/rc3-bundle.b64
+          echo 'b12ba1f60cdeb0204e4f433a59a00507a283f75a0cac6f489c43a1e8a715b96d  /tmp/rc3-bundle.b64' | sha256sum -c -
+          python3 - <<'PY'
+          import base64,brotli,hashlib,json,pathlib
+          raw=brotli.decompress(base64.b64decode(pathlib.Path('/tmp/rc3-bundle.b64').read_text()))
+          assert hashlib.sha256(raw).hexdigest()=='9675b9bab4609c2c27fce512425e19485047aa850ad4ab4617edcbfa37a990dd'
+          files=json.loads(raw)
+          assert set(files)=={'apply_v2_rc3.py','engine_lifecycle_patch.py','test_rc3.py'}
+          for name,source in files.items():
+              compile(source,name,'exec')
+              pathlib.Path('release',name).write_text(source)
+              print('RC3 SOURCE VERIFIED',name,len(source))
+          PY
+      - name: Build from exact RC2 GitHub binary and verify invariants
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/ztmrc3
+          curl -fLsS --retry 4 --output /tmp/ztmrc3/rc2.deb \
+            https://raw.githubusercontent.com/I2PS-Engineering/ZTM_Benchmark/release/ztm-srp1v2-rc2/dist/ZTM-SRP1V2-RC2_amd64.deb
+          echo 'a3f252639d35c981b936f765a5ac8d7439ddaff47df3b5a72491bb771a784bd1  /tmp/ztmrc3/rc2.deb' | sha256sum -c -
+          test "$(dpkg-deb -f /tmp/ztmrc3/rc2.deb Version)" = '1.2.2~srp1v2rc2'
+          dpkg-deb -R /tmp/ztmrc3/rc2.deb /tmp/ztmrc3/root
+          python3 release/apply_v2_rc3.py /tmp/ztmrc3/root
+          python3 release/engine_lifecycle_patch.py /tmp/ztmrc3/root/usr/lib/ztm/ztm_engine.py
+          python3 -m compileall -q /tmp/ztmrc3/root/usr/lib/ztm
+          bash -n /tmp/ztmrc3/root/usr/bin/ztm
+          test -f /tmp/ztmrc3/root/usr/lib/ztm/ztm_startup_preflight.py
+          test -f /tmp/ztmrc3/root/usr/lib/ztm/ztm_surgical_runtime.py
+          dpkg-deb --build --root-owner-group /tmp/ztmrc3/root /tmp/ztmrc3/candidate.deb
+          test "$(dpkg-deb -f /tmp/ztmrc3/candidate.deb Version)" = '1.2.3~srp1v2rc3'
+      - name: Run full 11-case RC3 suite on four virtual Ubuntu displays
+        run: |
+          set -euo pipefail
+          export PYTHONPATH=/tmp/ztmrc3/root/usr/lib/ztm
+          for screen in 1024x768 1280x720 1366x768 1920x1080; do
+            xvfb-run -a -s "-screen 0 \${screen}x24" python3 release/test_rc3.py "$PYTHONPATH" 2>&1 | tee "/tmp/ztmrc3/test-\${screen}.log"
+            grep -q '^OK$' "/tmp/ztmrc3/test-\${screen}.log"
+          done
+          python3 /tmp/ztmrc3/root/usr/lib/ztm/ztm_engine.py --plan --minutes 1440 >/dev/null
+          if python3 /tmp/ztmrc3/root/usr/lib/ztm/ztm_engine.py --plan --minutes 60 >/dev/null 2>&1; then
+            echo 'SECURITY STOP: short benchmark accepted'; exit 1
+          fi
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path('/tmp/ztmrc3/root/usr/lib/ztm')
+          e=(root/'ztm_engine.py').read_text();g=(root/'ztm_gui.py').read_text()
+          launcher=Path('/tmp/ztmrc3/root/usr/bin/ztm').read_text()
+          for required in ('PROFILE_SECONDS = 300','MAX_PROFILE_COUNT = 11','TRANSITION_SECONDS = 5.0','verify_transition','[ZTM_PROFILE]'):
+              assert required in e,required
+          assert "ztm_startup_preflight.py" in launcher
+          assert "self.upgrade_all" not in g
+          assert "self.confirm_power" in g and "self.confirm_reward" in g
+          assert g.count("'cleanup-miners'")>=3
+          assert "profile_live" in g
+          print('RC2 startup, consent, GUI and RC3 timing all preserved')
+          PY
+      - name: Install RC3 Debian on clean Ubuntu runner
+        run: |
+          set -euo pipefail
+          sudo apt-get install -y /tmp/ztmrc3/candidate.deb
+          dpkg -s ztm-zero-to-monero | grep -q '^Version: 1.2.3~srp1v2rc3$'
+          test -f /usr/lib/ztm/ztm_startup_preflight.py
+          echo 'RC3 DEBIAN INSTALL PASS'
+      - name: Produce verified one-command RC3 installer and release files
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          cp /tmp/ztmrc3/candidate.deb dist/ZTM-SRP1V2-RC3_amd64.deb
+          python3 release/make_rc3_assets.py dist/ZTM-SRP1V2-RC3_amd64.deb
+          bash -n install-ztm-srp1v2-rc3.sh
+          sha256sum -c SHA256SUMS_RC3.txt
+          sed -n '/^python3 -c /p' INSTALL_RC3.txt >/tmp/ztmrc3/paste.sh
+          bash -n /tmp/ztmrc3/paste.sh
+          test "$(wc -l </tmp/ztmrc3/paste.sh)" = 1
+      - name: Commit audited RC3 build to isolated V2 branch
+        run: |
+          set -euo pipefail
+          git config user.name 'I2PS Engineering CI'
+          git config user.email 'engineering@i2psolutions.com'
+          git add release/apply_v2_rc3.py release/engine_lifecycle_patch.py release/test_rc3.py \
+            dist/ZTM-SRP1V2-RC3_amd64.deb install-ztm-srp1v2-rc3.sh INSTALL_RC3.txt \
+            SHA256SUMS_RC3.txt RELEASE_RC3_NOTES.md
+          git commit -m 'release(rc3): 11 hardware-ranked profiles, verified 5s transitions and live GUI'
+          git push origin HEAD:release/ztm-srp1v2-rc3
+      - name: Publish isolated V2 RC3 pre-release (not stable or V3)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release create ZTM-SRP1V2-RC3 -R I2PS-Engineering/ZTM_Benchmark \
+            --target release/ztm-srp1v2-rc3 --prerelease \
+            --title 'ZTM-SRP1V2-RC3 — deterministic 11-profile optimizer' \
+            --notes-file RELEASE_RC3_NOTES.md \
+            dist/ZTM-SRP1V2-RC3_amd64.deb install-ztm-srp1v2-rc3.sh INSTALL_RC3.txt SHA256SUMS_RC3.txt
