@@ -31,25 +31,28 @@ The benchmark authorization contains the two approved acknowledgements:
 
 ## Install
 
-### New V2 improvements — RC1 test release (Worker 14)
+### New V2 improvements — RC2 corrected test release
 
-**This is the new V2 test build, not the existing public stable release.** It includes CPU-aware randomized thread testing, recognized XMRig cleanup before preparation/benchmark/mining, huge-page verification and removal of the upper Ubuntu upgrade checkbox. Both 24-hour benchmark consent checkboxes remain required.
+**ZTM-SRP1V2-RC2 is the corrected V2 test release for Worker 14. RC1 contained a startup optimizer crash; use RC2 instead.** The original public stable SRP1V2 remains available below.
 
-**Step 1:** Stop the current benchmark normally, then reboot Ubuntu. Open Terminal with **Ctrl+Alt+T**.
+**Step 1 — Reboot:** Stop any running benchmark normally and reboot Ubuntu. Open Terminal with **Ctrl+Alt+T**.
 
-**Step 2:** Copy the **entire command** below using the code block's copy button, paste it into Terminal and press Enter:
+**Step 2 — Install:** Copy this entire checked command from the box, paste into Terminal and press **Enter**:
 
 ```bash
-python3 -c 'import hashlib,subprocess,urllib.request;u="https://raw.githubusercontent.com/I2PS-Engineering/ZTM_Benchmark/release/ztm-srp1v2-rc1/install-ztm-srp1v2-rc1.sh";b=urllib.request.urlopen(u,timeout=60).read();assert hashlib.sha256(b).hexdigest()=="5cff3d3747a8d60ac8c20a83bb4a0ae4ed99112dbd3cb58d8a9a9c684a7fdba6","SECURITY STOP: installer checksum mismatch";subprocess.run(["bash","-s"],input=b,check=True)'
+python3 -c 'import hashlib,subprocess,urllib.request;u="https://raw.githubusercontent.com/I2PS-Engineering/ZTM_Benchmark/release/ztm-srp1v2-rc2/install-ztm-srp1v2-rc2.sh";b=urllib.request.urlopen(u,timeout=60).read();assert hashlib.sha256(b).hexdigest()=="9959b55d42f0b5b64068c7445c6db6739f32c21c8498795394f0ccdec3d4efbc","SECURITY STOP: installer checksum mismatch";subprocess.run(["bash","-s"],input=b,check=True)'
 ```
 
-The command verifies the installer SHA-256; the installer verifies the RC1 Debian package SHA-256, size and version before installation and starts ZTM. If an existing recognized XMRig process is still running, the installer refuses to interrupt it. Installation alone does not start a benchmark or mining without consent.
+The installer checks SHA-256 and Debian version. When installation finishes, ZTM performs the same **mandatory privileged XMRig cleanup before the GUI appears** that it performs on every later desktop launch. It checks recognized XMRig executables belonging to all local users, stops them with authorized privileges and verifies they are gone; if a recognized miner remains or restarts, or authorization is denied, **the GUI will not launch**. The two separate 24-hour mining-consent checkboxes remain mandatory.
 
-- [RC1 release and Debian package](https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/tag/ZTM-SRP1V2-RC1)
-- [Standalone copy/paste instructions](https://github.com/I2PS-Engineering/ZTM_Benchmark/blob/release/ztm-srp1v2-rc1/INSTALL_RC1.txt)
-- [Passing clean Ubuntu installation test](https://github.com/I2PS-Engineering/ZTM_Benchmark/actions/runs/39895089031)
+The RC2 build also fixes `UnboundLocalError: candidate_profiles` at benchmark start. It retains CPU-aware randomized thread candidates, huge-page checks and additional XMRig checks during preparation, Start Benchmark, Start Mining, and privileged mining launch.
 
-**RC1 validation status:** clean Ubuntu install and GUI smoke tests passed; real 24-hour hardware performance and physical privileged miner isolation on Worker 14 are still awaiting verification. Do not distribute RC1 as the public stable version yet.
+- [RC2 GitHub pre-release / Debian package](https://github.com/I2PS-Engineering/ZTM_Benchmark/releases/tag/ZTM-SRP1V2-RC2)
+- [Same RC2 command as a standalone text file](https://github.com/I2PS-Engineering/ZTM_Benchmark/blob/release/ztm-srp1v2-rc2/INSTALL_RC2.txt)
+- [Successful full copy-paste install test](https://github.com/I2PS-Engineering/ZTM_Benchmark/actions/runs/39897625551)
+- [Passed startup-crash and actual XMRig termination regression tests](https://github.com/I2PS-Engineering/ZTM_Benchmark/actions/runs/39897333431)
+
+**Release gate:** RC2 is a test build, not the public stable release. Its full 24-hour RandomX result and physical Worker 14 performance have not yet been validated. Process detection is restricted to recognized XMRig executables; unknown or deliberately renamed miners cannot be guaranteed.
 
 ### Existing public stable release — SRP1V2
 
