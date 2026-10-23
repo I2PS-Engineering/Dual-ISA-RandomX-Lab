@@ -2,4 +2,4 @@ ZTM-SRP1V2-RC2 — corrected V2 pre-release
 Step 1: Stop any ongoing benchmark and reboot Ubuntu.
 Step 2: Open Terminal, copy the full command, press Enter:
 
-python3 -c 'import hashlib,subprocess,urllib.request;u="https://raw.githubusercontent.com/I2PS-Engineering/ZTM_Benchmark/release/ztm-srp1v2-rc2/install-ztm-srp1v2-rc2.sh";b=urllib.request.urlopen(u,timeout=60).read();assert hashlib.sha256(b).hexdigest()=="e9144f8f0f213621c265f1ae7a9b2f6bea01e2b4972bb3fbb06b8c15116b9680","SECURITY STOP: installer checksum mismatch";subprocess.run(["bash","-s"],input=b,check=True)'
+python3 -c 'import hashlib,subprocess,urllib.request;u="https://raw.githubusercontent.com/I2PS-Engineering/ZTM_Benchmark/release/ztm-srp1v2-rc2/install-ztm-srp1v2-rc2.sh";b=urllib.request.urlopen(u,timeout=60).read();assert hashlib.sha256(b).hexdigest()=="9959b55d42f0b5b64068c7445c6db6739f32c21c8498795394f0ccdec3d4efbc","SECURITY STOP: installer checksum mismatch";subprocess.run(["bash","-s"],input=b,check=True)'
