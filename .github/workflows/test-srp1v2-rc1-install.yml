@@ -1,0 +1,43 @@
+name: Verify public RC1 one-command install on clean Ubuntu
+on:
+  push:
+    branches: [release/ztm-srp1v2-rc1]
+    paths: [.github/workflows/test-srp1v2-rc1-install.yml]
+permissions:
+  contents: read
+jobs:
+  install-from-public:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch command from published RC1 installation instructions
+        run: |
+          set -euo pipefail
+          curl -fLSs --retry 5 -o /tmp/ztm-rc1-public-install.txt https://raw.githubusercontent.com/I2PS-Engineering/ZTM_Benchmark/release/ztm-srp1v2-rc1/INSTALL_RC1.txt
+          grep -Fq 'SECURITY STOP: installer checksum mismatch' /tmp/ztm-rc1-public-install.txt
+          sed -n '/^python3 -c /p' /tmp/ztm-rc1-public-install.txt > /tmp/ztm-rc1-command.sh
+          test "$(wc -l < /tmp/ztm-rc1-command.sh)" = 1
+          bash -n /tmp/ztm-rc1-command.sh
+      - name: Execute exact user installation command and inspect installed package
+        run: |
+          set -euo pipefail
+          bash /tmp/ztm-rc1-command.sh
+          test "$(dpkg-query -W -f='${Version}' ztm-zero-to-monero)" = '1.2.1~srp1v2rc1'
+          test -f /usr/lib/ztm/ztm_surgical_runtime.py
+          /usr/bin/python3 /usr/lib/ztm/ztm_engine.py --plan --minutes 1440
+          if /usr/bin/python3 /usr/lib/ztm/ztm_engine.py --plan --minutes 60;then exit 1; fi
+      - name: Smoke-test GUI startup in a 1024x768 display
+        run: |
+          set -euo pipefail
+          sudo apt-get install -qq -y xvfb
+          PYTHONPATH=/usr/lib/ztm xvfb-run -a -s '-screen 0 1024x768x24' /usr/bin/python3 - <<'PY'
+          import tkinter as tk
+          from ztm_gui import ZTMApp
+          root=tk.Tk();app=ZTMApp(root);root.update_idletasks()
+          assert app._font_zoom == .95
+          assert not app.confirm_power.get() and not app.confirm_reward.get()
+          assert app.prepare_btn.winfo_ismapped() and app.benchmark_btn.winfo_ismapped()
+          assert root.winfo_width()<=root.winfo_screenwidth()
+          root.destroy()
+          print('PASS: exact public RC1 command and 1024x768 GUI')
+          PY
