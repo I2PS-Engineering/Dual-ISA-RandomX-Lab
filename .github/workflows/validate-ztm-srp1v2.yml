@@ -50,7 +50,7 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -qq -y xvfb python3-tk
           for resolution in 1024x768 1280x720 1366x768 1920x1080; do
-            RES="$resolution" xvfb-run -a -s "-screen 0 \${resolution}x24" /usr/bin/python3 - <<'PY'
+            RES="$resolution" xvfb-run -a -s "-screen 0 ${resolution}x24" /usr/bin/python3 - <<'PY'
 import os, sys, tkinter as tk
 sys.path.insert(0, '/tmp/ztm-v2/pkg/usr/lib/ztm')
 import ztm_gui
